@@ -10,8 +10,8 @@ import struct
 import sys
 import textwrap
 
-from collections import deque
-from enum import Enum
+from collections import defaultdict, deque
+from enum import Enum, Flag, auto
 
 
 
@@ -19,7 +19,7 @@ from enum import Enum
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2022-01-20"
+randomizerVersion = "2022-04-25"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -185,6 +185,7 @@ Progress = Enum(
         "ARMOR___PARTIAL_BODYSUIT",
         "ARMOR___FULL_BODYSUIT",
         # Items
+        # For the Slap Patch, see "EVENT___UNLIMITED_SLAP_PATCHES"
         "ITEM___BLACK_BOTTLE",
         "ITEM___BROKEN_BOTTLE",
         "ITEM___BRONZE_KEY",
@@ -231,7 +232,6 @@ Progress = Enum(
         "ITEM___SCALPEL",
         "ITEM___SERPENT_SCALES",
         "ITEM___SHADES",
-        "ITEM___SLAP_PATCH",
         "ITEM___STAKE",
         "ITEM___STROBE",
         "ITEM___TICKETS",
@@ -303,11 +303,16 @@ Progress = Enum(
     ],
 )
 
-class Entity:
-    CONSTANT = 0
-    ITEM = 1
-    NPC = 2
+class Category(Flag):
+    CONSTANT = auto()
+    KEY_ITEM = auto()
+    WEAPON = auto()
+    ARMOR = auto()
+    WEAPON_OR_ARMOR = WEAPON | ARMOR
+    ITEM = auto()
+    NPC = auto()
 
+class Entity:
     def __init__(self, category, description, entityAddress, progression):
         self.category = category
         self.description = description
@@ -315,8 +320,10 @@ class Entity:
         self.progression = progression
 
 class Location:
-    def __init__(self, region, vanilla, requires, address, hidden):
+    def __init__(self, region, category, description, vanilla, requires, address, hidden):
         self.region = region
+        self.category = category
+        self.description = description
         self.vanilla = vanilla
         self.requires = requires
         self.address = address
@@ -344,7 +351,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Matchbox", 0x6B8FF, [
+        category = Category.CONSTANT,
+        description = "Matchbox",
+        vanilla = Entity(Category.CONSTANT, "Matchbox", 0x6B8FF, [
             (Progress.ITEM___MATCHBOX, []),
         ]),
         requires = [],
@@ -353,7 +362,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Examine Ripped Note", None, [
+        category = Category.CONSTANT,
+        description = "Examine Ripped Note",
+        vanilla = Entity(Category.CONSTANT, "Examine Ripped Note", None, [
             (Progress.PHONE_NUMBER___SASSIE, [Progress.ITEM___RIPPED_NOTE]),
         ]),
         requires = [],
@@ -362,7 +373,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Nirwanda or Laughlyn", None, [
+        category = Category.CONSTANT,
+        description = "Nirwanda or Laughlyn",
+        vanilla = Entity(Category.CONSTANT, "Nirwanda or Laughlyn", None, [
             # Treat every "knows either Nirwanda or Laughlyn" requirement as
             # "knows Laughlyn" in order to avoid softlocks.
             (Progress.EVENT___NIRWANDA_OR_LAUGHLYN, [Progress.KEYWORD___LAUGHLYN]),
@@ -373,7 +386,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Time Bomb", 0x6B261, [
+        category = Category.CONSTANT,
+        description = "Assemble Time Bomb",
+        vanilla = Entity(Category.CONSTANT, "Time Bomb", 0x6B261, [
             (Progress.ITEM___TIME_BOMB, [
                 Progress.ITEM___DETONATOR,
                 Progress.ITEM___EXPLOSIVES,
@@ -383,11 +398,13 @@ thisRegion.locations.extend([
         address = 0xCB953,
         hidden = False,
     ),
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     # TODO: Will probably have to rewrite item-merging behaviour, as with Time Bomb components
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DR-MATRIX", 0x6C5AF, [
+        category = Category.CONSTANT,
+        description = "DF_DR-MATRIX",
+        vanilla = Entity(Category.CONSTANT, "DF_DR-MATRIX", 0x6C5AF, [
             (Progress.ITEM___DF_DR_MATRIX, []),
         ]),
         requires = [
@@ -413,7 +430,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Torn Paper", 0x6B25A, [
+        category = Category.ITEM,
+        description = "Torn Paper",
+        vanilla = Entity(Category.ITEM, "Torn Paper", 0x6B25A, [
             (Progress.ITEM___TORN_PAPER, []),
         ]),
         requires = [],
@@ -422,7 +441,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Scalpel", 0x6B555, [
+        category = Category.KEY_ITEM,
+        description = "Scalpel",
+        vanilla = Entity(Category.KEY_ITEM, "Scalpel", 0x6B555, [
             (Progress.ITEM___SCALPEL, []),
         ]),
         requires = [],
@@ -431,8 +452,11 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Slap Patch", 0x6B3CD, [
-            (Progress.ITEM___SLAP_PATCH, []),
+        category = Category.CONSTANT,
+        description = "Slap Patch",
+        vanilla = Entity(Category.CONSTANT, "Slap Patch", 0x6B3CD, [
+            # In vanilla, this is a one-time pickup.
+            (Progress.EVENT___UNLIMITED_SLAP_PATCHES, []),
         ]),
         requires = [],
         address = 0xC8495,
@@ -440,14 +464,18 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Mortician", 0x6B81F, []),
+        category = Category.CONSTANT,
+        description = "Mortician",
+        vanilla = Entity(Category.CONSTANT, "Mortician", 0x6B81F, []),
         requires = [],
         address = 0xC8471,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Mortician", 0x6B82D, [
+        category = Category.CONSTANT,
+        description = "Mortician",
+        vanilla = Entity(Category.CONSTANT, "Mortician", 0x6B82D, [
             (Progress.EVENT___MORGUE_CABINETS_UNLOCKED, [
                 Progress.ITEM___SHADES,
                 Progress.ITEM___LONESTAR_BADGE,
@@ -460,7 +488,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Tickets", 0x6B268, [
+        category = Category.KEY_ITEM,
+        description = "Tickets",
+        vanilla = Entity(Category.KEY_ITEM, "Tickets", 0x6B268, [
             (Progress.ITEM___TICKETS, []),
         ]),
         requires = [Progress.EVENT___MORGUE_CABINETS_UNLOCKED],
@@ -469,7 +499,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Credstick", 0x6C6C0, [
+        category = Category.KEY_ITEM,
+        description = "Credstick",
+        vanilla = Entity(Category.KEY_ITEM, "Credstick", 0x6C6C0, [
             (Progress.ITEM___CREDSTICK, []),
         ]),
         requires = [Progress.EVENT___MORGUE_CABINETS_UNLOCKED],
@@ -501,7 +533,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Decker", 0x6C618, [
+        category = Category.CONSTANT,
+        description = "Decker",
+        vanilla = Entity(Category.CONSTANT, "Decker", 0x6C618, [
             (Progress.KEYWORD___HITMEN, []),
         ]),
         requires = [],
@@ -510,7 +544,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Dog Collar", 0x6C577, [
+        category = Category.ITEM,
+        description = "Dog Collar",
+        vanilla = Entity(Category.KEY_ITEM, "Dog Collar", 0x6C577, [
             (Progress.ITEM___DOG_COLLAR, []),
         ]),
         requires = [],
@@ -519,42 +555,54 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC0E, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC0E, []),
         requires = [],
         address = 0xC8133,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CBEB, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CBEB, []),
         requires = [],
         address = 0xC8139,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC23, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC23, []),
         requires = [],
         address = 0xC813F,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC54, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC54, []),
         requires = [],
         address = 0xC8163,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC38, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC38, []),
         requires = [],
         address = 0xC8169,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Water Fountain", 0x6B15E, [
+        category = Category.CONSTANT,
+        description = "Water Fountain",
+        vanilla = Entity(Category.CONSTANT, "Water Fountain", 0x6B15E, [
             (Progress.EVENT___CLEAN_WATER_COLLECTED, [Progress.ITEM___POTION_BOTTLES]),
         ]),
         requires = [],
@@ -579,8 +627,8 @@ thisRegion.doors.extend([
     Door("Tenth Street - Center", []),
     Door("Tenth Street - Dead Man's Building (hallway)", []),
     Door("Tenth Street - East", []),
-    # In vanilla, entering the Tenth Street monorail station isn't
-    # possible until after Glutman has hidden you in the caryards.
+    # In vanilla, "Progress.EVENT___GLUTMAN_HIDES_YOU" is required
+    # to enter the Tenth Street monorail station.
     Door("Tenth Street - Monorail Platform to Oldtown", []),
 ])
 regions[regionName] = thisRegion
@@ -605,7 +653,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Memo", 0x6B8DC, [
+        category = Category.ITEM,
+        description = "Memo",
+        vanilla = Entity(Category.ITEM, "Memo", 0x6B8DC, [
             (Progress.ITEM___MEMO, []),
         ]),
         requires = [],
@@ -614,7 +664,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Door Key", 0x6C4B3, [
+        category = Category.ITEM,
+        description = "Door Key",
+        vanilla = Entity(Category.KEY_ITEM, "Door Key", 0x6C4B3, [
             (Progress.ITEM___DOOR_KEY, []),
         ]),
         requires = [],
@@ -679,7 +731,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Shades", 0x6B3F7, [
+        category = Category.KEY_ITEM,
+        description = "Shades",
+        vanilla = Entity(Category.KEY_ITEM, "Shades", 0x6B3F7, [
             (Progress.ITEM___SHADES, []),
         ]),
         requires = [],
@@ -688,7 +742,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Ripped Note", 0x6B674, [
+        category = Category.ITEM,
+        description = "Ripped Note",
+        vanilla = Entity(Category.KEY_ITEM, "Ripped Note", 0x6B674, [
             (Progress.ITEM___RIPPED_NOTE, []),
         ]),
         requires = [],
@@ -724,7 +780,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Beretta Pistol", 0x6C983, [
+        category = Category.WEAPON,
+        description = "Beretta Pistol",
+        vanilla = Entity(Category.WEAPON, "Beretta Pistol", 0x6C983, [
             (Progress.WEAPON___BERETTA_PISTOL, []),
         ]),
         requires = [],
@@ -733,7 +791,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Leather Jacket", 0x6BB52, [
+        category = Category.ARMOR,
+        description = "Leather Jacket",
+        vanilla = Entity(Category.ARMOR, "Leather Jacket", 0x6BB52, [
             (Progress.ARMOR___LEATHER_JACKET, []),
         ]),
         requires = [],
@@ -742,7 +802,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "hmmm....", 0x6BC16, [
+        category = Category.CONSTANT,
+        description = "hmmm....",
+        vanilla = Entity(Category.CONSTANT, "hmmm....", 0x6BC16, [
             (Progress.KEYWORD___DOG, []),
         ]),
         requires = [],
@@ -775,7 +837,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Paperweight", 0x6B7A8, [
+        category = Category.ITEM,
+        description = "Paperweight",
+        vanilla = Entity(Category.ITEM, "Paperweight", 0x6B7A8, [
             (Progress.ITEM___PAPERWEIGHT, []),
         ]),
         requires = [],
@@ -796,7 +860,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Secretary", 0x6B41A, [
+        category = Category.CONSTANT,
+        description = "Secretary",
+        vanilla = Entity(Category.CONSTANT, "Secretary", 0x6B41A, [
             (Progress.KEYWORD___THE_CAGE,          [Progress.KEYWORD___GLUTMAN]),
             (Progress.EVENT___GLUTMAN_AT_THE_CAGE, [Progress.KEYWORD___GLUTMAN]),
         ]),
@@ -806,17 +872,21 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Cyberdeck", 0x6C634, [
+        category = Category.ITEM,
+        description = "Cyberdeck",
+        vanilla = Entity(Category.KEY_ITEM, "Cyberdeck", 0x6C634, [
             (Progress.ITEM___CYBERDECK, []),
         ]),
         requires = [],
         address = 0xC9325,
         hidden = False,
     ),
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_BADNEWS", 0x6C5D9, [
+        category = Category.CONSTANT,
+        description = "DF_BADNEWS",
+        vanilla = Entity(Category.CONSTANT, "DF_BADNEWS", 0x6C5D9, [
             (Progress.ITEM___DF_BADNEWS, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -859,7 +929,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Business Man", 0x6C8CD, [
+        category = Category.CONSTANT,
+        description = "Business Man",
+        vanilla = Entity(Category.CONSTANT, "Business Man", 0x6C8CD, [
             (Progress.KEYWORD___SHADOWRUNNERS, []),
             (Progress.KEYWORD___HIRING,        [Progress.KEYWORD___SHADOWRUNNERS]),
             (Progress.KEYWORD___NEGOTIATION,   [Progress.KEYWORD___HIRING]),
@@ -883,7 +955,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CBF2, [
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CBF2, [
             (Progress.KEYWORD___HEAL,       []),
             (Progress.KEYWORD___STREET_DOC, [Progress.KEYWORD___HEAL]),
         ]),
@@ -893,7 +967,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club Manager", 0x6C8A3, [
+        category = Category.CONSTANT,
+        description = "Club Manager",
+        vanilla = Entity(Category.CONSTANT, "Club Manager", 0x6C8A3, [
             (Progress.KEYWORD___SHADOWRUNNERS, []),
             (Progress.KEYWORD___DECKER,        [Progress.KEYWORD___SHADOWRUNNERS]),
             (Progress.KEYWORD___HIRING,        [Progress.KEYWORD___SHADOWRUNNERS]),
@@ -905,7 +981,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Iced Tea", 0x6BC08, [
+        category = Category.ITEM,
+        description = "Iced Tea",
+        vanilla = Entity(Category.KEY_ITEM, "Iced Tea", 0x6BC08, [
             (Progress.ITEM___ICED_TEA, []),
         ]),
         requires = [],
@@ -914,7 +992,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club patron...", 0x6C88E, [
+        category = Category.CONSTANT,
+        description = "Club patron...",
+        vanilla = Entity(Category.CONSTANT, "Club patron...", 0x6C88E, [
             (Progress.EVENT___ICED_TEA_GIVEN, [Progress.ITEM___ICED_TEA]),
             (Progress.KEYWORD___TICKETS,      [Progress.EVENT___ICED_TEA_GIVEN]),
             (Progress.KEYWORD___MARIA,        [Progress.EVENT___ICED_TEA_GIVEN, Progress.KEYWORD___TICKETS]),
@@ -928,7 +1008,9 @@ thisRegion.locations.extend([
     # TODO: This is Hamfist
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Orc", 0x6B7D2, []),
+        category = Category.CONSTANT,
+        description = "Orc",
+        vanilla = Entity(Category.CONSTANT, "Orc", 0x6B7D2, []),
         requires = [],
         address = 0xC87CB,
         hidden = False,
@@ -941,7 +1023,9 @@ thisRegion.locations.extend([
     # waypoint he gets placed at when not on the phone.
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Jamaican", 0x6BBD0, []),
+        category = Category.CONSTANT,
+        description = "Jamaican",
+        vanilla = Entity(Category.CONSTANT, "Jamaican", 0x6BBD0, []),
         requires = [],
         address = 0xC87A1,
         hidden = False,
@@ -960,11 +1044,24 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Loyal citizen", 0x6BB2F, [
+        category = Category.CONSTANT,
+        description = "Loyal citizen",
+        vanilla = Entity(Category.CONSTANT, "Loyal citizen", 0x6BB2F, [
             (Progress.KEYWORD___THE_CAGE, [Progress.KEYWORD___MARIA]),
         ]),
         requires = [],
         address = 0xC8329,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Heavy Dude",
+        vanilla = Entity(Category.CONSTANT, "Heavy Dude", 0x6BF11, [
+            (Progress.KEYWORD___LONE_STAR, []),
+        ]),
+        requires = [],
+        address = 0xC832F,
         hidden = False,
     ),
 ])
@@ -988,7 +1085,9 @@ thisRegion.locations.extend([
     # eligible for randomization.
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Ghoul Bone", 0x6C172, [
+        category = Category.ITEM,
+        description = "Ghoul Bone",
+        vanilla = Entity(Category.ITEM, "Ghoul Bone", 0x6C172, [
             (Progress.ITEM___GHOUL_BONE, []),
         ]),
         requires = [Progress.EVENT___CHROME_COYOTE_HEALED],
@@ -1013,7 +1112,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Indian Shaman", 0x6BBFA, [
+        category = Category.CONSTANT,
+        description = "Indian Shaman",
+        vanilla = Entity(Category.CONSTANT, "Indian Shaman", 0x6BBFA, [
             (Progress.EVENT___CHROME_COYOTE_HEALED, [Progress.EVENT___UNLIMITED_SLAP_PATCHES]),
             (Progress.KEYWORD___SHAMAN,             [Progress.EVENT___CHROME_COYOTE_HEALED]),
             (Progress.KEYWORD___MAGIC_FETISH,       [Progress.EVENT___CHROME_COYOTE_HEALED]),
@@ -1067,7 +1168,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Heavy Bouncer", 0x6BFFF, [
+        category = Category.CONSTANT,
+        description = "Heavy Bouncer",
+        vanilla = Entity(Category.CONSTANT, "Heavy Bouncer", 0x6BFFF, [
             (Progress.KEYWORD___TICKETS,        []),
             (Progress.EVENT___TICKETS_REDEEMED, [Progress.ITEM___TICKETS]),
         ]),
@@ -1091,7 +1194,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Sassie 702-826", None, [
+        category = Category.CONSTANT,
+        description = "Sassie 702-826",
+        vanilla = Entity(Category.CONSTANT, "Sassie 702-826", None, [
             (Progress.KEYWORD___CALLS,        []),
             (Progress.KEYWORD___GLUTMAN,      [Progress.KEYWORD___CALLS]),
             (Progress.PHONE_NUMBER___GLUTMAN, [Progress.KEYWORD___CALLS]),
@@ -1102,7 +1207,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Glutman 934-782", None, [
+        category = Category.CONSTANT,
+        description = "Glutman 934-782",
+        vanilla = Entity(Category.CONSTANT, "Glutman 934-782", None, [
             (Progress.KEYWORD___THE_CAGE,          [Progress.KEYWORD___GLUTMAN]),
             (Progress.EVENT___GLUTMAN_AT_THE_CAGE, [Progress.KEYWORD___GLUTMAN]),
         ]),
@@ -1112,7 +1219,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Talis. 416-822", None, [
+        category = Category.CONSTANT,
+        description = "Talis. 416-822",
+        vanilla = Entity(Category.CONSTANT, "Talis. 416-822", None, [
             (Progress.PHONE_NUMBER___DBLADE, [Progress.KEYWORD___DARK_BLADE]),
         ]),
         requires = [Progress.PHONE_NUMBER___TALIS],
@@ -1121,14 +1230,18 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dr M. 261-688", None, []),
+        category = Category.CONSTANT,
+        description = "Dr M. 261-688",
+        vanilla = Entity(Category.CONSTANT, "Dr M. 261-688", None, []),
         requires = [Progress.PHONE_NUMBER___DR_M],
         address = None,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DBlade 826-661", None, [
+        category = Category.CONSTANT,
+        description = "DBlade 826-661",
+        vanilla = Entity(Category.CONSTANT, "DBlade 826-661", None, [
             (Progress.EVENT___DARK_BLADE_GATE_OPENED, [Progress.KEYWORD___MAGIC_FETISH]),
         ]),
         requires = [Progress.PHONE_NUMBER___DBLADE],
@@ -1140,6 +1253,8 @@ thisRegion.locations.extend([
     #   for the computer that gives you DF_DR-VOLCANO. Should probably
     #   be revised so you learn it by examining DF_DR-VOLCANO.
     #   Ditto for Akimi's phone number and DF_DS-AKIMI.
+    # TODO: Alternately, revise the Video Phone script so having those
+    #   two items gives you the respective phone numbers.
 ])
 regions[regionName] = thisRegion
 
@@ -1151,7 +1266,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Heavy Dude", 0x6BE77, [
+        category = Category.CONSTANT,
+        description = "Heavy Dude",
+        vanilla = Entity(Category.CONSTANT, "Heavy Dude", 0x6BE77, [
             (Progress.KEYWORD___GHOULS, []),
         ]),
         requires = [],
@@ -1160,21 +1277,27 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Lonely Gal", 0x6BB3D, []),
+        category = Category.CONSTANT,
+        description = "Lonely Gal",
+        vanilla = Entity(Category.CONSTANT, "Lonely Gal", 0x6BB3D, []),
         requires = [],
         address = 0xC86D3,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Busy Man", 0x6C8C6, []),
+        category = Category.CONSTANT,
+        description = "Busy Man",
+        vanilla = Entity(Category.CONSTANT, "Busy Man", 0x6C8C6, []),
         requires = [],
         address = 0xC86CD,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club Manager", 0x6C89C, [
+        category = Category.CONSTANT,
+        description = "Club Manager",
+        vanilla = Entity(Category.CONSTANT, "Club Manager", 0x6C89C, [
             (Progress.KEYWORD___FIREARMS, [Progress.KEYWORD___SHADOWRUNNERS]),
         ]),
         requires = [],
@@ -1183,35 +1306,45 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC5B, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC5B, []),
         requires = [],
         address = 0xC86C1,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A waitress", 0x6CBE4, []),
+        category = Category.CONSTANT,
+        description = "A waitress",
+        vanilla = Entity(Category.CONSTANT, "A waitress", 0x6CBE4, []),
         requires = [],
         address = 0xC8691,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Well dressed...", 0x6B150, []),
+        category = Category.CONSTANT,
+        description = "Well dressed...",
+        vanilla = Entity(Category.CONSTANT, "Well dressed...", 0x6B150, []),
         requires = [],
         address = 0xC86BB,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dancing Hippie!", 0x6C61F, []),
+        category = Category.CONSTANT,
+        description = "Dancing Hippie!",
+        vanilla = Entity(Category.CONSTANT, "Dancing Hippie!", 0x6C61F, []),
         requires = [],
         address = 0xC86C7,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Shady character...", 0x6B3F0, [
+        category = Category.CONSTANT,
+        description = "Shady character...",
+        vanilla = Entity(Category.CONSTANT, "Shady character...", 0x6B3F0, [
             (Progress.EVENT___GLUTMAN_HIDES_YOU, []),
         ]),
         requires = [Progress.EVENT___GLUTMAN_AT_THE_CAGE],
@@ -1243,7 +1376,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Gang member", 0x6C29F, [
+        category = Category.CONSTANT,
+        description = "Gang member",
+        vanilla = Entity(Category.CONSTANT, "Gang member", 0x6C29F, [
             (Progress.KEYWORD___CARYARDS, []),
             (Progress.KEYWORD___KING,     []),
         ]),
@@ -1253,7 +1388,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street kid", 0x6B325, [
+        category = Category.CONSTANT,
+        description = "Street kid",
+        vanilla = Entity(Category.CONSTANT, "Street kid", 0x6B325, [
             (Progress.KEYWORD___DECKER,     []),
             (Progress.KEYWORD___THE_MATRIX, []),
             (Progress.KEYWORD___DATAJACK,   [Progress.KEYWORD___DECKER]),
@@ -1264,7 +1401,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Heavy Dude", 0x6BD43, [
+        category = Category.CONSTANT,
+        description = "Heavy Dude",
+        vanilla = Entity(Category.CONSTANT, "Heavy Dude", 0x6BD43, [
             (Progress.KEYWORD___DRAKE,    []),
             (Progress.KEYWORD___CARYARDS, []),
         ]),
@@ -1274,14 +1413,18 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street dweller", 0x6B341, []),
+        category = Category.CONSTANT,
+        description = "Street dweller",
+        vanilla = Entity(Category.CONSTANT, "Street dweller", 0x6B341, []),
         requires = [],
         address = 0xC945D,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street scum", 0x6B2E6, [
+        category = Category.CONSTANT,
+        description = "Street scum",
+        vanilla = Entity(Category.CONSTANT, "Street scum", 0x6B2E6, [
             (Progress.KEYWORD___KING,  []),
             (Progress.KEYWORD___NUYEN, [Progress.KEYWORD___KING]),
         ]),
@@ -1291,7 +1434,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Little boy", 0x6BB44, [
+        category = Category.CONSTANT,
+        description = "Little boy",
+        vanilla = Entity(Category.CONSTANT, "Little boy", 0x6BB44, [
             (Progress.EVENT___UNLIMITED_SLAP_PATCHES, [Progress.KEYWORD___HEAL]),
         ]),
         requires = [],
@@ -1300,7 +1445,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "The King", 0x6B26F, []),
+        category = Category.CONSTANT,
+        description = "The King",
+        vanilla = Entity(Category.CONSTANT, "The King", 0x6B26F, []),
         requires = [],
         address = 0xC9475,
         hidden = False,
@@ -1322,7 +1469,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Arena owner", 0x6CB97, [
+        category = Category.CONSTANT,
+        description = "Arena owner",
+        vanilla = Entity(Category.CONSTANT, "Arena owner", 0x6CB97, [
             (Progress.SKILL___NEGOTIATION, [Progress.KEYWORD___NEGOTIATION]),
         ]),
         requires = [],
@@ -1353,22 +1502,25 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street kid", 0x6B333, []),
+        category = Category.CONSTANT,
+        description = "Street kid",
+        vanilla = Entity(Category.CONSTANT, "Street kid", 0x6B333, []),
         requires = [],
         address = 0xC8D29,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street Scum", 0x6B2ED, []),
+        category = Category.CONSTANT,
+        description = "Street Scum",
+        vanilla = Entity(Category.CONSTANT, "Street Scum", 0x6B2ED, []),
         requires = [],
         address = 0xC8D2F,
         hidden = False,
     ),
 ])
 thisRegion.doors.extend([
-    # In vanilla, entering the caryards here doesn't require anything.
-    Door("Caryards - Center", [Progress.EVENT___GLUTMAN_HIDES_YOU]),
+    Door("Caryards - Center", []),
     Door("Oldtown - Sputnik Club", []),
     Door("Oldtown - Center", []),
     Door("Oldtown - Monorail Platform to Tenth Street", []),
@@ -1384,14 +1536,18 @@ thisRegion.locations.extend([
     # TODO: This is Dances with Clams
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Magic user", 0x6B9C3, []),
+        category = Category.CONSTANT,
+        description = "Magic user",
+        vanilla = Entity(Category.CONSTANT, "Magic user", 0x6B9C3, []),
         requires = [],
         address = 0xC977D,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Customer", 0x6C65E, [
+        category = Category.CONSTANT,
+        description = "Customer",
+        vanilla = Entity(Category.CONSTANT, "Customer", 0x6C65E, [
             (Progress.KEYWORD___STREET_DOC, []),
         ]),
         requires = [],
@@ -1400,7 +1556,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Customer", 0x6C657, [
+        category = Category.CONSTANT,
+        description = "Customer",
+        vanilla = Entity(Category.CONSTANT, "Customer", 0x6C657, [
             (Progress.KEYWORD___DECKER, []),
         ]),
         requires = [],
@@ -1409,21 +1567,27 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club Manager", 0x6C8AA, []),
+        category = Category.CONSTANT,
+        description = "Club Manager",
+        vanilla = Entity(Category.CONSTANT, "Club Manager", 0x6C8AA, []),
         requires = [],
         address = 0xC9765,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Orc", 0x6B7C4, []),
+        category = Category.CONSTANT,
+        description = "Orc",
+        vanilla = Entity(Category.CONSTANT, "Orc", 0x6B7C4, []),
         requires = [],
         address = 0xC975F,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Happy Customer", 0x6C006, [
+        category = Category.CONSTANT,
+        description = "Happy Customer",
+        vanilla = Entity(Category.CONSTANT, "Happy Customer", 0x6C006, [
             (Progress.KEYWORD___HIRING, [Progress.KEYWORD___SHADOWRUNNERS]),
         ]),
         requires = [],
@@ -1433,7 +1597,9 @@ thisRegion.locations.extend([
     # TODO: This is Orifice
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Large orc", 0x6BB67, []),
+        category = Category.CONSTANT,
+        description = "Large orc",
+        vanilla = Entity(Category.CONSTANT, "Large orc", 0x6BB67, []),
         requires = [],
         address = 0xC9771,
         hidden = False,
@@ -1452,14 +1618,18 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Gang member", 0x6C267, []),
+        category = Category.CONSTANT,
+        description = "Gang member",
+        vanilla = Entity(Category.CONSTANT, "Gang member", 0x6C267, []),
         requires = [],
         address = 0xD1C81,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Gang member", 0x6C291, []),
+        category = Category.CONSTANT,
+        description = "Gang member",
+        vanilla = Entity(Category.CONSTANT, "Gang member", 0x6C291, []),
         requires = [],
         address = 0xD1C7B,
         hidden = False,
@@ -1480,14 +1650,18 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Person", 0x6B6C1, []),
+        category = Category.CONSTANT,
+        description = "Person",
+        vanilla = Entity(Category.CONSTANT, "Person", 0x6B6C1, []),
         requires = [],
         address = 0xC957F,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Person", 0x6B6C8, []),
+        category = Category.CONSTANT,
+        description = "Person",
+        vanilla = Entity(Category.CONSTANT, "Person", 0x6B6C8, []),
         requires = [],
         address = 0xC9591,
         hidden = False,
@@ -1508,7 +1682,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Indian Shaman", 0x6BC01, [
+        category = Category.CONSTANT,
+        description = "Indian Shaman",
+        vanilla = Entity(Category.CONSTANT, "Indian Shaman", 0x6BC01, [
             (Progress.KEYWORD___TALISMANS,   []),
             (Progress.KEYWORD___SHAMAN,      [Progress.KEYWORD___TALISMANS]),
             (Progress.PHONE_NUMBER___TALIS,  [Progress.KEYWORD___TALISMANS]),
@@ -1520,7 +1696,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Potion Bottles", 0x6B689, [
+        category = Category.ITEM,
+        description = "Potion Bottles",
+        vanilla = Entity(Category.ITEM, "Potion Bottles", 0x6B689, [
             (Progress.ITEM___POTION_BOTTLES, []),
         ]),
         requires = [],
@@ -1529,7 +1707,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Black Bottle", 0x6C975, [
+        category = Category.ITEM,
+        description = "Black Bottle",
+        vanilla = Entity(Category.ITEM, "Black Bottle", 0x6C975, [
             (Progress.ITEM___BLACK_BOTTLE, []),
         ]),
         requires = [],
@@ -1538,7 +1718,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Stake", 0x6B35D, [
+        category = Category.ITEM,
+        description = "Stake",
+        vanilla = Entity(Category.KEY_ITEM, "Stake", 0x6B35D, [
             (Progress.ITEM___STAKE, []),
         ]),
         requires = [],
@@ -1559,21 +1741,27 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dwarf", 0x6C490, []),
+        category = Category.CONSTANT,
+        description = "Dwarf",
+        vanilla = Entity(Category.CONSTANT, "Dwarf", 0x6C490, []),
         requires = [],
         address = 0xC9625,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "She's choosing...", 0x6B3E9, []),
+        category = Category.CONSTANT,
+        description = "She's choosing...",
+        vanilla = Entity(Category.CONSTANT, "She's choosing...", 0x6B3E9, []),
         requires = [],
         address = 0xC962B,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Colt L36 Pistol", 0x6C7F4, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Colt L36 Pistol",
+        vanilla = Entity(Category.WEAPON, "Colt L36 Pistol", 0x6C7F4, [
             (Progress.WEAPON___COLT_L36_PISTOL, []),
         ]),
         requires = [],
@@ -1582,7 +1770,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Viper H. Pistol ($4,000)", 0x6B181, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Viper H. Pistol ($4,000)",
+        vanilla = Entity(Category.WEAPON, "Viper H. Pistol ($4,000)", 0x6B181, [
             (Progress.WEAPON___VIPER_H_PISTOL___4000, []),
         ]),
         requires = [],
@@ -1591,7 +1781,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Mesh Jacket ($5,000)", 0x6B881, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Mesh Jacket ($5,000)",
+        vanilla = Entity(Category.ARMOR, "Mesh Jacket ($5,000)", 0x6B881, [
             (Progress.ARMOR___MESH_JACKET___5000, []),
         ]),
         requires = [],
@@ -1600,7 +1792,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "T-250 Shotgun ($15,000)", 0x6B292, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "T-250 Shotgun ($15,000)",
+        vanilla = Entity(Category.WEAPON, "T-250 Shotgun ($15,000)", 0x6B292, [
             (Progress.WEAPON___T_250_SHOTGUN___15000, []),
         ]),
         requires = [],
@@ -1609,7 +1803,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Fichetti L. Pistol", 0x6C324, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Fichetti L. Pistol",
+        vanilla = Entity(Category.WEAPON, "Fichetti L. Pistol", 0x6C324, [
             (Progress.WEAPON___FICHETTI_L_PISTOL, []),
         ]),
         requires = [],
@@ -1618,7 +1814,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Warhawk H. Pistol", 0x6B16C, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Warhawk H. Pistol",
+        vanilla = Entity(Category.WEAPON, "Warhawk H. Pistol", 0x6B16C, [
             (Progress.WEAPON___WARHAWK_H_PISTOL, []),
         ]),
         requires = [],
@@ -1650,7 +1848,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street Doc", 0x6B348, [
+        category = Category.CONSTANT,
+        description = "Street Doc",
+        vanilla = Entity(Category.CONSTANT, "Street Doc", 0x6B348, [
             (Progress.KEYWORD___EXAMINATION, [Progress.KEYWORD___DATAJACK]),
             (Progress.KEYWORD___CORTEX_BOMB, [Progress.KEYWORD___EXAMINATION]),
         ]),
@@ -1706,7 +1906,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street kid", 0x6B32C, []),
+        category = Category.CONSTANT,
+        description = "Street kid",
+        vanilla = Entity(Category.CONSTANT, "Street kid", 0x6B32C, []),
         requires = [],
         address = 0xCA6F9,
         hidden = False,
@@ -1714,7 +1916,9 @@ thisRegion.locations.extend([
     # TODO: This is Akimi
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Akimi", 0x6CBA5, []),
+        category = Category.CONSTANT,
+        description = "Akimi",
+        vanilla = Entity(Category.CONSTANT, "Akimi", 0x6CBA5, []),
         requires = [],
         address = 0xCA717,
         hidden = False,
@@ -1734,7 +1938,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Iron Key", 0x6BBF3, [
+        category = Category.ITEM,
+        description = "Iron Key",
+        vanilla = Entity(Category.KEY_ITEM, "Iron Key", 0x6BBF3, [
             (Progress.ITEM___IRON_KEY, []),
         ]),
         requires = [],
@@ -1743,7 +1949,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Doggie", 0x6C554, []),
+        category = Category.CONSTANT,
+        description = "Doggie",
+        vanilla = Entity(Category.CONSTANT, "Doggie", 0x6C554, []),
         requires = [],
         address = 0xCA7D1,
         hidden = False,
@@ -1764,42 +1972,54 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Person", 0x6B6BA, []),
+        category = Category.CONSTANT,
+        description = "Person",
+        vanilla = Entity(Category.CONSTANT, "Person", 0x6B6BA, []),
         requires = [],
         address = 0xCA8B5,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC15, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC15, []),
         requires = [],
         address = 0xCA8BB,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC00, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC00, []),
         requires = [],
         address = 0xCA8C1,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC2A, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC2A, []),
         requires = [],
         address = 0xCA8C7,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CBF9, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CBF9, []),
         requires = [],
         address = 0xCA8CD,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC31, []),
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC31, []),
         requires = [],
         address = 0xCA8D3,
         hidden = False,
@@ -1822,7 +2042,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Mage", 0x6BB0C, []),
+        category = Category.CONSTANT,
+        description = "Mage",
+        vanilla = Entity(Category.CONSTANT, "Mage", 0x6BB0C, []),
         requires = [],
         address = 0xD06E9,
         hidden = False,
@@ -1843,14 +2065,18 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Stall Keeper", 0x6B356, []),
+        category = Category.CONSTANT,
+        description = "Stall Keeper",
+        vanilla = Entity(Category.CONSTANT, "Stall Keeper", 0x6B356, []),
         requires = [],
         address = 0xCB29D,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dancing Hippie!", 0x6C626, []),
+        category = Category.CONSTANT,
+        description = "Dancing Hippie!",
+        vanilla = Entity(Category.CONSTANT, "Dancing Hippie!", 0x6C626, []),
         requires = [],
         address = 0xCB297,
         hidden = False,
@@ -1870,7 +2096,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Secretary", 0x6B421, [
+        category = Category.CONSTANT,
+        description = "Secretary",
+        vanilla = Entity(Category.CONSTANT, "Secretary", 0x6B421, [
             (Progress.EVENT___MAPLETHORPE_DOOR_OPENED, [Progress.KEYWORD___CORTEX_BOMB]),
         ]),
         requires = [],
@@ -1892,7 +2120,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Street Doc", 0x6B34F, [
+        category = Category.CONSTANT,
+        description = "Street Doc",
+        vanilla = Entity(Category.CONSTANT, "Street Doc", 0x6B34F, [
             (Progress.EVENT___DATAJACK_REPAIRED,      [Progress.KEYWORD___CORTEX_BOMB]),
             (Progress.KEYWORD___CYBERWARE,            [Progress.EVENT___DATAJACK_REPAIRED]),
             (Progress.KEYWORD___HEAD_COMPUTER,        [Progress.EVENT___DATAJACK_REPAIRED]),
@@ -1905,7 +2135,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Skill Software", 0x6B3DB, [
+        category = Category.CONSTANT,
+        description = "Skill Software",
+        vanilla = Entity(Category.CONSTANT, "Skill Software", 0x6B3DB, [
             (Progress.CYBERWARE___SKILL_SOFTWARE, [Progress.KEYWORD___CYBERWARE]),
             (Progress.SKILL___LEADERSHIP,         [Progress.KEYWORD___CYBERWARE]),
         ]),
@@ -1915,7 +2147,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Boosted Reflexes", 0x6C960, [
+        category = Category.CONSTANT,
+        description = "Boosted Reflexes",
+        vanilla = Entity(Category.CONSTANT, "Boosted Reflexes", 0x6C960, [
             (Progress.CYBERWARE___BOOSTED_REFLEXES, [Progress.KEYWORD___CYBERWARE]),
         ]),
         requires = [],
@@ -1924,7 +2158,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dermal Plating", 0x6C5F5, [
+        category = Category.CONSTANT,
+        description = "Dermal Plating",
+        vanilla = Entity(Category.CONSTANT, "Dermal Plating", 0x6C5F5, [
             (Progress.CYBERWARE___DERMAL_PLATING, [
                 Progress.KEYWORD___CYBERWARE,
                 Progress.EVENT___JESTER_SPIRIT_PORTAL_USED,
@@ -1973,7 +2209,9 @@ thisRegion.locations.extend([
     # TODO: This is Norbert
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dwarf", 0x6C497, []),
+        category = Category.CONSTANT,
+        description = "Dwarf",
+        vanilla = Entity(Category.CONSTANT, "Dwarf", 0x6C497, []),
         requires = [],
         address = 0xCBB4F,
         hidden = False,
@@ -1981,7 +2219,9 @@ thisRegion.locations.extend([
     # TODO: This is Jetboy
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Decker", 0x6C5FC, [
+        category = Category.CONSTANT,
+        description = "Decker",
+        vanilla = Entity(Category.CONSTANT, "Decker", 0x6C5FC, [
             (Progress.KEYWORD___RAITSOV, [Progress.KEYWORD___MATRIX_SYSTEMS]),
         ]),
         requires = [],
@@ -1990,7 +2230,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club Manager", 0x6C895, [
+        category = Category.CONSTANT,
+        description = "Club Manager",
+        vanilla = Entity(Category.CONSTANT, "Club Manager", 0x6C895, [
             (Progress.KEYWORD___ICE, []),
         ]),
         requires = [],
@@ -2000,7 +2242,9 @@ thisRegion.locations.extend([
     # TODO: This is Anders
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Mercenary", 0x6B8D5, [
+        category = Category.CONSTANT,
+        description = "Mercenary",
+        vanilla = Entity(Category.CONSTANT, "Mercenary", 0x6B8D5, [
             (Progress.KEYWORD___AKIMI,       [Progress.KEYWORD___SHADOWRUNNERS]),
             (Progress.KEYWORD___STEELFLIGHT, [Progress.KEYWORD___SHADOWRUNNERS]),
         ]),
@@ -2011,28 +2255,36 @@ thisRegion.locations.extend([
     # TODO: This is Frogtongue
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Orc", 0x6B7AF, []),
+        category = Category.CONSTANT,
+        description = "Orc",
+        vanilla = Entity(Category.CONSTANT, "Orc", 0x6B7AF, []),
         requires = [],
         address = 0xCBB91,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Well dressed...", 0x6B157, []),
+        category = Category.CONSTANT,
+        description = "Well dressed...",
+        vanilla = Entity(Category.CONSTANT, "Well dressed...", 0x6B157, []),
         requires = [],
         address = 0xCBB8B,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dancing Hippie!", 0x6C62D, []),
+        category = Category.CONSTANT,
+        description = "Dancing Hippie!",
+        vanilla = Entity(Category.CONSTANT, "Dancing Hippie!", 0x6C62D, []),
         requires = [],
         address = 0xCBB85,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "A Busy Man", 0x6CC3F, [
+        category = Category.CONSTANT,
+        description = "A Busy Man",
+        vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC3F, [
             (Progress.EVENT___ICE_DELIVERED_TO_DOCKS, [
                 Progress.EVENT___NIRWANDA_OR_LAUGHLYN,
                 Progress.KEYWORD___ICE,
@@ -2068,7 +2320,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Crowbar", 0x6C6B9, [
+        category = Category.ITEM,
+        description = "Crowbar",
+        vanilla = Entity(Category.KEY_ITEM, "Crowbar", 0x6C6B9, [
             (Progress.ITEM___CROWBAR, []),
         ]),
         requires = [],
@@ -2090,7 +2344,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Gang Leader", 0x6C2C9, [
+        category = Category.CONSTANT,
+        description = "Gang Leader",
+        vanilla = Entity(Category.CONSTANT, "Gang Leader", 0x6C2C9, [
             (Progress.KEYWORD___DRAKE,                 []),
             (Progress.EVENT___RUST_STILETTOS_DEFEATED, []),
         ]),
@@ -2100,7 +2356,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Password (Drake)", 0x6B79A, [
+        category = Category.KEY_ITEM,
+        description = "Password (Drake)",
+        vanilla = Entity(Category.KEY_ITEM, "Password (Drake)", 0x6B79A, [
             (Progress.ITEM___PASSWORD___DRAKE, []),
         ]),
         requires = [],
@@ -2134,7 +2392,9 @@ thisRegion = Region(regionName)
 thisRegion.doors.extend([
     Door("Downtown - Crossroads", []),
     Door("Downtown - Hotel (lobby)", []),
-    Door("Downtown - Jagged Nails", [Progress.EVENT___RUST_STILETTOS_DEFEATED]),
+    # In vanilla, "Progress.EVENT___RUST_STILETTOS_DEFEATED" is
+    # required to enter Jagged Nails.
+    Door("Downtown - Jagged Nails", []),
 ])
 regions[regionName] = thisRegion
 
@@ -2168,7 +2428,9 @@ thisRegion.locations.extend([
     # TODO: This is Kitsune
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Kitsune", 0x6BB7C, [
+        category = Category.CONSTANT,
+        description = "Kitsune",
+        vanilla = Entity(Category.CONSTANT, "Kitsune", 0x6BB7C, [
             (Progress.ITEM___LEAVES,        [Progress.KEYWORD___DOG]),
             (Progress.KEYWORD___DARK_BLADE, [Progress.KEYWORD___JESTER_SPIRIT]),
             (Progress.KEYWORD___VAMPIRES,   [Progress.KEYWORD___DARK_BLADE]),
@@ -2179,7 +2441,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club Manager", 0x6C8B8, [
+        category = Category.CONSTANT,
+        description = "Club Manager",
+        vanilla = Entity(Category.CONSTANT, "Club Manager", 0x6C8B8, [
             (Progress.KEYWORD___VAMPIRES, [Progress.KEYWORD___DARK_BLADE]),
             (Progress.ITEM___STROBE,      [Progress.KEYWORD___STROBES]),
         ]),
@@ -2190,7 +2454,9 @@ thisRegion.locations.extend([
     # TODO: This is Steelflight
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Decker", 0x6C611, [
+        category = Category.CONSTANT,
+        description = "Decker",
+        vanilla = Entity(Category.CONSTANT, "Decker", 0x6C611, [
             (Progress.KEYWORD___ANDERS, [Progress.KEYWORD___SHADOWRUNNERS]),
         ]),
         requires = [],
@@ -2199,7 +2465,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Club Manager", 0x6C8B1, [
+        category = Category.CONSTANT,
+        description = "Club Manager",
+        vanilla = Entity(Category.CONSTANT, "Club Manager", 0x6C8B1, [
             (Progress.KEYWORD___KITSUNE,   []),
             (Progress.PHONE_NUMBER___DR_M, [Progress.KEYWORD___STREET_DOC]),
             (Progress.KEYWORD___STROBES,   [Progress.KEYWORD___VAMPIRES]),
@@ -2211,7 +2479,9 @@ thisRegion.locations.extend([
     # TODO: This is Spatter
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Mage", 0x6BA41, []),
+        category = Category.CONSTANT,
+        description = "Mage",
+        vanilla = Entity(Category.CONSTANT, "Mage", 0x6BA41, []),
         requires = [],
         address = 0xCB7A1,
         hidden = False,
@@ -2267,7 +2537,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Boat driver", 0x6C96E, [
+        category = Category.CONSTANT,
+        description = "Boat driver",
+        vanilla = Entity(Category.CONSTANT, "Boat driver", 0x6C96E, [
             (Progress.KEYWORD___DOCKS,        []),
             (Progress.KEYWORD___MERMAIDS,     [Progress.KEYWORD___BREMERTON]),
             (Progress.EVENT___TAXIBOAT_HIRED, [
@@ -2281,7 +2553,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Explosives", 0x6C3D3, [
+        category = Category.ITEM,
+        description = "Explosives",
+        vanilla = Entity(Category.KEY_ITEM, "Explosives", 0x6C3D3, [
             (Progress.ITEM___EXPLOSIVES, []),
         ]),
         requires = [Progress.EVENT___NIRWANDA_OR_LAUGHLYN],
@@ -2301,10 +2575,12 @@ regions[regionName] = thisRegion
 regionName = "Waterfront - Matrix Systems"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_MT-AI", 0x6C57E, [
+        category = Category.CONSTANT,
+        description = "DF_MT-AI",
+        vanilla = Entity(Category.CONSTANT, "DF_MT-AI", 0x6C57E, [
             (Progress.ITEM___DF_MT_AI, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -2325,7 +2601,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Mermaid Scales", 0x6B8C7, [
+        category = Category.ITEM,
+        description = "Mermaid Scales",
+        vanilla = Entity(Category.ITEM, "Mermaid Scales", 0x6B8C7, [
             (Progress.ITEM___MERMAID_SCALES, []),
         ]),
         requires = [Progress.EVENT___ICE_DELIVERED_TO_DOCKS],
@@ -2348,15 +2626,23 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Dog spirit", 0x6C562, [
+        category = Category.CONSTANT,
+        description = "Dog spirit",
+        vanilla = Entity(Category.CONSTANT, "Dog spirit", 0x6C562, [
             (Progress.EVENT___EARTH_CREATURE_AND_MAN, [
                 Progress.ITEM___LEAVES,
                 Progress.ITEM___DOG_COLLAR,
                 Progress.ITEM___MAGIC_FETISH,
             ]),
-            (Progress.KEYWORD___RAT,                  [Progress.EVENT___EARTH_CREATURE_AND_MAN]),
-            (Progress.EVENT___RAT_SHAMAN_GATE_OPENED, [Progress.EVENT___EARTH_CREATURE_AND_MAN]),
-            (Progress.MAGIC___HEAL,                   [Progress.EVENT___EARTH_CREATURE_AND_MAN]),
+            (Progress.KEYWORD___RAT, [
+                Progress.EVENT___EARTH_CREATURE_AND_MAN,
+            ]),
+            (Progress.EVENT___RAT_SHAMAN_GATE_OPENED, [
+                Progress.EVENT___EARTH_CREATURE_AND_MAN,
+            ]),
+            (Progress.MAGIC___HEAL, [
+                Progress.EVENT___EARTH_CREATURE_AND_MAN,
+            ]),
             (Progress.MAGIC___POWERBALL, [
                 Progress.EVENT___EARTH_CREATURE_AND_MAN,
                 Progress.EVENT___RAT_SHAMAN_DEFEATED,
@@ -2408,7 +2694,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Pool of Ink", 0x6B697, [
+        category = Category.CONSTANT,
+        description = "Pool of Ink",
+        vanilla = Entity(Category.CONSTANT, "Pool of Ink", 0x6B697, [
             (Progress.EVENT___POOL_OF_INK_COLLECTED, [Progress.ITEM___BLACK_BOTTLE]),
         ]),
         requires = [],
@@ -2484,7 +2772,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Rat Shaman", 0x6B682, [
+        category = Category.CONSTANT,
+        description = "Rat Shaman",
+        vanilla = Entity(Category.CONSTANT, "Rat Shaman", 0x6B682, [
             (Progress.EVENT___RAT_SHAMAN_DEFEATED, []),
             (Progress.KEYWORD___JESTER_SPIRIT, []),
         ]),
@@ -2541,14 +2831,18 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Shopkeeper", 0x6B3E2, []),
+        category = Category.CONSTANT,
+        description = "Shopkeeper",
+        vanilla = Entity(Category.CONSTANT, "Shopkeeper", 0x6B3E2, []),
         requires = [],
         address = 0xD16E5,
         hidden = False,
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Viper H. Pistol ($3,000)", 0x6B188, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Viper H. Pistol ($3,000)",
+        vanilla = Entity(Category.WEAPON, "Viper H. Pistol ($3,000)", 0x6B188, [
             (Progress.WEAPON___VIPER_H_PISTOL___3000, []),
         ]),
         requires = [],
@@ -2557,7 +2851,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "T-250 Shotgun ($12,000)", 0x6B2A7, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "T-250 Shotgun ($12,000)",
+        vanilla = Entity(Category.WEAPON, "T-250 Shotgun ($12,000)", 0x6B2A7, [
             (Progress.WEAPON___T_250_SHOTGUN___12000, []),
         ]),
         requires = [],
@@ -2566,7 +2862,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Uzi III SMG", 0x6B1D5, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Uzi III SMG",
+        vanilla = Entity(Category.WEAPON, "Uzi III SMG", 0x6B1D5, [
             (Progress.WEAPON___UZI_III_SMG, []),
         ]),
         requires = [],
@@ -2575,7 +2873,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "HK 277 A. Rifle", 0x6BC24, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "HK 277 A. Rifle",
+        vanilla = Entity(Category.WEAPON, "HK 277 A. Rifle", 0x6BC24, [
             (Progress.WEAPON___HK_277_A_RIFLE, []),
         ]),
         requires = [Progress.EVENT___JESTER_SPIRIT_PORTAL_USED],
@@ -2584,7 +2884,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Bulletproof Vest", 0x6C8D4, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Bulletproof Vest",
+        vanilla = Entity(Category.ARMOR, "Bulletproof Vest", 0x6C8D4, [
             (Progress.ARMOR___BULLETPROOF_VEST, []),
         ]),
         requires = [],
@@ -2593,7 +2895,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Concealed Jacket", 0x6C6C7, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Concealed Jacket",
+        vanilla = Entity(Category.ARMOR, "Concealed Jacket", 0x6C6C7, [
             (Progress.ARMOR___CONCEALED_JACKET, []),
         ]),
         requires = [Progress.EVENT___DRAKE_TOWERS_CLEARED],
@@ -2602,7 +2906,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Partial Bodysuit", 0x6B7A1, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Partial Bodysuit",
+        vanilla = Entity(Category.ARMOR, "Partial Bodysuit", 0x6B7A1, [
             (Progress.ARMOR___PARTIAL_BODYSUIT, []),
         ]),
         requires = [Progress.EVENT___JESTER_SPIRIT_PORTAL_USED],
@@ -2611,7 +2917,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Full Bodysuit", 0x6C2D0, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "Full Bodysuit",
+        vanilla = Entity(Category.ARMOR, "Full Bodysuit", 0x6C2D0, [
             (Progress.ARMOR___FULL_BODYSUIT, []),
         ]),
         requires = [Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED],
@@ -2620,7 +2928,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "AS-7 A. Cannon", 0x6CB90, [
+        category = Category.WEAPON_OR_ARMOR,
+        description = "AS-7 A. Cannon",
+        vanilla = Entity(Category.WEAPON, "AS-7 A. Cannon", 0x6CB90, [
             (Progress.WEAPON___AS_7_A_CANNON, []),
         ]),
         requires = [Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED],
@@ -2652,10 +2962,12 @@ regions[regionName] = thisRegion
 regionName = "Dark Blade - Left Room"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DB-Jester", 0x6C5D2, [
+        category = Category.CONSTANT,
+        description = "DF_DB-Jester",
+        vanilla = Entity(Category.CONSTANT, "DF_DB-Jester", 0x6C5D2, [
             (Progress.ITEM___DF_DB_JESTER, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -2676,7 +2988,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Bronze Key", 0x6C921, [
+        category = Category.ITEM,
+        description = "Bronze Key",
+        vanilla = Entity(Category.KEY_ITEM, "Bronze Key", 0x6C921, [
             (Progress.ITEM___BRONZE_KEY, []),
         ]),
         requires = [],
@@ -2685,7 +2999,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Mesh Jacket (free)", 0x6B88F, [
+        category = Category.ARMOR,
+        description = "Mesh Jacket (free)",
+        vanilla = Entity(Category.ARMOR, "Mesh Jacket (free)", 0x6B88F, [
             (Progress.ARMOR___MESH_JACKET___FREE, []),
         ]),
         requires = [],
@@ -2761,8 +3077,10 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Vampire!", 0x6B1B9, [
-            (Progress.KEYWORD___LAUGHLYN,  [
+        category = Category.CONSTANT,
+        description = "Vampire!",
+        vanilla = Entity(Category.CONSTANT, "Vampire!", 0x6B1B9, [
+            (Progress.KEYWORD___LAUGHLYN, [
                 Progress.ITEM___STROBE,
                 Progress.ITEM___STAKE,
                 Progress.KEYWORD___JESTER_SPIRIT,
@@ -2813,7 +3131,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Dog Tag", 0x6C55B, [
+        category = Category.ITEM,
+        description = "Dog Tag",
+        vanilla = Entity(Category.ITEM, "Dog Tag", 0x6C55B, [
             (Progress.ITEM___DOG_TAG, []),
         ]),
         requires = [],
@@ -2902,7 +3222,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Safe Key", 0x6B65F, [
+        category = Category.ITEM,
+        description = "Safe Key",
+        vanilla = Entity(Category.KEY_ITEM, "Safe Key", 0x6B65F, [
             (Progress.ITEM___SAFE_KEY, []),
         ]),
         requires = [],
@@ -2911,7 +3233,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Detonator", 0x6C5EE, [
+        category = Category.KEY_ITEM,
+        description = "Detonator",
+        vanilla = Entity(Category.KEY_ITEM, "Detonator", 0x6C5EE, [
             (Progress.ITEM___DETONATOR, []),
         ]),
         requires = [Progress.ITEM___SAFE_KEY],
@@ -2920,7 +3244,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Broken Bottle", 0x6C959, [
+        category = Category.ITEM,
+        description = "Broken Bottle",
+        vanilla = Entity(Category.ITEM, "Broken Bottle", 0x6C959, [
             (Progress.ITEM___BROKEN_BOTTLE, []),
         ]),
         requires = [Progress.ITEM___SAFE_KEY],
@@ -2966,7 +3292,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Toxic Water", 0x6B253, [
+        category = Category.CONSTANT,
+        description = "Toxic Water",
+        vanilla = Entity(Category.CONSTANT, "Toxic Water", 0x6B253, [
             (Progress.EVENT___TOXIC_WATER_COLLECTED, [Progress.ITEM___POTION_BOTTLES]),
         ]),
         requires = [],
@@ -3022,7 +3350,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Green Bottle", 0x6C092, [
+        category = Category.KEY_ITEM,
+        description = "Green Bottle",
+        vanilla = Entity(Category.KEY_ITEM, "Green Bottle", 0x6C092, [
             (Progress.ITEM___GREEN_BOTTLE, []),
         ]),
         requires = [Progress.ITEM___TIME_BOMB],
@@ -3156,7 +3486,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Jester Spirit", 0x6BBB4, [
+        category = Category.CONSTANT,
+        description = "Jester Spirit",
+        vanilla = Entity(Category.CONSTANT, "Jester Spirit", 0x6BBB4, [
             (Progress.KEYWORD___DRAKE,                   []),
             (Progress.EVENT___JESTER_SPIRIT_DEFEATED,    [Progress.KEYWORD___LAUGHLYN]),
             (Progress.KEYWORD___VOLCANO,                 [
@@ -3186,7 +3518,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C730, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C730, [
             (Progress.EVENT___DRAKE_TOWERS_2F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3212,7 +3546,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer (left)", 0x6C768, [
+        category = Category.CONSTANT,
+        description = "Computer (left)",
+        vanilla = Entity(Category.CONSTANT, "Computer (left)", 0x6C768, [
             (Progress.EVENT___DRAKE_TOWERS_3F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3222,10 +3558,12 @@ thisRegion.locations.extend([
         address = 0xD1857,
         hidden = False,
     ),
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DR 1-4", 0x6C5CB, [
+        category = Category.CONSTANT,
+        description = "DF_DR 1-4",
+        vanilla = Entity(Category.CONSTANT, "DF_DR 1-4", 0x6C5CB, [
             (Progress.ITEM___DF_DR_1_4, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3245,10 +3583,12 @@ regions[regionName] = thisRegion
 regionName = "Drake Towers - 3rd Floor"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DR 2-4", 0x6C5C4, [
+        category = Category.CONSTANT,
+        description = "DF_DR 2-4",
+        vanilla = Entity(Category.CONSTANT, "DF_DR 2-4", 0x6C5C4, [
             (Progress.ITEM___DF_DR_2_4, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3257,7 +3597,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer (middle)", 0x6C70D, [
+        category = Category.CONSTANT,
+        description = "Computer (middle)",
+        vanilla = Entity(Category.CONSTANT, "Computer (middle)", 0x6C70D, [
             (Progress.EVENT___DRAKE_TOWERS_4F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3280,10 +3622,12 @@ regions[regionName] = thisRegion
 regionName = "Drake Towers - 4th Floor"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DR 3-4", 0x6C5BD, [
+        category = Category.CONSTANT,
+        description = "DF_DR 3-4",
+        vanilla = Entity(Category.CONSTANT, "DF_DR 3-4", 0x6C5BD, [
             (Progress.ITEM___DF_DR_3_4, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3292,7 +3636,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer (right)", 0x6C6CE, [
+        category = Category.CONSTANT,
+        description = "Computer (right)",
+        vanilla = Entity(Category.CONSTANT, "Computer (right)", 0x6C6CE, [
             (Progress.EVENT___DRAKE_TOWERS_5F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3317,7 +3663,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer (left)", 0x6C7C3, [
+        category = Category.CONSTANT,
+        description = "Computer (left)",
+        vanilla = Entity(Category.CONSTANT, "Computer (left)", 0x6C7C3, [
             (Progress.EVENT___LEVEL_6_NODE_DEACTIVATED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3331,20 +3679,24 @@ thisRegion.locations.extend([
         address = 0xD1A37,
         hidden = False,
     ),
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DR 4-4", 0x6C5B6, [
+        category = Category.CONSTANT,
+        description = "DF_DR 4-4",
+        vanilla = Entity(Category.CONSTANT, "DF_DR 4-4", 0x6C5B6, [
             (Progress.ITEM___DF_DR_4_4, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
         address = 0xCB91D,
         hidden = False,
     ),
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DR-VOLCANO", 0x6C5A8, [
+        category = Category.CONSTANT,
+        description = "DF_DR-VOLCANO",
+        vanilla = Entity(Category.CONSTANT, "DF_DR-VOLCANO", 0x6C5A8, [
             (Progress.ITEM___DF_DR_VOLCANO, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3366,7 +3718,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C7E6, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C7E6, [
             (Progress.EVENT___DRAKE_TOWERS_ROOF_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3392,7 +3746,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Helicopter Pilot", 0x6BCF6, [
+        category = Category.CONSTANT,
+        description = "Helicopter Pilot",
+        vanilla = Entity(Category.CONSTANT, "Helicopter Pilot", 0x6BCF6, [
             (Progress.EVENT___DRAKE_TOWERS_CLEARED, []),
         ]),
         requires = [],
@@ -3414,7 +3770,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Helicopter Pilot", 0x6BCEF, []),
+        category = Category.CONSTANT,
+        description = "Helicopter Pilot",
+        vanilla = Entity(Category.CONSTANT, "Helicopter Pilot", 0x6BCEF, []),
         requires = [],
         address = 0xCBEAD,
         hidden = False,
@@ -3547,10 +3905,12 @@ regions[regionName] = thisRegion
 regionName = "Volcano - Sublevel One (10)"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DS-FAILURE", 0x6C593, [
+        category = Category.CONSTANT,
+        description = "DF_DS-FAILURE",
+        vanilla = Entity(Category.CONSTANT, "DF_DS-FAILURE", 0x6C593, [
             (Progress.ITEM___DF_DS_FAILURE, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3559,7 +3919,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C761, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C761, [
             (Progress.EVENT___DRAKE_VOLCANO_S2_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3628,7 +3990,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C74C, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C74C, [
             (Progress.EVENT___DRAKE_VOLCANO_S3_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3708,10 +4072,12 @@ regions[regionName] = thisRegion
 regionName = "Volcano - Sublevel Three (5)"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DS-AI END", 0x6C5A1, [
+        category = Category.CONSTANT,
+        description = "DF_DS-AI END",
+        vanilla = Entity(Category.CONSTANT, "DF_DS-AI END", 0x6C5A1, [
             (Progress.ITEM___DF_DS_AI_END, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3766,20 +4132,24 @@ regions[regionName] = thisRegion
 regionName = "Volcano - Sublevel Three (9)"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DS-TARGET", 0x6C585, [
+        category = Category.CONSTANT,
+        description = "DF_DS-TARGET",
+        vanilla = Entity(Category.CONSTANT, "DF_DS-TARGET", 0x6C585, [
             (Progress.ITEM___DF_DS_TARGET, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
         address = 0xD2207,
         hidden = False,
     ),
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_DS-AKIMI", 0x6C59A, [
+        category = Category.CONSTANT,
+        description = "DF_DS-AKIMI",
+        vanilla = Entity(Category.CONSTANT, "DF_DS-AKIMI", 0x6C59A, [
             (Progress.ITEM___DF_DS_AKIMI, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -3801,7 +4171,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C73E, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C73E, [
             (Progress.EVENT___DRAKE_VOLCANO_S4_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -3872,7 +4244,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.ITEM, "Serpent Scales", 0x6B3FE, [
+        category = Category.ITEM,
+        description = "Serpent Scales",
+        vanilla = Entity(Category.ITEM, "Serpent Scales", 0x6B3FE, [
             (Progress.ITEM___SERPENT_SCALES, []),
         ]),
         requires = [],
@@ -3926,7 +4300,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Drake", 0x6C4A5, [
+        category = Category.CONSTANT,
+        description = "Drake",
+        vanilla = Entity(Category.CONSTANT, "Drake", 0x6C4A5, [
             (Progress.EVENT___DRAKE_DEFEATED, [Progress.ITEM___JESTER_SPIRIT]),
         ]),
         requires = [],
@@ -3949,7 +4325,13 @@ thisRegion.locations.extend([
     # TODO: This is Professor Pushkin
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Scientist", 0x6B4E5, [
+        category = Category.CONSTANT,
+        description = "Scientist",
+        vanilla = Entity(Category.CONSTANT, "Scientist", 0x6B4E5, [
+            # In vanilla, Professor Pushkin doesn't teach the
+            # "Head Computer" keyword. We do it here to avoid
+            # a possible softlock.
+            (Progress.KEYWORD___HEAD_COMPUTER,           []),
             (Progress.ITEM___PASSWORD___ANEKI,           [Progress.KEYWORD___HEAD_COMPUTER]),
             (Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED, [Progress.KEYWORD___HEAD_COMPUTER]),
         ]),
@@ -3972,7 +4354,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C706, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C706, [
             (Progress.EVENT___ANEKI_BUILDING_2F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -4009,10 +4393,12 @@ regions[regionName] = thisRegion
 regionName = "Aneki Building - 2nd Floor (right)"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_AN-PAYMENT", 0x6C5E0, [
+        category = Category.CONSTANT,
+        description = "DF_AN-PAYMENT",
+        vanilla = Entity(Category.CONSTANT, "DF_AN-PAYMENT", 0x6C5E0, [
             (Progress.ITEM___DF_AN_PAYMENT, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -4021,7 +4407,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C729, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C729, [
             (Progress.EVENT___LEVEL_3_NODE_DEACTIVATED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -4045,7 +4433,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C7DF, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C7DF, [
             (Progress.EVENT___ANEKI_BUILDING_3F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -4080,10 +4470,12 @@ regions[regionName] = thisRegion
 regionName = "Aneki Building - 3rd Floor (right)"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: Change to Entity.ITEM, update datafile behaviour script to make it spawnable on map
+    # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "DF_AN-ANTI-AI", 0x6C5E7, [
+        category = Category.CONSTANT,
+        description = "DF_AN-ANTI-AI",
+        vanilla = Entity(Category.CONSTANT, "DF_AN-ANTI-AI", 0x6C5E7, [
             (Progress.ITEM___DF_AN_ANTI_AI, []),
         ]),
         requires = [Progress.ITEM___CYBERDECK, Progress.EVENT___DATAJACK_REPAIRED],
@@ -4104,7 +4496,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C6E3, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C6E3, [
             (Progress.EVENT___ANEKI_BUILDING_4F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -4152,7 +4546,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "Computer", 0x6C6EA, [
+        category = Category.CONSTANT,
+        description = "Computer",
+        vanilla = Entity(Category.CONSTANT, "Computer", 0x6C6EA, [
             (Progress.EVENT___ANEKI_BUILDING_5F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -4198,7 +4594,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        vanilla = Entity(Entity.CONSTANT, "AI Computer", 0x6CBAC, [
+        category = Category.CONSTANT,
+        description = "AI Computer",
+        vanilla = Entity(Category.CONSTANT, "AI Computer", 0x6CBAC, [
             (Progress.EVENT___GAME_COMPLETED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
@@ -4261,23 +4659,70 @@ def sphereSearch():
 
     return spheres, inventory
 
-itemLocationPool = []
-itemEntityPool = []
-
+categorizedLocations = defaultdict(list)
+categorizedEntities = defaultdict(list)
 for region in regions.values():
     for location in region.locations:
-        if location.vanilla.category == Entity.ITEM:
-            itemLocationPool.append(location)
-            itemEntityPool.append(location.vanilla)
-        # TODO: NPC randomization?
+        categorizedLocations[location.category].append(location)
+        categorizedEntities[location.vanilla.category].append(location.vanilla)
+
+#print("DEBUG - Locations")
+#for category, locationList in categorizedLocations.items():
+#    print(f"DEBUG ---- {category} = {len(locationList)}")
+#print("DEBUG - Entities")
+#for category, entityList in categorizedEntities.items():
+#    print(f"DEBUG ---- {category} = {len(entityList)}")
 
 print("Generating...")
 attemptNumber = 1
 while True:
     # Generate a candidate seed.
-    rng.shuffle(itemEntityPool)
-    for location, entity in zip(itemLocationPool, itemEntityPool):
-        location.current = entity
+
+    # Create a one-layer-deep deepcopy of the categorized dictionaries.
+    # If we used dict.copy(), we'd get shallow copies and the changes
+    # made to those copies in this loop would affect the originals.
+    # If we used copy.deepcopy(), it would recurse (as it does) and
+    # we'd get unwanted copies of the Location and Entity objects.
+    remainingLocations = defaultdict(list)
+    for category, locationList in categorizedLocations.items():
+        remainingLocations[category] = locationList.copy()
+    remainingEntities = defaultdict(list)
+    for category, entityList in categorizedEntities.items():
+        remainingEntities[category] = entityList.copy()
+
+    # Fill the "must be a key item" (incentivized) locations.
+    rng.shuffle(remainingEntities[Category.KEY_ITEM])
+    for location in remainingLocations[Category.KEY_ITEM]:
+        location.current = remainingEntities[Category.KEY_ITEM].pop()
+    # Add the remaining key items to the "item" pool.
+    remainingEntities[Category.ITEM].extend(remainingEntities[Category.KEY_ITEM])
+
+    # Fill the "must be a weapon" locations.
+    rng.shuffle(remainingEntities[Category.WEAPON])
+    for location in remainingLocations[Category.WEAPON]:
+        location.current = remainingEntities[Category.WEAPON].pop()
+    # Fill the "must be armor" locations.
+    rng.shuffle(remainingEntities[Category.ARMOR])
+    for location in remainingLocations[Category.ARMOR]:
+        location.current = remainingEntities[Category.ARMOR].pop()
+    # Add the remaining weapons and armor to the "weapons and armor" pool.
+    remainingEntities[Category.WEAPON_OR_ARMOR].extend(remainingEntities[Category.WEAPON])
+    remainingEntities[Category.WEAPON_OR_ARMOR].extend(remainingEntities[Category.ARMOR])
+
+    # Fill the "must be a weapon or armor" locations.
+    rng.shuffle(remainingEntities[Category.WEAPON_OR_ARMOR])
+    for location in remainingLocations[Category.WEAPON_OR_ARMOR]:
+        location.current = remainingEntities[Category.WEAPON_OR_ARMOR].pop()
+
+    # Fill the item locations.
+    rng.shuffle(remainingEntities[Category.ITEM])
+    for location in remainingLocations[Category.ITEM]:
+        location.current = remainingEntities[Category.ITEM].pop()
+
+    # Fill the NPC locations.
+    rng.shuffle(remainingEntities[Category.NPC])
+    for location in remainingLocations[Category.NPC]:
+        location.current = remainingEntities[Category.NPC].pop()
 
     # Check if the candidate seed is winnable.
     # Any seed with "EVENT___GAME_COMPLETED" in the inventory after the
@@ -4297,7 +4742,7 @@ if args.verbose:
     for i, sphere in enumerate(spheres):
         print(f"Sphere {i}")
         for location, prize in sphere:
-            print(f"{location.region.name:<60}   {location.vanilla.description:<24} --> {prize.name}")
+            print(f"{location.region.name:<60}   {location.description:<24} --> {prize.name}")
         print()
 
 # If we're in dry-run mode, there's nothing left to do at this point.
@@ -4339,9 +4784,11 @@ romBytes.extend([0x00] * (0x8000 * 2))
 romBytes[0x7FD7] = 0x0B
 
 # Write the new entity IDs.
-for itemLocation in itemLocationPool:
-    entityID = struct.pack("<H", itemLocation.current.entityAddress - 0x6B031)
-    writeHelper(romBytes, itemLocation.address, entityID)
+for region in regions.values():
+    for location in region.locations:
+        if location.category != Category.CONSTANT:
+            entityID = struct.pack("<H", location.current.entityAddress - 0x6B031)
+            writeHelper(romBytes, location.address, entityID)
 
 # Set the 0x80 flag for all visible (i.e. not hidden) randomized items.
 # In vanilla, the 0x80 flag would start clear for all items, and only
@@ -4354,12 +4801,14 @@ for itemLocation in itemLocationPool:
 # Since every item is now checking the 0x80 flag, we need to set it for
 # items in "always visible" locations, otherwise they'll start out
 # hidden and remain that way indefinitely.
-for itemLocation in itemLocationPool:
-    memoryPointer = struct.unpack_from("<H", romBytes, itemLocation.current.entityAddress + 1)[0]
-    if memoryPointer != 0:
-        memoryPointer -= 0x2E00
-        if not itemLocation.hidden:
-            initialItemState[memoryPointer + 1] |= 0x80
+for region in regions.values():
+    for location in region.locations:
+        if location.category != Category.CONSTANT:
+            memoryPointer = struct.unpack_from("<H", romBytes, location.current.entityAddress + 1)[0]
+            if memoryPointer != 0:
+                memoryPointer -= 0x2E00
+                if not location.hidden:
+                    initialItemState[memoryPointer + 1] |= 0x80
 
 # Rewrite the 00/FE8B "print text in a window" function.
 # 00/FE8B is the code behind the [58 C7] "print text in a window" command
@@ -4566,7 +5015,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 00",    # 001E: Push unsigned byte 0x00     0 = Accuracy
@@ -4605,7 +5054,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Accuracy
@@ -4647,7 +5096,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Accuracy
@@ -4684,7 +5133,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Accuracy
@@ -4723,7 +5172,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 02",    # 001C: Push unsigned byte 0x02     2 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
@@ -4760,7 +5209,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 03",    # 001C: Push unsigned byte 0x03     3 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
@@ -4797,7 +5246,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 04",    # 001C: Push unsigned byte 0x04     4 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
@@ -4834,7 +5283,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 04",    # 001C: Push unsigned byte 0x04     4 = Strength required
         "00 03",    # 001E: Push unsigned byte 0x03     3 = Accuracy
@@ -4871,7 +5320,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 05",    # 001C: Push unsigned byte 0x05     5 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
@@ -4908,7 +5357,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 05",    # 001C: Push unsigned byte 0x05     5 = Strength required
         "00 06",    # 001E: Push unsigned byte 0x06     6 = Accuracy
@@ -4951,7 +5400,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Defense
@@ -4984,7 +5433,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 02",    # 001C: Push unsigned byte 0x02     2 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Defense
@@ -5017,7 +5466,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 03",    # 001C: Push unsigned byte 0x03     3 = Strength required
         "00 03",    # 001E: Push unsigned byte 0x03     3 = Defense
@@ -5052,7 +5501,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 04",    # 001C: Push unsigned byte 0x04     4 = Strength required
         "00 04",    # 001E: Push unsigned byte 0x04     4 = Defense
@@ -5087,7 +5536,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 05",    # 001C: Push unsigned byte 0x05     5 = Strength required
         "00 05",    # 001E: Push unsigned byte 0x05     5 = Defense
@@ -5122,7 +5571,7 @@ expandedOffset = scriptHelper(
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
         "C2",       # 0018: Push $13
-        "58 B8",    # 0019: Despawn object?
+        "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 06",    # 001C: Push unsigned byte 0x06     6 = Strength required
         "00 06",    # 001E: Push unsigned byte 0x06     6 = Defense
@@ -5166,7 +5615,7 @@ writeHelper(romBytes, 0xE7AA6, bytes.fromhex(' '.join([
 # the glass case handle that behaviour instead.
 expandedOffset = scriptHelper(
     scriptNumber = 0x28C,
-    argsLen      = 0x0A, # Script 0x28C now takes 10 bytes (= 5 stack item) as arguments
+    argsLen      = 0x0A, # Script 0x28C now takes 10 bytes (= 5 stack items) as arguments
     returnLen    = 0x00, # Script 0x28C now returns 0 bytes (= 0 stack items) upon completion
     offset       = expandedOffset,
     scratchLen   = 0x09, # Header byte: Script uses 0x09 bytes of $13+xx space
@@ -5436,7 +5885,75 @@ writeHelper(romBytes, 0xDEE85, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
 ])))
 
-# TODO: Slap Patch <-- Not currently subject to randomization
+# Slap Patch <-- "One-time dispenser" in morgue
+# Allow pickup of a single Slap Patch any time you have no slap
+# patches in your inventory, turning this location into a
+# (technically) unlimited source of slap patches.
+expandedOffset = scriptHelper(
+    scriptNumber = 0x3C,
+    argsLen      = 0x02, # Script 0x3C now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x3C now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x03, # Header byte: Script uses 0x03 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "14 95 03", # 0002: Push short 0x0395 <-- Object-id of "Slap Patch" (stackable inventory item)
+        "58 C6",    # 0005: Push object's quantity
+        "46 5B 00", # 0007: If nonzero, jump to DONE
+        # NO_SLAP_PATCHES_IN_INVENTORY
+        "C2",       # 000A: Push $13
+        "52 44 02", # 000B: Execute behaviour script 0x244 = Display sprite
+        # TOP_OF_LOOP
+        "C0",       # 000E: Push zero
+        "C0",       # 000F: Push zero
+        "52 AA 02", # 0010: Execute behaviour script 0x2AA = Interaction menu helper
+        "BA",       # 0013: Duplicate
+        "34 01",    # 0014: Pop short to $13+01 <-- Selected menu option
+        # CHECK_IF_EXAMINE
+        "00 80",    # 0016: Push unsigned byte 0x80
+        "AA",       # 0018: Check if equal
+        "44 30 00", # 0019: If not equal, jump to CHECK_IF_PICKUP
+        # EXAMINE
+        # Interaction menu option: Examine
+        "00 F0",    # 001C: Push unsigned byte 0xF0
+        "00 8D",    # 001E: Push unsigned byte 0x8D
+        "14 00 08", # 0020: Push short 0x0800
+        "00 03",    # 0023: Push unsigned byte 0x03
+        "00 12",    # 0025: Push unsigned byte 0x12
+        "00 15",    # 0027: Push unsigned byte 0x15
+        "00 02",    # 0029: Push unsigned byte 0x02
+        "58 C7",    # 002B: Print text ("This is a healing patch.")
+        "48 0E 00", # 002D: Jump to TOP_OF_LOOP
+        # CHECK_IF_PICKUP
+        "16 01",    # 0030: Push short from $13+01 <-- Selected menu option
+        "00 10",    # 0032: Push unsigned byte 0x10
+        "AA",       # 0034: Check if equal
+        "44 0E 00", # 0035: If not equal, jump to TOP_OF_LOOP
+        # PICKUP
+        # Interaction menu option: Pickup
+        "58 28",    # 0038: Push Jake's spawn index
+        "58 4F",    # 003A: Push X coordinate / 4
+        "14 D0 01", # 003C: Push short 0x01D0
+        "9A",       # 003F: Check if greater than
+        "44 49 00", # 0040: If no, jump to PICKUP_OK
+        # TRIED_PICKUP_THROUGH_WALL
+        "52 6C 02", # 0043: Execute behaviour script 0x26C
+        "48 0E 00", # 0046: Jump to TOP_OF_LOOP
+        # PICKUP_OK
+        "00 01",    # 0049: Push unsigned byte 0x01
+        "14 95 03", # 004B: Push short 0x0395 <-- Object-id of "Slap Patch" (stackable inventory item)
+        "58 26",    # 004E: Add amount to object's quantity
+        "14 B2 08", # 0050: Push short 0x08B2 <-- Object-id for Jake
+        "14 95 03", # 0053: Push short 0x0395 <-- Object-id of "Slap Patch" (stackable inventory item)
+        "58 74",    # 0056: Set object's owner
+        "52 4B 00", # 0058: Execute behaviour script 0x4B = "Got item" sound effect
+        # DONE
+        "C2",       # 005B: Push $13
+        "58 B8",    # 005C: Despawn object
+        "56",       # 005E: End
+    ],
+)
 
 # Tickets
 writeHelper(romBytes, 0xDF139, bytes.fromhex(' '.join([
@@ -5661,7 +6178,7 @@ expandedOffset = scriptHelper(
         "44 11 00", # 0056: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 0059: Push $13
-        "58 B8",    # 005A: Despawn object?
+        "58 B8",    # 005A: Despawn object
         "56",       # 005D: End
     ],
 )
@@ -5925,7 +6442,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 013D: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 0140: Push $13
-        "58 B8",    # 0141: Despawn object?
+        "58 B8",    # 0141: Despawn object
         "56",       # 0143: End
     ],
 )
@@ -6052,7 +6569,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 00B2: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 00B5: Push $13
-        "58 B8",    # 00B6: Despawn object?
+        "58 B8",    # 00B6: Despawn object
         "56",       # 00B8: End
     ],
 )
@@ -6194,7 +6711,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 00D0: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 00D3: Push $13
-        "58 B8",    # 00D4: Despawn object?
+        "58 B8",    # 00D4: Despawn object
         "56",       # 00D6: End
     ],
 )
@@ -6436,7 +6953,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 00AB: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 00AE: Push $13
-        "58 B8",    # 00AF: Despawn object?
+        "58 B8",    # 00AF: Despawn object
         "56",       # 00B1: End
     ],
 )
@@ -6444,6 +6961,18 @@ expandedOffset = scriptHelper(
 romBytes[0x675BA] &= ~0x20
 
 # Explosives: Massive Orc
+# Appear after ice has been delivered to the docks (in vanilla,
+# the Massive Orc appears when you know either the Nirwanda or
+# Laughlyn keywords, but this creates a risk of softlock if you
+# don't collect the Orc's item and then use the Jester Spirit
+# portal, which takes away those keywords)
+writeHelper(romBytes, 0xFA9EC, bytes.fromhex(' '.join([
+    "14 0E 1C", # 0002: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
+    "58 BA",    # 0005: Push object's flags
+    "00 02",    # 0007: Push unsigned byte 0x02
+    "7E",       # 0009: Bitwise AND
+    "BE",       # 000A: Convert to boolean
+])))
 # Reveal the new item shuffled to this location
 newDropID = f"14 {romBytes[0xCA60D+0]:02X} {romBytes[0xCA60D+1]:02X}"
 writeHelper(romBytes, 0xFAA53, bytes.fromhex(' '.join([
@@ -6722,7 +7251,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 0052: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 0055: Push $13
-        "58 B8",    # 0056: Despawn object?
+        "58 B8",    # 0056: Despawn object
         "56",       # 0058: End
     ],
 )
@@ -6773,7 +7302,7 @@ expandedOffset = scriptHelper(
         "58 9E",    # 010E: Register menu options / time delay
         "BC",       # 0110: Pop
         "C2",       # 0111: Push $13
-        "58 B8",    # 0112: Despawn object?
+        "58 B8",    # 0112: Despawn object
         "56",       # 0114: End
     ],
 )
@@ -6900,7 +7429,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 00AB: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 00AE: Push $13
-        "58 B8",    # 00AF: Despawn object?
+        "58 B8",    # 00AF: Despawn object
         "56",       # 00B1: End
     ],
 )
@@ -7032,7 +7561,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 0051: If no, jump to TOP_OF_LOOP
         # DONE
         "C2",       # 0054: Push $13
-        "58 B8",    # 0055: Despawn object?
+        "58 B8",    # 0055: Despawn object
         "56",       # 0057: End
     ],
 )
@@ -7107,22 +7636,65 @@ expandedOffset = scriptHelper(
         "58 CE",    # 0060: Set bits of 7E1474+n <-- Makes item drop subject to gravity
         # DONE
         "C2",       # 0062: Push $13
-        "58 B8",    # 0063: Despawn object?
+        "58 B8",    # 0063: Despawn object
         "56",       # 0065: End
     ],
 )
 
 # Scientist <-- Professor Pushkin
+# - Silently teach the "Head Computer" keyword, to avoid a possible softlock
 # - Stock the $30,000 case at the Dark Blade Gun Shop (vanilla: Full Bodysuit)
 # - Stock the $40,000 case at the Dark Blade Gun Shop (vanilla: AS-7 A. Cannon)
-writeHelper(romBytes, 0xE55D6, bytes.fromhex(' '.join([
-    "0A FD",    # 0027: Push signed byte 0xFD
-    "14 F1 0F", # 0029: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
-    "58 4B",    # 002C: Clear bits of object's flags
-    "0A FD",    # 002E: Push signed byte 0xFD
-    "14 14 10", # 0030: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
-    "58 4B",    # 0033: Clear bits of object's flags
-])))
+expandedOffset = scriptHelper(
+    scriptNumber = 0x38A,
+    argsLen      = 0x02, # Script 0x38A now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x38A now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 14",    # 0002: Push unsigned byte 0x14 <-- "Head Computer" keyword number
+        "58 71",    # 0004: Learn keyword
+        "C0",       # 0006: Push zero
+        "C2",       # 0007: Push $13
+        "58 D0",    # 0008: Change displayed sprite?
+        "00 40",    # 000A: Push unsigned byte 0x40
+        "C2",       # 000C: Push $13
+        "58 B4",    # 000D: Conversation related?
+        # TOP_OF_LOOP
+        "C2",       # 000F: Push $13
+        "58 6C",    # 0010: ???
+        "00 05",    # 0012: Push unsigned byte 0x05
+        "00 03",    # 0014: Push unsigned byte 0x03
+        "58 9E",    # 0016: Register menu options / time delay
+        "BC",       # 0018: Pop
+        "C2",       # 0019: Push $13
+        "58 02",    # 001A: Push object's flags
+        "00 80",    # 001C: Push unsigned byte 0x80
+        "7E",       # 001E: Bitwise AND
+        "BE",       # 001F: Convert to boolean
+        "44 0F 00", # 0020: If false, jump to TOP_OF_LOOP
+        # GIVE_ANEKI_PASSWORD
+        "14 B2 08", # 0023: Push short 0x08B2 <-- Object-id for Jake
+        "14 62 07", # 0026: Push short 0x0762 <-- Object-id for Password (Aneki)
+        "58 74",    # 0029: Set object's owner
+        # STOCK_DARK_BLADE_CASES
+        "0A FD",    # 002B: Push signed byte 0xFD
+        "14 F1 0F", # 002D: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
+        "58 4B",    # 0030: Clear bits of object's flags
+        "0A FD",    # 0032: Push signed byte 0xFD
+        "14 14 10", # 0034: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
+        "58 4B",    # 0037: Clear bits of object's flags
+        # EXIT_VOLCANO
+        "14 AA 01", # 0039: Push short 0x01AA
+        "C0",       # 003C: Push zero
+        "00 02",    # 003D: Push unsigned byte 0x02
+        "58 54",    # 003F: Teleport to door destination, with extra arguments?
+        # DONE
+        "56",       # 0041: End
+    ],
+)
 
 
 
@@ -7196,53 +7768,69 @@ writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
     "48 29 00", # 0012: Jump to 0029
 ])))
 
-# Forbid entry to the caryards until Glutman hides you there
-expandedOffset = scriptHelper(
-    scriptNumber = 0x246,
-    argsLen      = 0x00, # Script 0x246 now takes 0 bytes (= 0 stack item) as arguments
-    returnLen    = 0x00, # Script 0x246 now returns 0 bytes (= 0 stack items) upon completion
-    offset       = expandedOffset,
-    scratchLen   = 0x00, # Header byte: Script uses 0x00 bytes of $13+xx space
-    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
-    commandList  = [
-        "14 BF 03", # 0000: Push short 0x03BF <-- Object-id for Glutman
-        "14 38 15", # 0003: Push short 0x1538 <-- Object-id for Dog Food
-        "58 42",    # 0006: Check if first object owns second object
-        "46 27 00", # 0008: If yes, jump to SHADOWRUNNERS_WAIT_OUTSIDE
-        # NOT_HIDDEN_BY_GLUTMAN_YET
-        "00 01",    # 000B: Push unsigned byte 0x01
-        "14 CD 00", # 000D: Push short 0x00CD
-        "14 00 04", # 0010: Push short 0x0400
-        "00 04",    # 0013: Push unsigned byte 0x04
-        "00 13",    # 0015: Push unsigned byte 0x13
-        "00 06",    # 0017: Push unsigned byte 0x06
-        "00 07",    # 0019: Push unsigned byte 0x07
-        "58 C7",    # 001B: Print text ("Hey, where do you think you're going?")
-        "58 A2",    # 001D: Wait for player input
-        "14 18 00", # 001F: Push short 0x0018
-        "58 56",    # 0022: Teleport to door destination
-        "48 2C 00", # 0024: Jump to DONE
-        # SHADOWRUNNERS_WAIT_OUTSIDE
-        "00 3B",    # 0027: Push unsigned byte 0x3B
-        "52 0E 01", # 0029: Execute behaviour script 0x10E = "Shadowrunners wait outside" helper script
-        # DONE
-        "56",       # 002C: End
-    ],
-)
+# ------------------------------------------------------------------------
+
+## Forbid entry to the caryards until Glutman hides you there
+#expandedOffset = scriptHelper(
+#    scriptNumber = 0x246,
+#    argsLen      = 0x00, # Script 0x246 now takes 0 bytes (= 0 stack item) as arguments
+#    returnLen    = 0x00, # Script 0x246 now returns 0 bytes (= 0 stack items) upon completion
+#    offset       = expandedOffset,
+#    scratchLen   = 0x00, # Header byte: Script uses 0x00 bytes of $13+xx space
+#    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+#    commandList  = [
+#        "14 BF 03", # 0000: Push short 0x03BF <-- Object-id for Glutman
+#        "14 38 15", # 0003: Push short 0x1538 <-- Object-id for Dog Food
+#        "58 42",    # 0006: Check if first object owns second object
+#        "46 27 00", # 0008: If yes, jump to SHADOWRUNNERS_WAIT_OUTSIDE
+#        # NOT_HIDDEN_BY_GLUTMAN_YET
+#        "00 01",    # 000B: Push unsigned byte 0x01
+#        "14 CD 00", # 000D: Push short 0x00CD
+#        "14 00 04", # 0010: Push short 0x0400
+#        "00 04",    # 0013: Push unsigned byte 0x04
+#        "00 13",    # 0015: Push unsigned byte 0x13
+#        "00 06",    # 0017: Push unsigned byte 0x06
+#        "00 07",    # 0019: Push unsigned byte 0x07
+#        "58 C7",    # 001B: Print text ("Hey, where do you think you're going?")
+#        "58 A2",    # 001D: Wait for player input
+#        "14 18 00", # 001F: Push short 0x0018
+#        "58 56",    # 0022: Teleport to door destination
+#        "48 2C 00", # 0024: Jump to DONE
+#        # SHADOWRUNNERS_WAIT_OUTSIDE
+#        "00 3B",    # 0027: Push unsigned byte 0x3B
+#        "52 0E 01", # 0029: Execute behaviour script 0x10E = "Shadowrunners wait outside" helper script
+#        # DONE
+#        "56",       # 002C: End
+#    ],
+#)
+
+# Start with the King paid off, so you can leave the caryards freely
+initialItemState[0x24F] |= 0x01
+
+# ------------------------------------------------------------------------
 
 ## Open the door to the Rust Stilettos HQ
 #initialItemState[0x59C] |= 0x80
 
-## Open up Jagged Nails without having to defeat the Rust Stilettos
-## - Force the "always room for a true shadowrunner" conversation
-#romBytes[0xF628E] = 0xBE
-#romBytes[0xF628F] = 0xBC
-#romBytes[0xF6290] = 0x48
-#romBytes[0xF6291] = 0x1D
-#romBytes[0xF6292] = 0x00
-## - Set the entry fee to 0 nuyen
+# ------------------------------------------------------------------------
+
+# Open up Jagged Nails without having to defeat the Rust Stilettos
+
+# Force the "always room for a true shadowrunner" conversation
+writeHelper(romBytes, 0xF628E, bytes.fromhex(' '.join([
+    "BE",       # 0018: Convert to boolean
+    "BC",       # 0019: Pop
+    "48 1D 00", # 001A: Jump to 001D
+])))
+
+# Truncate the "handled that Stilettos gang mighty fine" text
+romBytes[0xE9950] = 0xB8
+romBytes[0xE9951] = 0x80
+
+## Set the entry fee to 0 nuyen (doesn't change text)
 #romBytes[0x179DF] = 0x00
-## TODO: Truncate text to drop mention of the Stilettos being defeated?
+
+# ------------------------------------------------------------------------
 
 ## Open the gate to the Rat Shaman Lair
 ## (Side effect: prevents Dog Spirit conversation where you learn "Rat")
@@ -7364,29 +7952,23 @@ struct.pack_into("<H", romBytes, 0xE458, 0x05D4) # "EXIT"
 # Move the menu cursor down one row
 struct.pack_into("<H", romBytes, 0xE2F7, 0x0450)
 
+# Construct the new info lines
+newInfoLines = (
+    f" {'Randomizer':>13.13}    {str(seed):<13.13} "
+    f" {randomizerVersion:>13.13}    -{randomizerFlags:<12.12} "
+).encode("ascii") + b"\x00"
+
 # New printing subroutine
 writeHelper(romBytes, 0x109000, bytes.fromhex(' '.join([
     "22 12 D5 81", # A0/9000: JSL $81D512   ; Print the copyright line
     "4B",          # A0/9004: PHK
     "AB",          # A0/9005: PLB
-    "A2 08 03",    # A0/9006: LDX #$0308
-    "A0 40 90",    # A0/9009: LDY #$9040
-    "22 EE D4 81", # A0/900C: JSL $81D4EE   ; "Randomizer"
-    "A2 24 03",    # A0/9010: LDX #$0324
-    "A0 50 90",    # A0/9013: LDY #$9050
-    "22 EE D4 81", # A0/9016: JSL $81D4EE   ; Version (release date)
-    "A2 48 03",    # A0/901A: LDX #$0348
-    "A0 60 90",    # A0/901D: LDY #$9060
-    "22 EE D4 81", # A0/9020: JSL $81D4EE   ; Seed
-    "A2 64 03",    # A0/9024: LDX #$0364
-    "A0 70 90",    # A0/9027: LDY #$9070
-    "22 EE D4 81", # A0/902A: JSL $81D4EE   ; Flags
-    "6B",          # A0/902E: RTL
+    "A2 00 03",    # A0/9006: LDX #$0300    ; Destination on title screen
+    "A0 20 90",    # A0/9009: LDY #$9020    ; Source address for text
+    "22 EE D4 81", # A0/900C: JSL $81D4EE   ; Print the new info lines
+    "6B",          # A0/9010: RTL
 ])))
-writeHelper(romBytes, 0x109040, "Randomizer\x00".encode("ascii"))
-writeHelper(romBytes, 0x109050, f"{randomizerVersion}\x00".encode("ascii"))
-writeHelper(romBytes, 0x109060, f"{seed:>10}\x00".encode("ascii"))
-writeHelper(romBytes, 0x109070, f"-{randomizerFlags}\x00".encode("ascii"))
+writeHelper(romBytes, 0x109020, newInfoLines)
 
 
 
