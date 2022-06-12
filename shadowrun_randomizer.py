@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2022-04-25"
+randomizerVersion = "2022-06-12"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -305,12 +305,15 @@ Progress = Enum(
 
 class Category(Flag):
     CONSTANT = auto()
+    PHYSICAL = auto()
     KEY_ITEM = auto()
     WEAPON = auto()
     ARMOR = auto()
-    WEAPON_OR_ARMOR = WEAPON | ARMOR
     ITEM = auto()
     NPC = auto()
+    PHYSICAL_KEY_ITEM = PHYSICAL | KEY_ITEM
+    WEAPON_OR_ARMOR = WEAPON | ARMOR
+    PHYSICAL_ITEM = PHYSICAL | ITEM
 
 class Entity:
     def __init__(self, category, description, entityAddress, progression):
@@ -399,7 +402,7 @@ thisRegion.locations.extend([
         hidden = False,
     ),
     # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
-    # TODO: Will probably have to rewrite item-merging behaviour, as with Time Bomb components
+    # TODO: Will probably have to rewrite the item-merging behaviour
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
@@ -430,7 +433,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Torn Paper",
         vanilla = Entity(Category.ITEM, "Torn Paper", 0x6B25A, [
             (Progress.ITEM___TORN_PAPER, []),
@@ -441,7 +444,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Scalpel",
         vanilla = Entity(Category.KEY_ITEM, "Scalpel", 0x6B555, [
             (Progress.ITEM___SCALPEL, []),
@@ -488,7 +491,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Tickets",
         vanilla = Entity(Category.KEY_ITEM, "Tickets", 0x6B268, [
             (Progress.ITEM___TICKETS, []),
@@ -499,7 +502,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Credstick",
         vanilla = Entity(Category.KEY_ITEM, "Credstick", 0x6C6C0, [
             (Progress.ITEM___CREDSTICK, []),
@@ -544,7 +547,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Dog Collar",
         vanilla = Entity(Category.KEY_ITEM, "Dog Collar", 0x6C577, [
             (Progress.ITEM___DOG_COLLAR, []),
@@ -653,7 +656,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Memo",
         vanilla = Entity(Category.ITEM, "Memo", 0x6B8DC, [
             (Progress.ITEM___MEMO, []),
@@ -664,7 +667,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Door Key",
         vanilla = Entity(Category.KEY_ITEM, "Door Key", 0x6C4B3, [
             (Progress.ITEM___DOOR_KEY, []),
@@ -731,7 +734,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Shades",
         vanilla = Entity(Category.KEY_ITEM, "Shades", 0x6B3F7, [
             (Progress.ITEM___SHADES, []),
@@ -742,7 +745,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Ripped Note",
         vanilla = Entity(Category.KEY_ITEM, "Ripped Note", 0x6B674, [
             (Progress.ITEM___RIPPED_NOTE, []),
@@ -837,7 +840,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Paperweight",
         vanilla = Entity(Category.ITEM, "Paperweight", 0x6B7A8, [
             (Progress.ITEM___PAPERWEIGHT, []),
@@ -872,7 +875,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Cyberdeck",
         vanilla = Entity(Category.KEY_ITEM, "Cyberdeck", 0x6C634, [
             (Progress.ITEM___CYBERDECK, []),
@@ -981,7 +984,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Iced Tea",
         vanilla = Entity(Category.KEY_ITEM, "Iced Tea", 0x6BC08, [
             (Progress.ITEM___ICED_TEA, []),
@@ -1085,7 +1088,7 @@ thisRegion.locations.extend([
     # eligible for randomization.
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Ghoul Bone",
         vanilla = Entity(Category.ITEM, "Ghoul Bone", 0x6C172, [
             (Progress.ITEM___GHOUL_BONE, []),
@@ -1938,7 +1941,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Iron Key",
         vanilla = Entity(Category.KEY_ITEM, "Iron Key", 0x6BBF3, [
             (Progress.ITEM___IRON_KEY, []),
@@ -2320,7 +2323,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Crowbar",
         vanilla = Entity(Category.KEY_ITEM, "Crowbar", 0x6C6B9, [
             (Progress.ITEM___CROWBAR, []),
@@ -2356,7 +2359,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Password (Drake)",
         vanilla = Entity(Category.KEY_ITEM, "Password (Drake)", 0x6B79A, [
             (Progress.ITEM___PASSWORD___DRAKE, []),
@@ -2553,9 +2556,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Explosives",
-        vanilla = Entity(Category.KEY_ITEM, "Explosives", 0x6C3D3, [
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Explosives", 0x6C3D3, [
             (Progress.ITEM___EXPLOSIVES, []),
         ]),
         requires = [Progress.EVENT___NIRWANDA_OR_LAUGHLYN],
@@ -2601,7 +2604,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Mermaid Scales",
         vanilla = Entity(Category.ITEM, "Mermaid Scales", 0x6B8C7, [
             (Progress.ITEM___MERMAID_SCALES, []),
@@ -2988,7 +2991,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Bronze Key",
         vanilla = Entity(Category.KEY_ITEM, "Bronze Key", 0x6C921, [
             (Progress.ITEM___BRONZE_KEY, []),
@@ -3131,7 +3134,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Dog Tag",
         vanilla = Entity(Category.ITEM, "Dog Tag", 0x6C55B, [
             (Progress.ITEM___DOG_TAG, []),
@@ -3222,7 +3225,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Safe Key",
         vanilla = Entity(Category.KEY_ITEM, "Safe Key", 0x6B65F, [
             (Progress.ITEM___SAFE_KEY, []),
@@ -3233,9 +3236,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Detonator",
-        vanilla = Entity(Category.KEY_ITEM, "Detonator", 0x6C5EE, [
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Detonator", 0x6C5EE, [
             (Progress.ITEM___DETONATOR, []),
         ]),
         requires = [Progress.ITEM___SAFE_KEY],
@@ -3244,7 +3247,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Broken Bottle",
         vanilla = Entity(Category.ITEM, "Broken Bottle", 0x6C959, [
             (Progress.ITEM___BROKEN_BOTTLE, []),
@@ -3350,7 +3353,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.KEY_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Green Bottle",
         vanilla = Entity(Category.KEY_ITEM, "Green Bottle", 0x6C092, [
             (Progress.ITEM___GREEN_BOTTLE, []),
@@ -4244,7 +4247,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Serpent Scales",
         vanilla = Entity(Category.ITEM, "Serpent Scales", 0x6B3FE, [
             (Progress.ITEM___SERPENT_SCALES, []),
@@ -4659,18 +4662,17 @@ def sphereSearch():
 
     return spheres, inventory
 
-categorizedLocations = defaultdict(list)
-categorizedEntities = defaultdict(list)
-for region in regions.values():
-    for location in region.locations:
-        categorizedLocations[location.category].append(location)
-        categorizedEntities[location.vanilla.category].append(location.vanilla)
-
+#debugLocations = defaultdict(list)
+#debugEntities = defaultdict(list)
+#for region in regions.values():
+#    for location in region.locations:
+#        debugLocations[location.category].append(location)
+#        debugEntities[location.vanilla.category].append(location.vanilla)
 #print("DEBUG - Locations")
-#for category, locationList in categorizedLocations.items():
+#for category, locationList in debugLocations.items():
 #    print(f"DEBUG ---- {category} = {len(locationList)}")
 #print("DEBUG - Entities")
-#for category, entityList in categorizedEntities.items():
+#for category, entityList in debugEntities.items():
 #    print(f"DEBUG ---- {category} = {len(entityList)}")
 
 print("Generating...")
@@ -4678,51 +4680,115 @@ attemptNumber = 1
 while True:
     # Generate a candidate seed.
 
-    # Create a one-layer-deep deepcopy of the categorized dictionaries.
-    # If we used dict.copy(), we'd get shallow copies and the changes
-    # made to those copies in this loop would affect the originals.
-    # If we used copy.deepcopy(), it would recurse (as it does) and
-    # we'd get unwanted copies of the Location and Entity objects.
+    # Categorize the locations and entities.
     remainingLocations = defaultdict(list)
-    for category, locationList in categorizedLocations.items():
-        remainingLocations[category] = locationList.copy()
     remainingEntities = defaultdict(list)
-    for category, entityList in categorizedEntities.items():
-        remainingEntities[category] = entityList.copy()
+    for region in regions.values():
+        for location in region.locations:
+            if location.category & Category.KEY_ITEM:
+                remainingLocations[Category.KEY_ITEM].append(location)
+            else:
+                remainingLocations[location.category].append(location)
+            if location.vanilla.category & Category.KEY_ITEM:
+                remainingEntities[Category.KEY_ITEM].append(location.vanilla)
+            else:
+                remainingEntities[location.vanilla.category].append(location.vanilla)
 
-    # Fill the "must be a key item" (incentivized) locations.
+    # Key items
+    rng.shuffle(remainingLocations[Category.KEY_ITEM])
     rng.shuffle(remainingEntities[Category.KEY_ITEM])
-    for location in remainingLocations[Category.KEY_ITEM]:
-        location.current = remainingEntities[Category.KEY_ITEM].pop()
-    # Add the remaining key items to the "item" pool.
-    remainingEntities[Category.ITEM].extend(remainingEntities[Category.KEY_ITEM])
+    while remainingLocations[Category.KEY_ITEM] and remainingEntities[Category.KEY_ITEM]:
+        poppedLocation = remainingLocations[Category.KEY_ITEM].pop()
+        poppedEntity = remainingEntities[Category.KEY_ITEM].pop()
+        poppedLocation.current = poppedEntity
+    while remainingLocations[Category.KEY_ITEM]:
+        poppedLocation = remainingLocations[Category.KEY_ITEM].pop()
+        if poppedLocation.category & Category.PHYSICAL:
+            remainingLocations[Category.PHYSICAL_ITEM].append(poppedLocation)
+        else:
+            remainingLocations[Category.ITEM].append(poppedLocation)
+    while remainingEntities[Category.KEY_ITEM]:
+        poppedEntity = remainingEntities[Category.KEY_ITEM].pop()
+        if poppedEntity.category & Category.PHYSICAL:
+            remainingEntities[Category.PHYSICAL_ITEM].append(poppedEntity)
+        else:
+            remainingEntities[Category.ITEM].append(poppedEntity)
 
-    # Fill the "must be a weapon" locations.
+    # Weapons
+    rng.shuffle(remainingLocations[Category.WEAPON])
     rng.shuffle(remainingEntities[Category.WEAPON])
-    for location in remainingLocations[Category.WEAPON]:
-        location.current = remainingEntities[Category.WEAPON].pop()
-    # Fill the "must be armor" locations.
-    rng.shuffle(remainingEntities[Category.ARMOR])
-    for location in remainingLocations[Category.ARMOR]:
-        location.current = remainingEntities[Category.ARMOR].pop()
-    # Add the remaining weapons and armor to the "weapons and armor" pool.
+    while remainingLocations[Category.WEAPON] and remainingEntities[Category.WEAPON]:
+        poppedLocation = remainingLocations[Category.WEAPON].pop()
+        poppedEntity = remainingEntities[Category.WEAPON].pop()
+        poppedLocation.current = poppedEntity
+    remainingLocations[Category.WEAPON_OR_ARMOR].extend(remainingLocations[Category.WEAPON])
+    remainingLocations[Category.WEAPON].clear()
     remainingEntities[Category.WEAPON_OR_ARMOR].extend(remainingEntities[Category.WEAPON])
+    remainingEntities[Category.WEAPON].clear()
+
+    # Armor
+    rng.shuffle(remainingLocations[Category.ARMOR])
+    rng.shuffle(remainingEntities[Category.ARMOR])
+    while remainingLocations[Category.ARMOR] and remainingEntities[Category.ARMOR]:
+        poppedLocation = remainingLocations[Category.ARMOR].pop()
+        poppedEntity = remainingEntities[Category.ARMOR].pop()
+        poppedLocation.current = poppedEntity
+    remainingLocations[Category.WEAPON_OR_ARMOR].extend(remainingLocations[Category.ARMOR])
+    remainingLocations[Category.ARMOR].clear()
     remainingEntities[Category.WEAPON_OR_ARMOR].extend(remainingEntities[Category.ARMOR])
+    remainingEntities[Category.ARMOR].clear()
 
-    # Fill the "must be a weapon or armor" locations.
+    # Weapons or armor
+    rng.shuffle(remainingLocations[Category.WEAPON_OR_ARMOR])
     rng.shuffle(remainingEntities[Category.WEAPON_OR_ARMOR])
-    for location in remainingLocations[Category.WEAPON_OR_ARMOR]:
-        location.current = remainingEntities[Category.WEAPON_OR_ARMOR].pop()
+    while remainingLocations[Category.WEAPON_OR_ARMOR] and remainingEntities[Category.WEAPON_OR_ARMOR]:
+        poppedLocation = remainingLocations[Category.WEAPON_OR_ARMOR].pop()
+        poppedEntity = remainingEntities[Category.WEAPON_OR_ARMOR].pop()
+        poppedLocation.current = poppedEntity
+    remainingLocations[Category.ITEM].extend(remainingLocations[Category.WEAPON_OR_ARMOR])
+    remainingLocations[Category.WEAPON_OR_ARMOR].clear()
+    remainingEntities[Category.ITEM].extend(remainingEntities[Category.WEAPON_OR_ARMOR])
+    remainingEntities[Category.WEAPON_OR_ARMOR].clear()
 
-    # Fill the item locations.
+    # Physical items
+    rng.shuffle(remainingLocations[Category.PHYSICAL_ITEM])
+    rng.shuffle(remainingEntities[Category.PHYSICAL_ITEM])
+    while remainingLocations[Category.PHYSICAL_ITEM] and remainingEntities[Category.PHYSICAL_ITEM]:
+        poppedLocation = remainingLocations[Category.PHYSICAL_ITEM].pop()
+        poppedEntity = remainingEntities[Category.PHYSICAL_ITEM].pop()
+        poppedLocation.current = poppedEntity
+    # Remaining "physical item" locations become "generic item" locations
+    remainingLocations[Category.ITEM].extend(remainingLocations[Category.PHYSICAL_ITEM])
+    remainingLocations[Category.PHYSICAL_ITEM].clear()
+    # Remaining "physical item" entities should not happen
+    if remainingEntities[Category.PHYSICAL_ITEM]:
+        raise Exception("Could not place a 'Category.PHYSICAL_ITEM' entity")
+
+    # Generic items
+    rng.shuffle(remainingLocations[Category.ITEM])
     rng.shuffle(remainingEntities[Category.ITEM])
-    for location in remainingLocations[Category.ITEM]:
-        location.current = remainingEntities[Category.ITEM].pop()
+    while remainingLocations[Category.ITEM] and remainingEntities[Category.ITEM]:
+        poppedLocation = remainingLocations[Category.ITEM].pop()
+        poppedEntity = remainingEntities[Category.ITEM].pop()
+        poppedLocation.current = poppedEntity
+    # Remaining "generic item" locations and entities should not happen
+    if remainingLocations[Category.ITEM]:
+        raise Exception("Could not fill a 'Category.ITEM' location")
+    if remainingEntities[Category.ITEM]:
+        raise Exception("Could not place a 'Category.ITEM' entity")
 
-    # Fill the NPC locations.
+    # NPCs
+    rng.shuffle(remainingLocations[Category.NPC])
     rng.shuffle(remainingEntities[Category.NPC])
-    for location in remainingLocations[Category.NPC]:
-        location.current = remainingEntities[Category.NPC].pop()
+    while remainingLocations[Category.NPC] and remainingEntities[Category.NPC]:
+        poppedLocation = remainingLocations[Category.NPC].pop()
+        poppedEntity = remainingEntities[Category.NPC].pop()
+        poppedLocation.current = poppedEntity
+    # Remaining "NPC" locations and entities should not happen
+    if remainingLocations[Category.NPC]:
+        raise Exception("Could not fill a 'Category.NPC' location")
+    if remainingEntities[Category.NPC]:
+        raise Exception("Could not place a 'Category.NPC' entity")
 
     # Check if the candidate seed is winnable.
     # Any seed with "EVENT___GAME_COMPLETED" in the inventory after the
@@ -6787,176 +6853,12 @@ romBytes[0xF9102:0xF9102+2] = romBytes[0xD08ED:0xD08ED+2]
 
 # TODO: Strobe <-- Not currently subject to randomization
 
-# Time Bomb
-# In vanilla, the Detonator and Explosives automatically merge to become
-# the Time Bomb. The game checks if the merge needs to happen as part of
-# the Pickup code for both component items.
-# With randomization, we can't count on the Pickup code being executed.
-# (If you buy an item, it just gets parachuted into your inventory.)
-# So, new behaviour: you have to "Use" one of the component items, with
-# both in your inventory, to create the Time Bomb.
-# If you try to "Use" one component by itself, print its examine text,
-# which will tell you the name of the other (missing) item.
-# Upon successful creation of the Time Bomb, print a success message.
-
-# Time Bomb: "Examine" message for Explosives
-writeHelper(romBytes, 0xF224D, bytes.fromhex(' '.join([
-    # "They need a Detonator."
-    "DC", # "Th"  = 11011100
-    "77", # "ey"  = 011101111
-    "E1", # " n"  = 11000010
-    "26", # "ee"  = 01001100
-    "4D", # "d "  = 1001101
-    "D1", # "a "  = 11010001
-    "59", # "D"   = 01011001
-    "9C", # "et"  = 10011100
-    "84", # "on"  = 1000010
-    "C4", # "at"  = 0110001
-    "66", # "or"  = 0001100
-    "20", # ".\n" = 1100010
-])))
-
-# Time Bomb: "Examine" message for Detonator
-writeHelper(romBytes, 0xF2264, bytes.fromhex(' '.join([
-    # "It needs Explosives."
-    "D7", # "It"  = 1101011111
-    "F3", # " "   = 1100110
-    "6A", # "ne"  = 11010101
-    "81", # "ed"  = 00000010
-    "70", # "s "  = 1110000
-    "F1", # "E"   = 111100011
-    "EC", # "x"   = 110110001
-    "6F", # "pl"  = 1011110101
-    "5F", # "os"  = 11110111101
-    "7A", # "iv"  = 000010010
-    "12",
-    "C3", # "es"  = 11000011
-    "C4", # ".\n" = 1100010
-])))
-
-# Time Bomb: Successful creation message
-writeHelper(romBytes, 0xF2273, bytes.fromhex(' '.join([
-    # "Time Bomb assembled."
-    "F4", # "T"   = 111101001
-    "E7", # "im"  = 1100111011
-    "68", # "e "  = 01000
-    "D3", # "B"   = 110100110
-    "6A", # "om"  = 110101001
-    "53", # "b"   = 01001110
-    "B6", # " a"  = 1101101
-    "E7", # "ss"  = 1100111110
-    "D0", # "em"  = 100000010
-    "20", # "bl"  = 000000110
-    "30", # "ed"  = 00000010
-    "16", # ".\n" = 1100010
-    "20",
-])))
-
 # Explosives
-expandedOffset = scriptHelper(
-    scriptNumber = 0x115,
-    argsLen      = 0x02, # Script 0x115 now takes 2 bytes (= 1 stack item) as arguments
-    returnLen    = 0x00, # Script 0x115 now returns 0 bytes (= 0 stack items) upon completion
-    offset       = expandedOffset,
-    scratchLen   = 0x04, # Header byte: Script uses 0x04 bytes of $13+xx space
-    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
-    commandList  = [
-        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
-        "58 C5",    # 0003: Check if object has an owner
-        "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
-        "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
-        # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
-        "58 C5",    # 000D: Check if object has an owner
-        "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
-        "14 00 01", # 0011: Push short 0x0100
-        "0C 01",    # 0014: Push signed byte from $13+01 <-- Whether object has an owner
-        "52 AA 02", # 0016: Execute behaviour script 0x2AA = Interaction menu helper
-        "BA",       # 0019: Duplicate
-        "34 02",    # 001A: Pop short to $13+02 <-- Selected menu option
-        # CHECK_IF_EXAMINE
-        "00 80",    # 001C: Push unsigned byte 0x80
-        "AA",       # 001E: Check if equal
-        "44 37 00", # 001F: If not equal, jump to CHECK_IF_PICKUP
-        # EXAMINE
-        # Interaction menu option: Examine
-        "00 F0",    # 0022: Push unsigned byte 0xF0
-        "14 01 02", # 0024: Push short 0x0201
-        "14 00 08", # 0027: Push short 0x0800
-        "00 03",    # 002A: Push unsigned byte 0x03
-        "00 12",    # 002C: Push unsigned byte 0x12
-        "00 15",    # 002E: Push unsigned byte 0x15
-        "00 02",    # 0030: Push unsigned byte 0x02
-        "58 C7",    # 0032: Print text ("They need a Detonator.")
-        "48 A9 00", # 0034: Jump to BOTTOM_OF_LOOP
-        # CHECK_IF_PICKUP
-        "16 02",    # 0037: Push short from $13+02 <-- Selected menu option
-        "00 10",    # 0039: Push unsigned byte 0x10
-        "AA",       # 003B: Check if equal
-        "44 4C 00", # 003C: If not equal, jump to CHECK_IF_USE
-        # PICKUP
-        # Interaction menu option: Pickup
-        "C2",       # 003F: Push $13
-        "58 6F",    # 0040: Set object's owner to Jake
-        "52 4B 00", # 0042: Execute behaviour script 0x4B = "Got item" sound effect
-        "0A FF",    # 0045: Push signed byte 0xFF
-        "2C 01",    # 0047: Pop byte to $13+01 <-- Whether object has an owner
-        "48 A9 00", # 0049: Jump to BOTTOM_OF_LOOP
-        # CHECK_IF_USE
-        "16 02",    # 004C: Push short from $13+02 <-- Selected menu option
-        "14 00 01", # 004E: Push short 0x0100
-        "AA",       # 0051: Check if equal
-        "44 A9 00", # 0052: If not equal, jump to BOTTOM_OF_LOOP
-        # USE
-        # Interaction menu option: Use
-        "14 BD 15", # 0055: Push short 0x15BD <-- Object-id for Detonator
-        "14 B2 08", # 0058: Push short 0x08B2 <-- Object-id for Jake
-        "58 42",    # 005B: Check if first object owns second object
-        "14 A2 13", # 005D: Push short 0x13A2 <-- Object-id for Explosives
-        "14 B2 08", # 0060: Push short 0x08B2 <-- Object-id for Jake
-        "58 42",    # 0063: Check if first object owns second object
-        "7E",       # 0065: Bitwise AND
-        "BE",       # 0066: Convert to boolean
-        "44 97 00", # 0067: If false, jump to CANNOT_MAKE_TIME_BOMB
-        # MAKE_TIME_BOMB
-        "14 38 15", # 006A: Push short 0x1538 <-- Object-id for Dog Food
-        "14 BD 15", # 006D: Push short 0x15BD <-- Object-id for Detonator
-        "58 74",    # 0070: Set object's owner
-        "14 38 15", # 0072: Push short 0x1538 <-- Object-id for Dog Food
-        "14 A2 13", # 0075: Push short 0x13A2 <-- Object-id for Explosives
-        "58 74",    # 0078: Set object's owner
-        "14 B2 08", # 007A: Push short 0x08B2 <-- Object-id for Jake
-        "14 30 02", # 007D: Push short 0x0230 <-- Object-id for Time Bomb
-        "58 74",    # 0080: Set object's owner
-        "00 F0",    # 0082: Push unsigned byte 0xF0
-        "14 04 02", # 0084: Push short 0x0204
-        "14 00 08", # 0087: Push short 0x0800
-        "00 03",    # 008A: Push unsigned byte 0x03
-        "00 10",    # 008C: Push unsigned byte 0x10
-        "00 15",    # 008E: Push unsigned byte 0x15
-        "00 08",    # 0090: Push unsigned byte 0x08
-        "58 C7",    # 0092: Print text ("Time Bomb assembled.")
-        "48 A9 00", # 0094: Jump to BOTTOM_OF_LOOP
-        # CANNOT_MAKE_TIME_BOMB
-        "00 F0",    # 0097: Push unsigned byte 0xF0
-        "14 01 02", # 0099: Push short 0x0201
-        "14 00 08", # 009C: Push short 0x0800
-        "00 03",    # 009F: Push unsigned byte 0x03
-        "00 12",    # 00A1: Push unsigned byte 0x12
-        "00 15",    # 00A3: Push unsigned byte 0x15
-        "00 07",    # 00A5: Push unsigned byte 0x07
-        "58 C7",    # 00A7: Print text ("They need a Detonator.")
-        # BOTTOM_OF_LOOP
-        "0C 01",    # 00A9: Push signed byte from $13+01 <-- Whether object has an owner
-        "44 0C 00", # 00AB: If no, jump to TOP_OF_LOOP
-        # DONE
-        "C2",       # 00AE: Push $13
-        "58 B8",    # 00AF: Despawn object
-        "56",       # 00B1: End
-    ],
-)
+writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
+    "C2",       # 0008: Push $13
+    "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
+    "48 25 00", # 000C: Jump to 0025
+])))
 # Make the Explosives not inherently subject to gravity
 romBytes[0x675BA] &= ~0x20
 
@@ -7329,110 +7231,22 @@ romBytes[0x66850] = 0x08
 romBytes[0xF580E:0xF580E+2] = romBytes[0xD2315:0xD2315+2]
 
 # Detonator
-expandedOffset = scriptHelper(
-    scriptNumber = 0x2EF,
-    argsLen      = 0x02, # Script 0x2EF now takes 2 bytes (= 1 stack item) as arguments
-    returnLen    = 0x00, # Script 0x2EF now returns 0 bytes (= 0 stack items) upon completion
-    offset       = expandedOffset,
-    scratchLen   = 0x04, # Header byte: Script uses 0x04 bytes of $13+xx space
-    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
-    commandList  = [
-        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
-        "58 C5",    # 0003: Check if object has an owner
-        "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
-        "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
-        # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
-        "58 C5",    # 000D: Check if object has an owner
-        "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
-        "14 00 01", # 0011: Push short 0x0100
-        "0C 01",    # 0014: Push signed byte from $13+01 <-- Whether object has an owner
-        "52 AA 02", # 0016: Execute behaviour script 0x2AA = Interaction menu helper
-        "BA",       # 0019: Duplicate
-        "34 02",    # 001A: Pop short to $13+02 <-- Selected menu option
-        # CHECK_IF_EXAMINE
-        "00 80",    # 001C: Push unsigned byte 0x80
-        "AA",       # 001E: Check if equal
-        "44 37 00", # 001F: If not equal, jump to CHECK_IF_PICKUP
-        # EXAMINE
-        # Interaction menu option: Examine
-        "00 F0",    # 0022: Push unsigned byte 0xF0
-        "14 03 02", # 0024: Push short 0x0203
-        "14 00 08", # 0027: Push short 0x0800
-        "00 03",    # 002A: Push unsigned byte 0x03
-        "00 10",    # 002C: Push unsigned byte 0x10
-        "00 15",    # 002E: Push unsigned byte 0x15
-        "00 02",    # 0030: Push unsigned byte 0x02
-        "58 C7",    # 0032: Print text ("It needs Explosives.")
-        "48 A9 00", # 0034: Jump to BOTTOM_OF_LOOP
-        # CHECK_IF_PICKUP
-        "16 02",    # 0037: Push short from $13+02 <-- Selected menu option
-        "00 10",    # 0039: Push unsigned byte 0x10
-        "AA",       # 003B: Check if equal
-        "44 4C 00", # 003C: If not equal, jump to CHECK_IF_USE
-        # PICKUP
-        # Interaction menu option: Pickup
-        "C2",       # 003F: Push $13
-        "58 6F",    # 0040: Set object's owner to Jake
-        "52 4B 00", # 0042: Execute behaviour script 0x4B = "Got item" sound effect
-        "0A FF",    # 0045: Push signed byte 0xFF
-        "2C 01",    # 0047: Pop byte to $13+01 <-- Whether object has an owner
-        "48 A9 00", # 0049: Jump to BOTTOM_OF_LOOP
-        # CHECK_IF_USE
-        "16 02",    # 004C: Push short from $13+02 <-- Selected menu option
-        "14 00 01", # 004E: Push short 0x0100
-        "AA",       # 0051: Check if equal
-        "44 A9 00", # 0052: If not equal, jump to BOTTOM_OF_LOOP
-        # USE
-        # Interaction menu option: Use
-        "14 BD 15", # 0055: Push short 0x15BD <-- Object-id for Detonator
-        "14 B2 08", # 0058: Push short 0x08B2 <-- Object-id for Jake
-        "58 42",    # 005B: Check if first object owns second object
-        "14 A2 13", # 005D: Push short 0x13A2 <-- Object-id for Explosives
-        "14 B2 08", # 0060: Push short 0x08B2 <-- Object-id for Jake
-        "58 42",    # 0063: Check if first object owns second object
-        "7E",       # 0065: Bitwise AND
-        "BE",       # 0066: Convert to boolean
-        "44 97 00", # 0067: If false, jump to CANNOT_MAKE_TIME_BOMB
-        # MAKE_TIME_BOMB
-        "14 38 15", # 006A: Push short 0x1538 <-- Object-id for Dog Food
-        "14 BD 15", # 006D: Push short 0x15BD <-- Object-id for Detonator
-        "58 74",    # 0070: Set object's owner
-        "14 38 15", # 0072: Push short 0x1538 <-- Object-id for Dog Food
-        "14 A2 13", # 0075: Push short 0x13A2 <-- Object-id for Explosives
-        "58 74",    # 0078: Set object's owner
-        "14 B2 08", # 007A: Push short 0x08B2 <-- Object-id for Jake
-        "14 30 02", # 007D: Push short 0x0230 <-- Object-id for Time Bomb
-        "58 74",    # 0080: Set object's owner
-        "00 F0",    # 0082: Push unsigned byte 0xF0
-        "14 04 02", # 0084: Push short 0x0204
-        "14 00 08", # 0087: Push short 0x0800
-        "00 03",    # 008A: Push unsigned byte 0x03
-        "00 10",    # 008C: Push unsigned byte 0x10
-        "00 15",    # 008E: Push unsigned byte 0x15
-        "00 08",    # 0090: Push unsigned byte 0x08
-        "58 C7",    # 0092: Print text ("Time Bomb assembled.")
-        "48 A9 00", # 0094: Jump to BOTTOM_OF_LOOP
-        # CANNOT_MAKE_TIME_BOMB
-        "00 F0",    # 0097: Push unsigned byte 0xF0
-        "14 03 02", # 0099: Push short 0x0203
-        "14 00 08", # 009C: Push short 0x0800
-        "00 03",    # 009F: Push unsigned byte 0x03
-        "00 10",    # 00A1: Push unsigned byte 0x10
-        "00 15",    # 00A3: Push unsigned byte 0x15
-        "00 08",    # 00A5: Push unsigned byte 0x08
-        "58 C7",    # 00A7: Print text ("It needs Explosives.")
-        # BOTTOM_OF_LOOP
-        "0C 01",    # 00A9: Push signed byte from $13+01 <-- Whether object has an owner
-        "44 0C 00", # 00AB: If no, jump to TOP_OF_LOOP
-        # DONE
-        "C2",       # 00AE: Push $13
-        "58 B8",    # 00AF: Despawn object
-        "56",       # 00B1: End
-    ],
-)
+writeHelper(romBytes, 0xF40C2, bytes.fromhex(' '.join([
+    "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+    "C2",       # 0002: Push $13
+    "58 C5",    # 0003: Check if object has an owner
+    "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
+    "C2",       # 0008: Push $13
+    "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
+    # TOP_OF_LOOP
+    "C2",       # 000C: Push $13
+    "58 C5",    # 000D: Check if object has an owner
+    "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
+    "00 00",    # 0011: Push unsigned byte 0x00
+])))
+writeHelper(romBytes, 0xF410F, bytes.fromhex(' '.join([
+    "44 0C 00", # 004D: If not owned, jump to TOP_OF_LOOP
+])))
 
 # Broken Bottle
 writeHelper(romBytes, 0xF4118, bytes.fromhex(' '.join([
