@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2022-06-12"
+randomizerVersion = "2022-07-07"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -217,6 +217,7 @@ Progress = Enum(
         "ITEM___ICED_TEA",
         "ITEM___IRON_KEY",
         "ITEM___JESTER_SPIRIT",
+        "ITEM___KEYWORD___DOG",
         "ITEM___LEAVES",
         "ITEM___LONESTAR_BADGE",
         "ITEM___MAGIC_FETISH",
@@ -366,6 +367,17 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
+        description = "Learn 'Dog'",
+        vanilla = Entity(Category.CONSTANT, "Learn 'Dog'", None, [
+            (Progress.KEYWORD___DOG, [Progress.ITEM___KEYWORD___DOG]),
+        ]),
+        requires = [],
+        address = None,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
         description = "Examine Ripped Note",
         vanilla = Entity(Category.CONSTANT, "Examine Ripped Note", None, [
             (Progress.PHONE_NUMBER___SASSIE, [Progress.ITEM___RIPPED_NOTE]),
@@ -406,7 +418,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DR-MATRIX",
+        description = "Merge DF_DR Fragments",
         vanilla = Entity(Category.CONSTANT, "DF_DR-MATRIX", 0x6C5AF, [
             (Progress.ITEM___DF_DR_MATRIX, []),
         ]),
@@ -805,10 +817,10 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "hmmm....",
-        vanilla = Entity(Category.CONSTANT, "hmmm....", 0x6BC16, [
-            (Progress.KEYWORD___DOG, []),
+        category = Category.PHYSICAL_ITEM,
+        description = "End of alley",
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Dog", 0x6BC16, [
+            (Progress.ITEM___KEYWORD___DOG, []),
         ]),
         requires = [],
         address = 0xC8859,
@@ -888,7 +900,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_BADNEWS",
+        description = "Computer",
         vanilla = Entity(Category.CONSTANT, "DF_BADNEWS", 0x6C5D9, [
             (Progress.ITEM___DF_BADNEWS, []),
         ]),
@@ -2561,7 +2573,8 @@ thisRegion.locations.extend([
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Explosives", 0x6C3D3, [
             (Progress.ITEM___EXPLOSIVES, []),
         ]),
-        requires = [Progress.EVENT___NIRWANDA_OR_LAUGHLYN],
+        # In vanilla, this requires knowing either "Nirwanda" or "Laughlyn".
+        requires = [Progress.EVENT___ICE_DELIVERED_TO_DOCKS],
         address = 0xCA60D,
         hidden = True,
     ),
@@ -2582,7 +2595,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_MT-AI",
+        description = "Computer",
         vanilla = Entity(Category.CONSTANT, "DF_MT-AI", 0x6C57E, [
             (Progress.ITEM___DF_MT_AI, []),
         ]),
@@ -2969,7 +2982,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DB-Jester",
+        description = "Computer (left)",
         vanilla = Entity(Category.CONSTANT, "DF_DB-Jester", 0x6C5D2, [
             (Progress.ITEM___DF_DB_JESTER, []),
         ]),
@@ -3565,7 +3578,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DR 1-4",
+        description = "Computer (right)",
         vanilla = Entity(Category.CONSTANT, "DF_DR 1-4", 0x6C5CB, [
             (Progress.ITEM___DF_DR_1_4, []),
         ]),
@@ -3590,7 +3603,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DR 2-4",
+        description = "Computer (left)",
         vanilla = Entity(Category.CONSTANT, "DF_DR 2-4", 0x6C5C4, [
             (Progress.ITEM___DF_DR_2_4, []),
         ]),
@@ -3629,7 +3642,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DR 3-4",
+        description = "Computer (left)",
         vanilla = Entity(Category.CONSTANT, "DF_DR 3-4", 0x6C5BD, [
             (Progress.ITEM___DF_DR_3_4, []),
         ]),
@@ -3686,7 +3699,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DR 4-4",
+        description = "Computer (right)",
         vanilla = Entity(Category.CONSTANT, "DF_DR 4-4", 0x6C5B6, [
             (Progress.ITEM___DF_DR_4_4, []),
         ]),
@@ -3698,7 +3711,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DR-VOLCANO",
+        description = "Computer (right)",
         vanilla = Entity(Category.CONSTANT, "DF_DR-VOLCANO", 0x6C5A8, [
             (Progress.ITEM___DF_DR_VOLCANO, []),
         ]),
@@ -3912,7 +3925,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DS-FAILURE",
+        description = "Computer",
         vanilla = Entity(Category.CONSTANT, "DF_DS-FAILURE", 0x6C593, [
             (Progress.ITEM___DF_DS_FAILURE, []),
         ]),
@@ -4079,7 +4092,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DS-AI END",
+        description = "Computer",
         vanilla = Entity(Category.CONSTANT, "DF_DS-AI END", 0x6C5A1, [
             (Progress.ITEM___DF_DS_AI_END, []),
         ]),
@@ -4139,7 +4152,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DS-TARGET",
+        description = "Computer (upper right)",
         vanilla = Entity(Category.CONSTANT, "DF_DS-TARGET", 0x6C585, [
             (Progress.ITEM___DF_DS_TARGET, []),
         ]),
@@ -4151,7 +4164,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_DS-AKIMI",
+        description = "Computer (lower left)",
         vanilla = Entity(Category.CONSTANT, "DF_DS-AKIMI", 0x6C59A, [
             (Progress.ITEM___DF_DS_AKIMI, []),
         ]),
@@ -4400,7 +4413,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_AN-PAYMENT",
+        description = "Computer",
         vanilla = Entity(Category.CONSTANT, "DF_AN-PAYMENT", 0x6C5E0, [
             (Progress.ITEM___DF_AN_PAYMENT, []),
         ]),
@@ -4477,7 +4490,7 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "DF_AN-ANTI-AI",
+        description = "Computer",
         vanilla = Entity(Category.CONSTANT, "DF_AN-ANTI-AI", 0x6C5E7, [
             (Progress.ITEM___DF_AN_ANTI_AI, []),
         ]),
@@ -5918,6 +5931,275 @@ initialItemState[0xA33] &= ~0x01 # Full Bodysuit
 initialItemState[0xA38] &= ~0x01 # AS-7 A. Cannon
 
 # ------------------------------------------------------------------------
+# Keyword-items
+# ------------------------------------------------------------------------
+# Item randomization, on its own, produces seeds that are very linear
+# and similar to vanilla. Progression is still gated by the chain of
+# plot-significant keywords acquired through conversation.
+# (i.e. "Dog", "Jester Spirit", "Bremerton", "Laughlyn", "Volcano".)
+# To fix this, let's create some new "keyword" items, which will:
+# - Be placed randomly as part of the item shuffle
+# - Teach one plot-significant keyword when picked up
+# To create these items, we'll have to repurpose existing objects.
+# Since "Dog" is the first plot-significant keyword, let's start by
+# repurposing the NPC that teaches you it: the "hmmm...." dog in the
+# alley at Tenth Street.
+
+# Change the "hmmm...." hover-description to "Keyword"
+writeHelper(romBytes, 0xEEBA4, bytes.fromhex(' '.join([
+    # "Keyword"
+    "1C", # "K"  = 000111000
+    "3B", # "ey" = 011101111
+    "EC", # "wo" = 1011001100
+    "C6", # "rd" = 0110011111
+    "7F", # "\n" = 110010
+    "20",
+])))
+
+# Change the "hmmm...." appearance so it uses the "Tickets" sprite
+struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x30), 0xA46A)
+
+# Create text strings for use by the new "keyword-item" script.
+# Since the "hmmm...." dog's conversation will become inaccessible
+# once the new script is in place, we can repurpose the bytes that
+# currently contain that conversation's lines of text.
+writeHelper(romBytes, 0xE8766, bytes.fromhex(' '.join([
+    # Horizontal alignment fix: Start with a one-pixel-wide spacer
+    "F7 DA", # "\x01" = 1111011111011010
+    # "Keyword learned:"
+    "1C", # "K"  = 000111000
+    "3B", # "ey" = 011101111
+    "EC", # "w"  = 101100111
+    "E3", # "or" = 0001100
+    "26", # "d " = 1001101
+    "D5", # "le" = 10101011
+    "FA", # "ar" = 11110101
+    "EA", # "ne" = 11010101
+    "85", # "d"  = 00001010
+    "0A", # ":"  = 00010100000
+    "0C", # "\n" = 110010
+    "80",
+])))
+writeHelper(romBytes, 0xE8774, bytes.fromhex(' '.join([
+    # "|Dog"
+    "03", # "|"  = 000000111
+    "84", # "Do" = 000010000
+    "26", # "g"  = 10011000
+    "32", # "\n" = 110010
+])))
+writeHelper(romBytes, 0xE8778, bytes.fromhex(' '.join([
+    # "|Jester |Spirit"
+    "03", # "|"  = 000000111
+    "BE", # "J"  = 01111100011
+    "3C", # "es" = 11000011
+    "36", # "te" = 01101011
+    "B9", # "r " = 1001111
+    "E0", # "|"  = 000000111
+    "75", # "S"  = 01011111
+    "FA", # "p"  = 10100000
+    "0E", # "ir" = 111010000
+    "80", # "it" = 0000111
+    "7C", # "\n" = 110010
+    "80",
+])))
+writeHelper(romBytes, 0xE8784, bytes.fromhex(' '.join([
+    # "|Bremerton"
+    "03", # "|"  = 000000111
+    "E9", # "B"  = 110100110
+    "BF", # "re" = 1111110
+    "06", # "me" = 0000110
+    "15", # "rt" = 000101011
+    "C2", # "on" = 1000010
+    "C8", # "\n" = 110010
+])))
+writeHelper(romBytes, 0xE878B, bytes.fromhex(' '.join([
+    # "|Laughlyn"
+    "03", # "|"  = 000000111
+    "F8", # "L"  = 111100010
+    "8E", # "a"  = 00111011
+    "CC", # "u"  = 0011000
+    "41", # "gh" = 100000101
+    "5D", # "ly" = 011101110
+    "D5", # "n"  = 10101111
+    "F9", # "\n" = 110010
+    "00",
+])))
+writeHelper(romBytes, 0xE8794, bytes.fromhex(' '.join([
+    # "|Volcano"
+    "03", # "|"  = 000000111
+    "B3", # "V"  = 0110011110
+    "D3", # "ol" = 1001100110
+    "31", # "ca" = 00100111
+    "39", # "no" = 00110011
+    "9E", # "\n" = 110010
+    "40",
+])))
+
+# We need to free up some objects to create the new keyword-items.
+# The "shadowrunner default equipment" objects look like they're only
+# used to provide weapon/armor names on the status screen, so I think
+# we can free some up by having the runners share objects.
+# For now, let's make all of the runners with a default Mesh Jacket
+# share Jangadance's Mesh Jacket (0x0857).
+struct.pack_into("<H", romBytes, 0x1734, 0x0857) # Spatter
+struct.pack_into("<H", romBytes, 0x173C, 0x0857) # Jetboy
+struct.pack_into("<H", romBytes, 0x1744, 0x0857) # Norbert
+struct.pack_into("<H", romBytes, 0x1754, 0x0857) # Anders
+struct.pack_into("<H", romBytes, 0x177C, 0x0857) # Hamfist
+struct.pack_into("<H", romBytes, 0x1784, 0x0857) # Orifice
+
+# Next, we turn these freed objects into keyword-item objects.
+# Set appearance to 0x0030: "hmmm...." appearance, which we changed
+# to have a hover-description of "Keyword" and the "Tickets" sprite
+# just now.
+# Set behaviour script to 0x02C6: "hmmm...." dog's script, which
+# will become the new "keyword-item" script in a moment.
+# TODO: Turn some of these into nuyen-items by copying values from 6B7E7 (Nuyen dropped by Octopus)?
+# TODO: Would require editing behaviour script 0xD6 to use the new item-drawing script
+# TODO: Would probably also require adding the "Nuyen dropped by Octopus" object into logic
+
+# Free object
+# Vanilla: Mesh Jacket (Orifice)
+writeHelper(romBytes, 0x6B896, bytes.fromhex("FF 0C 3B 30 00 C6 02"))
+# Free object
+# Vanilla: Mesh Jacket (Norbert)
+writeHelper(romBytes, 0x6B89D, bytes.fromhex("FF 16 3B 30 00 C6 02"))
+# Free object
+# Vanilla: Mesh Jacket (Anders)
+writeHelper(romBytes, 0x6B8A4, bytes.fromhex("FF 2A 3B 30 00 C6 02"))
+# Keyword-item: Volcano
+# Vanilla: Mesh Jacket (Looks unused)
+writeHelper(romBytes, 0x6B8AB, bytes.fromhex("FF 39 3B 30 00 C6 02"))
+# Keyword-item: Laughlyn
+# Vanilla: Mesh Jacket (Hamfist)
+writeHelper(romBytes, 0x6B8B2, bytes.fromhex("FF 52 3B 30 00 C6 02"))
+# TODO: Consider turning Mesh Jacket (Spatter) into a nuyen-item (Rat Shaman nuyen drop), and Vladimir into keyword-item: Bremerton
+# Keyword-item: Bremerton
+# Vanilla: Mesh Jacket (Spatter)
+writeHelper(romBytes, 0x6B8B9, bytes.fromhex("FF FD 3A 30 00 C6 02"))
+# Keyword-item: Jester Spirit
+# Vanilla: Mesh Jacket (Jetboy)
+writeHelper(romBytes, 0x6B8C0, bytes.fromhex("FF 34 3B 30 00 C6 02"))
+# TODO: Consider turning Glutman into a nuyen-item
+# Keyword-item: Dog
+# Vanilla: "hmmm...." (Dog in alley)
+writeHelper(romBytes, 0x6BC16, bytes.fromhex("FF 1D 2F 30 00 C6 02"))
+
+# Replace the "hmmm...." dog's script with the new "keyword-item" script
+expandedOffset = scriptHelper(
+    scriptNumber = 0x2C6,
+    argsLen      = 0x02, # Script 0x2C6 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x2C6 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x07, # Header byte: Script uses 0x07 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "C2",       # 0002: Push $13
+        "58 CB",    # 0003: Push object ID
+        "34 01",    # 0005: Pop short to $13+01 <-- Object-id of the keyword-item executing this code
+        # CHECK_IF_DOG
+        "16 01",    # 0007: Push short from $13+01 <-- Object-id of the keyword-item executing this code
+        "14 E5 0B", # 0009: Push short 0x0BE5      <-- Object-id of keyword-item: Dog
+        "AA",       # 000C: Check if equal
+        "44 1C 00", # 000D: If not equal, jump to CHECK_IF_JESTER_SPIRIT
+        # DOG
+        "00 0D",    # 0010: Push unsigned byte 0x0D <-- Keyword-id for "Dog"
+        "2C 03",    # 0012: Pop byte to $13+03      <-- Keyword-id
+        "14 74 07", # 0014: Push short 0x0774       <-- Text pointer for "|Dog"
+        "34 04",    # 0017: Pop short to $13+04     <-- Text pointer for bolded keyword
+        "48 6D 00", # 0019: Jump to CHECK_IF_KEYWORD_KNOWN
+        # CHECK_IF_JESTER_SPIRIT
+        "16 01",    # 001C: Push short from $13+01 <-- Object-id of the keyword-item executing this code
+        "14 8F 08", # 001E: Push short 0x088F      <-- Object-id of keyword-item: Jester Spirit
+        "AA",       # 0021: Check if equal
+        "44 31 00", # 0022: If not equal, jump to CHECK_IF_BREMERTON
+        # JESTER_SPIRIT
+        "00 19",    # 0025: Push unsigned byte 0x19 <-- Keyword-id for "Jester Spirit"
+        "2C 03",    # 0027: Pop byte to $13+03      <-- Keyword-id
+        "14 78 07", # 0029: Push short 0x0778       <-- Text pointer for "|Jester |Spirit"
+        "34 04",    # 002C: Pop short to $13+04     <-- Text pointer for bolded keyword
+        "48 6D 00", # 002E: Jump to CHECK_IF_KEYWORD_KNOWN
+        # CHECK_IF_BREMERTON
+        "16 01",    # 0031: Push short from $13+01 <-- Object-id of the keyword-item executing this code
+        "14 88 08", # 0033: Push short 0x0888      <-- Object-id of keyword-item: Bremerton
+        "AA",       # 0036: Check if equal
+        "44 46 00", # 0037: If not equal, jump to CHECK_IF_LAUGHLYN
+        # BREMERTON
+        "00 04",    # 003A: Push unsigned byte 0x04 <-- Keyword-id for "Bremerton"
+        "2C 03",    # 003C: Pop byte to $13+03      <-- Keyword-id
+        "14 84 07", # 003E: Push short 0x0784       <-- Text pointer for "|Bremerton"
+        "34 04",    # 0041: Pop short to $13+04     <-- Text pointer for bolded keyword
+        "48 6D 00", # 0043: Jump to CHECK_IF_KEYWORD_KNOWN
+        # CHECK_IF_LAUGHLYN
+        "16 01",    # 0046: Push short from $13+01 <-- Object-id of the keyword-item executing this code
+        "14 81 08", # 0048: Push short 0x0881      <-- Object-id of keyword-item: Laughlyn
+        "AA",       # 004B: Check if equal
+        "44 5B 00", # 004C: If not equal, jump to CHECK_IF_VOLCANO
+        # LAUGHLYN
+        "00 1C",    # 004F: Push unsigned byte 0x1C <-- Keyword-id for "Laughlyn"
+        "2C 03",    # 0051: Pop byte to $13+03      <-- Keyword-id
+        "14 8B 07", # 0053: Push short 0x078B       <-- Text pointer for "|Laughlyn"
+        "34 04",    # 0056: Pop short to $13+04     <-- Text pointer for bolded keyword
+        "48 6D 00", # 0058: Jump to CHECK_IF_KEYWORD_KNOWN
+        # CHECK_IF_VOLCANO
+        "16 01",    # 005B: Push short from $13+01 <-- Object-id of the keyword-item executing this code
+        "14 7A 08", # 005D: Push short 0x087A      <-- Object-id of keyword-item: Volcano
+        "AA",       # 0060: Check if equal
+        "44 AE 00", # 0061: If not equal, jump to DONE
+        # VOLCANO
+        "00 3F",    # 0064: Push unsigned byte 0x3F <-- Keyword-id for "Volcano"
+        "2C 03",    # 0066: Pop byte to $13+03      <-- Keyword-id
+        "14 94 07", # 0068: Push short 0x0794       <-- Text pointer for "|Volcano"
+        "34 04",    # 006B: Pop short to $13+04     <-- Text pointer for bolded keyword
+        # CHECK_IF_KEYWORD_KNOWN
+        "02 03",    # 006D: Push unsigned byte from $13+03 <-- Keyword-id
+        "58 97",    # 006F: Check if keyword known
+        "46 AE 00", # 0071: If yes, jump to DONE
+        # SPAWN_KEYWORD_ITEM
+        "C2",       # 0074: Push $13
+        "52 1D 01", # 0075: Execute behaviour script 0x11D = New item-drawing script
+        "C0",       # 0078: Push zero
+        "00 10",    # 0079: Push unsigned byte 0x10
+        "58 9E",    # 007B: Register menu options / time delay
+        "BC",       # 007D: Pop
+        # PICKUP
+        # Play the sound effect and learn the keyword
+        "52 4B 00", # 007E: Execute behaviour script 0x4B = "Got item" sound effect
+        "02 03",    # 0081: Push unsigned byte from $13+03 <-- Keyword-id for object executing this code
+        "58 71",    # 0083: Learn keyword
+        # Text window attributes
+        "00 F0",    # 0085: Push unsigned byte 0xF0
+        "14 60 02", # 0087: Push short 0x0260 <-- Text-id for "Winter CES'93", repointed to ""
+        "14 00 08", # 008A: Push short 0x0800
+        "00 04",    # 008D: Push unsigned byte 0x04
+        "00 0E",    # 008F: Push unsigned byte 0x0E
+        "00 14",    # 0091: Push unsigned byte 0x14
+        "00 09",    # 0093: Push unsigned byte 0x09
+        # Create empty text window
+        "58 3D",    # 0095: Print text, return text-window-slot number <-- Repurposed function!
+        "2C 06",    # 0097: Pop byte to $13+06 <-- Text-window-slot number
+        # Print the "keyword learned" line
+        "14 66 07", # 0099: Push short 0x0766 <-- Text pointer for "Keyword learned:"
+        "02 06",    # 009C: Push unsigned byte from $13+06 <-- Text-window-slot number
+        "58 53",    # 009E: Print text to window <-- Repurposed function!
+        # Move text cursor
+        "00 01",    # 00A0: Push unsigned byte 0x01 <-- Y coordinate
+        "00 00",    # 00A2: Push unsigned byte 0x00 <-- X coordinate
+        "02 06",    # 00A4: Push unsigned byte from $13+06 <-- Text-window-slot number
+        "58 0E",    # 00A6: Set window's text cursor position <-- Repurposed function!
+        # Print the keyword
+        "16 04",    # 00A8: Push short from $13+04 <-- Text pointer for bolded keyword
+        "02 06",    # 00AA: Push unsigned byte from $13+06 <-- Text-window-slot number
+        "58 53",    # 00AC: Print text to window <-- Repurposed function!
+        # DONE
+        "C2",       # 00AE: Push $13
+        "58 B8",    # 00AF: Despawn object
+        "56",       # 00B1: End
+    ],
+)
+
+# ------------------------------------------------------------------------
 # Items and NPCs
 # ------------------------------------------------------------------------
 
@@ -6080,6 +6362,15 @@ writeHelper(romBytes, 0xDEFC3, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
 ])))
 
+# Video Phone <-- In Jake's apartment
+# Change the behaviour script for the Video Phone from 0x1C6
+# (Video Phone in Jake's apartment with recorded message) to
+# 0x206 (Video Phone).
+# We're doing this so we don't have to listen to the recorded
+# message before using Jake's phone to make outgoing calls.
+# With this change, script 0x1C6 should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6B1A9, 0x0206)
+
 # Beretta Pistol
 writeHelper(romBytes, 0xC886D, bytes.fromhex(' '.join([
     "34 01",    # Move the spawn point to waypoint 0x01 on the alley map
@@ -6103,12 +6394,12 @@ romBytes[0x6BB52] = 0xFF
 
 # Leather Jacket: Orc
 # Reveal the new item shuffled to this location
-newDropID = f"14 {romBytes[0xC8877+0]:02X} {romBytes[0xC8877+1]:02X}"
 writeHelper(romBytes, 0xDD15A, bytes.fromhex(' '.join([
     "00 01",    # 00C3: Push unsigned byte 0x01
     "02 01",    # 00C5: Push unsigned byte from $13+01 <-- Copy of original spawn index
     "58 33",    # 00C7: Set bits of object's flags
-    newDropID,  # 00C9: Push short 0x####   <-- Item drop's object-id
+    f"14 {romBytes[0xC8877+0]:02X} {romBytes[0xC8877+1]:02X}",
+                # 00C9: Push short 0x####   <-- Item drop's object-id
     "58 C2",    # 00CC: Push object's RAM_1 <-- Item drop's spawn index
     "2C 01",    # 00CE: Pop byte to $13+01  <-- Item drop's spawn index
     "C2",       # 00D0: Push $13
@@ -6257,9 +6548,9 @@ romBytes[0x674F4] &= ~0x20
 
 # Ghoul Bone: Scary Ghoul
 # Reveal the new item shuffled to this location
-newDropID = f"14 {romBytes[0xC85D1+0]:02X} {romBytes[0xC85D1+1]:02X}"
 writeHelper(romBytes, 0x1FEE6, bytes.fromhex(' '.join([
-    newDropID,  # 00EE: Push short 0x####   <-- Item drop's object-id
+    f"14 {romBytes[0xC85D1+0]:02X} {romBytes[0xC85D1+1]:02X}",
+                # 00EE: Push short 0x####   <-- Item drop's object-id
     "BA",       # 00F1: Duplicate
     "58 C2",    # 00F2: Push object's RAM_1 <-- Item drop's spawn index
     "2C 0A",    # 00F4: Pop byte to $13+0A  <-- Item drop's spawn index
@@ -6863,11 +7154,11 @@ writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
 romBytes[0x675BA] &= ~0x20
 
 # Explosives: Massive Orc
-# Appear after ice has been delivered to the docks (in vanilla,
+# Appear after ice has been delivered to the docks. (In vanilla,
 # the Massive Orc appears when you know either the Nirwanda or
 # Laughlyn keywords, but this creates a risk of softlock if you
 # don't collect the Orc's item and then use the Jester Spirit
-# portal, which takes away those keywords)
+# portal, which takes away those keywords.)
 writeHelper(romBytes, 0xFA9EC, bytes.fromhex(' '.join([
     "14 0E 1C", # 0002: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
     "58 BA",    # 0005: Push object's flags
@@ -6876,10 +7167,10 @@ writeHelper(romBytes, 0xFA9EC, bytes.fromhex(' '.join([
     "BE",       # 000A: Convert to boolean
 ])))
 # Reveal the new item shuffled to this location
-newDropID = f"14 {romBytes[0xCA60D+0]:02X} {romBytes[0xCA60D+1]:02X}"
 writeHelper(romBytes, 0xFAA53, bytes.fromhex(' '.join([
     "00 80",    # 0069: Push unsigned byte 0x80
-    newDropID,  # 006B: Push short 0x#### <-- Item drop's object-id
+    f"14 {romBytes[0xCA60D+0]:02X} {romBytes[0xCA60D+1]:02X}",
+                # 006B: Push short 0x#### <-- Item drop's object-id
 ])))
 
 # Mermaid Scales
@@ -6891,7 +7182,6 @@ writeHelper(romBytes, 0xF49B1, bytes.fromhex(' '.join([
 
 # Mermaid Scales: A Busy Man <-- Ice delivery guy at Wastelands
 # Reveal the new item shuffled to this location
-newDropID = f"14 {romBytes[0xCA691+0]:02X} {romBytes[0xCA691+1]:02X}"
 expandedOffset = scriptHelper(
     scriptNumber = 0x284,
     argsLen      = 0x00, # Script 0x284 now takes 0 bytes (= 0 stack items) as arguments
@@ -6901,7 +7191,8 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x04, # Header byte: Maximum stack height of 0x04 bytes (= 2 stack items)
     commandList  = [
         "00 80",    # 0000: Push unsigned byte 0x80
-        newDropID,  # 0002: Push short 0x####
+        f"14 {romBytes[0xCA691+0]:02X} {romBytes[0xCA691+1]:02X}",
+                    # 0002: Push short 0x#### <-- Object-id of new item in "Mermaid Scales" location
         "58 0D",    # 0005: Set bits of object's flags
         "00 02",    # 0007: Push unsigned byte 0x02
         "14 0E 1C", # 0009: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
@@ -7160,7 +7451,6 @@ expandedOffset = scriptHelper(
 
 # Dog Tag: Doggie
 # Reveal the new item shuffled to this location
-newDropID = f"14 {romBytes[0xC9C79+0]:02X} {romBytes[0xC9C79+1]:02X}"
 expandedOffset = scriptHelper(
     scriptNumber = 0x2DD,
     argsLen      = 0x02, # Script 0x2DD now takes 2 bytes (= 1 stack item) as arguments
@@ -7172,14 +7462,16 @@ expandedOffset = scriptHelper(
         # Copy 0000-0015 from the original script.
         romBytes[0xF512A:0xF5140].hex(' '),
         # New code.
-        newDropID,  # 0016: Push short 0x####   <-- Item drop's object-id
+        f"14 {romBytes[0xC9C79+0]:02X} {romBytes[0xC9C79+1]:02X}",
+                    # 0016: Push short 0x####   <-- Item drop's object-id
         "58 BA",    # 0019: Push object's flags <-- Item drop's flags
         "00 80",    # 001B: Push unsigned byte 0x80
         "7E",       # 001D: Bitwise AND
         # Copy 001E-00E7 from the original script.
         romBytes[0xF5148:0xF5212].hex(' '),
         # More new code.
-        newDropID,  # 00E8: Push short 0x####   <-- Item drop's object-id
+        f"14 {romBytes[0xC9C79+0]:02X} {romBytes[0xC9C79+1]:02X}",
+                    # 00E8: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 00EB: Push object's RAM_1 <-- Item drop's spawn index
         "2C 04",    # 00ED: Pop byte to $13+04  <-- Item drop's spawn index
         "C2",       # 00EF: Push $13
@@ -7384,7 +7676,6 @@ romBytes[0x6683C] = 0x08
 
 # Serpent Scales: Naga <-- Gold Naga boss
 # Reveal the new item shuffled to this location
-newDropID = f"14 {romBytes[0xD26C7+0]:02X} {romBytes[0xD26C7+1]:02X}"
 expandedOffset = scriptHelper(
     scriptNumber = 0x1FA,
     argsLen      = 0x02, # Script 0x1FA now takes 2 bytes (= 1 stack item) as arguments
@@ -7394,7 +7685,8 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        newDropID,  # 0002: Push short 0x####  <-- Item drop's object-id
+        f"14 {romBytes[0xD26C7+0]:02X} {romBytes[0xD26C7+1]:02X}",
+                    # 0002: Push short 0x####  <-- Item drop's object-id
         "14 B2 08", # 0005: Push short 0x08B2  <-- Object-id for Jake
         "58 42",    # 0008: Check if first object owns second object
         "46 62 00", # 000A: If true, jump to DONE
@@ -7409,14 +7701,16 @@ expandedOffset = scriptHelper(
         "C2",       # 001B: Push $13
         "52 0B 00", # 001C: Execute behaviour script 0xB
         # GOLD_NAGA_DEFEATED
-        newDropID,  # 001F: Push short 0x####   <-- Item drop's object-id
+        f"14 {romBytes[0xD26C7+0]:02X} {romBytes[0xD26C7+1]:02X}",
+                    # 001F: Push short 0x####   <-- Item drop's object-id
         "58 BA",    # 0022: Push object's flags <-- Item drop's flags
         "00 80",    # 0024: Push unsigned byte 0x80
         "7E",       # 0026: Bitwise AND
         "BE",       # 0027: Convert to boolean
         "46 62 00", # 0028: If true, jump to DONE
         # REVEAL_ITEM_DROP
-        newDropID,  # 002B: Push short 0x####   <-- Item drop's object-id
+        f"14 {romBytes[0xD26C7+0]:02X} {romBytes[0xD26C7+1]:02X}",
+                    # 002B: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 002E: Push object's RAM_1 <-- Item drop's spawn index
         "2C 01",    # 0030: Pop byte to $13+01  <-- Item drop's spawn index
         "C2",       # 0032: Push $13
@@ -7468,7 +7762,7 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "00 14",    # 0002: Push unsigned byte 0x14 <-- "Head Computer" keyword number
+        "00 14",    # 0002: Push unsigned byte 0x14 <-- Keyword-id for "Head Computer"
         "58 71",    # 0004: Learn keyword
         "C0",       # 0006: Push zero
         "C2",       # 0007: Push $13
