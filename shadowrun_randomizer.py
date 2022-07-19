@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2022-07-07"
+randomizerVersion = "2022-07-18"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -218,12 +218,15 @@ Progress = Enum(
         "ITEM___IRON_KEY",
         "ITEM___JESTER_SPIRIT",
         "ITEM___KEYWORD___DOG",
+        "ITEM___KEYWORD___JESTER_SPIRIT",
         "ITEM___LEAVES",
         "ITEM___LONESTAR_BADGE",
         "ITEM___MAGIC_FETISH",
         "ITEM___MATCHBOX",
         "ITEM___MEMO",
         "ITEM___MERMAID_SCALES",
+        "ITEM___NUYEN___OCTOPUS",
+        "ITEM___NUYEN___RAT_SHAMAN",
         "ITEM___PAPERWEIGHT",
         "ITEM___PASSWORD___ANEKI",
         "ITEM___PASSWORD___DRAKE",
@@ -270,6 +273,7 @@ Progress = Enum(
         "EVENT___MAPLETHORPE_DOOR_OPENED",
         "EVENT___DATAJACK_REPAIRED",
         "EVENT___RUST_STILETTOS_DEFEATED",
+        "EVENT___OCTOPUS_DEFEATED",
         "EVENT___POOL_OF_INK_COLLECTED",
         "EVENT___EARTH_CREATURE_AND_MAN",
         "EVENT___RAT_SHAMAN_GATE_OPENED",
@@ -381,6 +385,17 @@ thisRegion.locations.extend([
         description = "Examine Ripped Note",
         vanilla = Entity(Category.CONSTANT, "Examine Ripped Note", None, [
             (Progress.PHONE_NUMBER___SASSIE, [Progress.ITEM___RIPPED_NOTE]),
+        ]),
+        requires = [],
+        address = None,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Learn 'Jester Spirit'",
+        vanilla = Entity(Category.CONSTANT, "Learn 'Jester Spirit'", None, [
+            (Progress.KEYWORD___JESTER_SPIRIT, [Progress.ITEM___KEYWORD___JESTER_SPIRIT]),
         ]),
         requires = [],
         address = None,
@@ -817,8 +832,8 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
-        description = "End of alley",
+        category = Category.PHYSICAL_KEY_ITEM,
+        description = "Keyword: Dog",
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Dog", 0x6BC16, [
             (Progress.ITEM___KEYWORD___DOG, []),
         ]),
@@ -2711,11 +2726,33 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
+        description = "Octopus",
+        vanilla = Entity(Category.CONSTANT, "Octopus", 0x6B7E0, [
+            (Progress.EVENT___OCTOPUS_DEFEATED, []),
+        ]),
+        requires = [],
+        address = 0xCB181,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_ITEM,
+        description = "Nuyen: Octopus",
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Octopus", 0x6B7E7, [
+            (Progress.ITEM___NUYEN___OCTOPUS, []),
+        ]),
+        requires = [Progress.EVENT___OCTOPUS_DEFEATED],
+        address = 0xCB18D,
+        hidden = True,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
         description = "Pool of Ink",
         vanilla = Entity(Category.CONSTANT, "Pool of Ink", 0x6B697, [
             (Progress.EVENT___POOL_OF_INK_COLLECTED, [Progress.ITEM___BLACK_BOTTLE]),
         ]),
-        requires = [],
+        requires = [Progress.EVENT___OCTOPUS_DEFEATED],
         address = 0xCB1B1,
         hidden = True,
     ),
@@ -2792,11 +2829,32 @@ thisRegion.locations.extend([
         description = "Rat Shaman",
         vanilla = Entity(Category.CONSTANT, "Rat Shaman", 0x6B682, [
             (Progress.EVENT___RAT_SHAMAN_DEFEATED, []),
-            (Progress.KEYWORD___JESTER_SPIRIT, []),
         ]),
         requires = [],
         address = 0xD065D,
         hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_KEY_ITEM,
+        description = "Keyword: Jester Spirit",
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Jester Spirit", 0x6B8C0, [
+            (Progress.ITEM___KEYWORD___JESTER_SPIRIT, []),
+        ]),
+        requires = [Progress.EVENT___RAT_SHAMAN_DEFEATED],
+        address = 0xD29A7,
+        hidden = True,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_ITEM,
+        description = "Nuyen: Rat Shaman",
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Rat Shaman", 0x6B8B9, [
+            (Progress.ITEM___NUYEN___RAT_SHAMAN, []),
+        ]),
+        requires = [Progress.EVENT___RAT_SHAMAN_DEFEATED],
+        address = 0xD2965,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
@@ -4858,8 +4916,8 @@ def scriptHelper(scriptNumber, argsLen, returnLen, offset, scratchLen, maxStackL
     nextOffset = writeHelper(romBytes, offset + 2, bytes.fromhex(' '.join(commandList)))
     return nextOffset
 
-# Add two empty 32 KiB banks to the end of the ROM.
-romBytes.extend([0x00] * (0x8000 * 2))
+# Add four empty 32 KiB banks to the end of the ROM.
+romBytes.extend([0x00] * (4 * 0x8000))
 romBytes[0x7FD7] = 0x0B
 
 # Write the new entity IDs.
@@ -5931,7 +5989,7 @@ initialItemState[0xA33] &= ~0x01 # Full Bodysuit
 initialItemState[0xA38] &= ~0x01 # AS-7 A. Cannon
 
 # ------------------------------------------------------------------------
-# Keyword-items
+# Keyword-items and nuyen-items
 # ------------------------------------------------------------------------
 # Item randomization, on its own, produces seeds that are very linear
 # and similar to vanilla. Progression is still gated by the chain of
@@ -6054,9 +6112,8 @@ struct.pack_into("<H", romBytes, 0x1784, 0x0857) # Orifice
 # just now.
 # Set behaviour script to 0x02C6: "hmmm...." dog's script, which
 # will become the new "keyword-item" script in a moment.
-# TODO: Turn some of these into nuyen-items by copying values from 6B7E7 (Nuyen dropped by Octopus)?
-# TODO: Would require editing behaviour script 0xD6 to use the new item-drawing script
-# TODO: Would probably also require adding the "Nuyen dropped by Octopus" object into logic
+# We'll also turn some into nuyen-item objects, by borrowing values
+# from the "Nuyen dropped by Octopus" object.
 
 # Free object
 # Vanilla: Mesh Jacket (Orifice)
@@ -6070,13 +6127,16 @@ writeHelper(romBytes, 0x6B8A4, bytes.fromhex("FF 2A 3B 30 00 C6 02"))
 # Keyword-item: Volcano
 # Vanilla: Mesh Jacket (Looks unused)
 writeHelper(romBytes, 0x6B8AB, bytes.fromhex("FF 39 3B 30 00 C6 02"))
+# TODO: create a "VAMPIRE_DEFEATED" event once the "Laughlyn" keyword-item is in logic
 # Keyword-item: Laughlyn
 # Vanilla: Mesh Jacket (Hamfist)
 writeHelper(romBytes, 0x6B8B2, bytes.fromhex("FF 52 3B 30 00 C6 02"))
-# TODO: Consider turning Mesh Jacket (Spatter) into a nuyen-item (Rat Shaman nuyen drop), and Vladimir into keyword-item: Bremerton
 # Keyword-item: Bremerton
+# Vanilla: Vladimir
+#writeHelper(romBytes, 0x6B17A, bytes.fromhex("FF 43 36 30 00 C6 02"))
+# Nuyen-item: Rat Shaman
 # Vanilla: Mesh Jacket (Spatter)
-writeHelper(romBytes, 0x6B8B9, bytes.fromhex("FF FD 3A 30 00 C6 02"))
+writeHelper(romBytes, 0x6B8B9, bytes.fromhex("FF FD 3A 9E 00 D6 00"))
 # Keyword-item: Jester Spirit
 # Vanilla: Mesh Jacket (Jetboy)
 writeHelper(romBytes, 0x6B8C0, bytes.fromhex("FF 34 3B 30 00 C6 02"))
@@ -6096,7 +6156,7 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "C2",       # 0002: Push $13
-        "58 CB",    # 0003: Push object ID
+        "58 CB",    # 0003: Push object-id
         "34 01",    # 0005: Pop short to $13+01 <-- Object-id of the keyword-item executing this code
         # CHECK_IF_DOG
         "16 01",    # 0007: Push short from $13+01 <-- Object-id of the keyword-item executing this code
@@ -6198,6 +6258,22 @@ expandedOffset = scriptHelper(
         "56",       # 00B1: End
     ],
 )
+
+# Update the nuyen-item script to use the new item-drawing script
+writeHelper(romBytes, 0xF88F4, bytes.fromhex(' '.join([
+    "52 1D 01", # 0003: Execute behaviour script 0x11D = New item-drawing script
+    "48 0B 00", # 0006: Jump to 000B
+])))
+# Increase amount from 2,000 to 3,000 nuyen
+writeHelper(romBytes, 0xF8907, bytes.fromhex(' '.join([
+    "14 F4 01", # 0016: Push short 0x01F4 <-- Text-id for "3,000 nuyen." (was 0x01F5)
+])))
+writeHelper(romBytes, 0xF8913, bytes.fromhex(' '.join([
+    "00 0B",    # 0022: Push unsigned byte 0x0B <-- X coordinate of text window (was 0x0A)
+])))
+writeHelper(romBytes, 0xF8917, bytes.fromhex(' '.join([
+    "14 B8 0B", # 0026: Push short 0x0BB8 <-- Amount of nuyen (was 0x07D0)
+])))
 
 # ------------------------------------------------------------------------
 # Items and NPCs
@@ -6441,6 +6517,12 @@ writeHelper(romBytes, 0xDD15A, bytes.fromhex(' '.join([
     "BC",       # 010B: Pop
     "52 8D 03", # 010C: Execute behaviour script 0x38D = Body behaviour script: "Nothing special here."
     "48 06 01", # 010F: Jump to 0106
+])))
+
+# Keyword: Dog
+writeHelper(romBytes, 0xC8855, bytes.fromhex(' '.join([
+    "58 02",    # Move the spawn point a short distance down and right
+    "2E 11",    # New coordinates: (600, 302, 64)
 ])))
 
 # Paperweight
@@ -7201,6 +7283,93 @@ expandedOffset = scriptHelper(
     ],
 )
 
+# Nuyen: Octopus
+# Reveal the new item shuffled to this location
+romBytes[0xF87B4:0xF87B4+2] = romBytes[0xCB18D:0xCB18D+2]
+
+# Loyal citizen <-- Turns into Octopus
+# Take into account the new item shuffled to the "Nuyen: Octopus" location
+romBytes[0xF866C:0xF866C+2] = romBytes[0xCB18D:0xCB18D+2]
+romBytes[0xF8677:0xF8677+2] = romBytes[0xCB18D:0xCB18D+2]
+
+# Randomly-appearing enemies in Waterfront - Octopus boss room
+# Take into account the new item shuffled to the "Nuyen: Octopus" location
+romBytes[0xFA9AC:0xFA9AC+2] = romBytes[0xCB18D:0xCB18D+2]
+romBytes[0xFA9CD:0xFA9CD+2] = romBytes[0xCB18D:0xCB18D+2]
+
+# Rat Shaman
+expandedOffset = scriptHelper(
+    scriptNumber = 0x10D,
+    argsLen      = 0x06, # Script 0x10D now takes 6 bytes (= 3 stack items) as arguments
+    returnLen    = 0x00, # Script 0x10D now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x0F, # Header byte: Script uses 0x0F bytes of $13+xx space
+    maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
+    commandList  = [
+        # Copy 0000-018E from the original script.
+        romBytes[0xF4CC7:0xF4E56].hex(' '),
+        # New code.
+        # Keyword: Jester Spirit
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xD29A7+0]:02X} {romBytes[0xD29A7+1]:02X}",
+                    # 018F: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 0192: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 0E",    # 0194: Pop byte to $13+0E  <-- Item drop's spawn index
+        "02 0A",    # 0196: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 51",    # 0198: Push Z coordinate / 4
+        "00 02",    # 019A: Push unsigned byte 0x02
+        "7A",       # 019C: Left shift
+        "02 0A",    # 019D: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 50",    # 019F: Push Y coordinate / 4
+        "00 02",    # 01A1: Push unsigned byte 0x02
+        "7A",       # 01A3: Left shift
+        "02 0A",    # 01A4: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 4F",    # 01A6: Push X coordinate / 4
+        "00 02",    # 01A8: Push unsigned byte 0x02
+        "7A",       # 01AA: Left shift
+        "02 0E",    # 01AB: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 82",    # 01AD: Set object X/Y/Z position
+        "00 80",    # 01AF: Push unsigned byte 0x80
+        "02 0E",    # 01B1: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 33",    # 01B3: Set bits of object's flags
+        # Nuyen: Rat Shaman
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xD2965+0]:02X} {romBytes[0xD2965+1]:02X}",
+                    # 01B5: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 01B8: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 0E",    # 01BA: Pop byte to $13+0E  <-- Item drop's spawn index
+        "02 0A",    # 01BC: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 51",    # 01BE: Push Z coordinate / 4
+        "00 02",    # 01C0: Push unsigned byte 0x02
+        "7A",       # 01C2: Left shift
+        "02 0A",    # 01C3: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 50",    # 01C5: Push Y coordinate / 4
+        "00 02",    # 01C7: Push unsigned byte 0x02
+        "7A",       # 01C9: Left shift
+        "02 0A",    # 01CA: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 4F",    # 01CC: Push X coordinate / 4
+        "00 02",    # 01CE: Push unsigned byte 0x02
+        "7A",       # 01D0: Left shift
+        "02 0E",    # 01D1: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 82",    # 01D3: Set object X/Y/Z position
+        "00 80",    # 01D5: Push unsigned byte 0x80
+        "02 0E",    # 01D7: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 33",    # 01D9: Set bits of object's flags
+        # Copy 01A3-01D9 from the original script.
+        romBytes[0xF4E6A:0xF4EA1].hex(' '),
+    ],
+)
+# Skip the automatic conversations with the Jester Spirit and Kitsune
+# that happen after you defeat the Rat Shaman
+writeHelper(romBytes, 0xF4EF2, bytes.fromhex(' '.join([
+    "BC",       # 0022: Pop
+    "BC",       # 0023: Pop
+])))
+writeHelper(romBytes, 0xF4F3E, bytes.fromhex(' '.join([
+    "BC",       # 006E: Pop
+    "BC",       # 006F: Pop
+])))
+
 # Viper H. Pistol ($3,000): Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCE76:0xFCE76+2] = romBytes[0xD1715:0xD1715+2]
@@ -7360,7 +7529,7 @@ expandedOffset = scriptHelper(
         "C2",       # 0070: Push $13
         "58 BF",    # 0071: ???
         "C2",       # 0073: Push $13
-        "58 CB",    # 0074: Push object ID
+        "58 CB",    # 0074: Push object-id
         "14 B0 05", # 0076: Push short 0x05B0 <-- Object-id of Samurai Warrior that drops "Mesh Jacket (free)"
         "AA",       # 0079: Check if equal
         "44 84 00", # 007A: If not equal, jump to PERISH
@@ -7815,6 +7984,64 @@ expandedOffset = scriptHelper(
 # (Some of these may get promoted to permanent changes)
 # ------------------------------------------------------------------------
 
+# Update the glass cases containing weapons and armor so that their
+# cost matches the new randomized contents.
+# This causes power growth to be more money-driven.
+equipmentPrices = {
+    # Weapons
+    0x1952 :   500, # Beretta Pistol
+    0x17C3 :   500, # Colt L36 Pistol
+    0x12F3 :  2000, # Fichetti L. Pistol
+    0x0157 :  3000, # Viper H. Pistol ($3,000)
+    0x0150 :  4000, # Viper H. Pistol ($4,000)
+    0x013B :  9000, # Warhawk H. Pistol
+    0x0276 : 12000, # T-250 Shotgun ($12,000)
+    0x0261 : 15000, # T-250 Shotgun ($15,000)
+    0x01A4 : 30000, # Uzi III SMG
+    0x0BF3 : 24000, # HK 277 A. Rifle
+    0x1B5F : 40000, # AS-7 A. Cannon
+    # Armor
+    0x0B21 :  2000, # Leather Jacket
+    0x085E :  5000, # Mesh Jacket (free)
+    0x0850 :  5000, # Mesh Jacket ($5,000)
+    0x18A3 :  8000, # Bulletproof Vest
+    0x1696 : 13000, # Concealed Jacket
+    0x0770 : 20000, # Partial Bodysuit
+    0x129F : 30000, # Full Bodysuit
+}
+
+# Oldtown - Gun Shop
+struct.pack_into("<H", romBytes, 0xE5F3E, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F3B)[0]]) # Colt L36 Pistol
+struct.pack_into("<H", romBytes, 0xE5F50, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F4D)[0]]) # Viper H. Pistol ($4,000)
+struct.pack_into("<H", romBytes, 0xE5F62, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F5F)[0]]) # Mesh Jacket ($5,000)
+struct.pack_into("<H", romBytes, 0xE5F74, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F71)[0]]) # T-250 Shotgun ($15,000)
+struct.pack_into("<H", romBytes, 0xE5F86, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F83)[0]]) # Fichetti L. Pistol
+struct.pack_into("<H", romBytes, 0xE5F98, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F95)[0]]) # Warhawk H. Pistol
+
+# Dark Blade - Gun Shop
+struct.pack_into("<H", romBytes, 0xFCE79, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCE76)[0]]) # Viper H. Pistol ($3,000)
+struct.pack_into("<H", romBytes, 0xFCE8B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCE88)[0]]) # T-250 Shotgun ($12,000)
+struct.pack_into("<H", romBytes, 0xFCE9D, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCE9A)[0]]) # Uzi III SMG
+struct.pack_into("<H", romBytes, 0xFCEAF, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCEAC)[0]]) # HK 277 A. Rifle
+struct.pack_into("<H", romBytes, 0xFCED3, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCED0)[0]]) # Bulletproof Vest
+struct.pack_into("<H", romBytes, 0xFCEE5, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCEE2)[0]]) # Concealed Jacket
+struct.pack_into("<H", romBytes, 0xFCEF7, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCEF4)[0]]) # Partial Bodysuit
+struct.pack_into("<H", romBytes, 0xFCF09, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCF06)[0]]) # Full Bodysuit
+struct.pack_into("<H", romBytes, 0xFCF1B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCF18)[0]]) # AS-7 A. Cannon
+
+# Make all of the "initially out of stock" items available
+# This specifically undoes something we went out of our way to do
+# just after the "common code for glass cases" script.
+# If we decide to keep this behaviour, we can comment out those
+# lines as well as these ones.
+initialItemState[0x9F7] &= ~0x02 # HK 277 A. Rifle  ($24,000)
+initialItemState[0xA01] &= ~0x02 # Concealed Jacket ($13,000)
+initialItemState[0xA06] &= ~0x02 # Partial Bodysuit ($20,000)
+initialItemState[0xA3D] &= ~0x02 # Full Bodysuit    ($30,000)
+initialItemState[0xA42] &= ~0x02 # AS-7 A. Cannon   ($40,000)
+
+# ------------------------------------------------------------------------
+
 # Give Jake the Zip Gun as a default weapon
 # The Zip Gun is never actually in Jake's inventory, so he can't give
 # it away. It works like default equipment for shadowrunners.
@@ -7914,6 +8141,11 @@ writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
 
 # Start with the King paid off, so you can leave the caryards freely
 initialItemState[0x24F] |= 0x01
+
+# ------------------------------------------------------------------------
+
+# TODO: hide the inescapable-conversation dog at Daley Station?
+# TODO: make the Dermal Plating always available at Maplethorpe's?
 
 # ------------------------------------------------------------------------
 
@@ -8077,6 +8309,32 @@ writeHelper(romBytes, 0x109000, bytes.fromhex(' '.join([
     "6B",          # A0/9010: RTL
 ])))
 writeHelper(romBytes, 0x109020, newInfoLines)
+
+
+
+# Copy the map data from 0xC8000-D7FFF to 0x110000-11FFFF.
+romBytes[0x110000:0x1145D8] = romBytes[0xC8000:0xCC5D8]
+romBytes[0x118000:0x11AD64] = romBytes[0xD0000:0xD2D64]
+
+# Look for the map data at 0x110000.
+romBytes[0x23DE] = 0xA2
+
+# Make a new version of the Rat Shaman boss room at 0x114600.
+# This version has two additional objects:
+# - Item shuffled to the "Keyword: Jester Spirit" location
+# - Item shuffled to the "Nuyen: Rat Shaman" location
+romBytes[0x114600]          = romBytes[0xD0636]            # Vanilla drawing data
+romBytes[0x114601]          = romBytes[0xD0637]            # Vanilla music
+romBytes[0x114602:0x114604] = struct.pack("<H", 0xC6AE)    # Vanilla camera pointer, adjusted for the new room data location
+romBytes[0x114604]          = 0x08                         # +2 to the number of objects
+romBytes[0x114605:0x114629] = romBytes[0xD063B:0xD065F]    # Vanilla objects
+romBytes[0x114629:0x11462D] = bytes.fromhex("78 01 D0 19") # New object's coordinates (same location as Rat Shaman)
+romBytes[0x11462D:0x11462F] = romBytes[0xD29A7:0xD29A9]    # New object's object-id
+romBytes[0x11462F:0x114633] = bytes.fromhex("78 01 D0 19") # New object's coordinates (same location as Rat Shaman)
+romBytes[0x114633:0x114635] = romBytes[0xD2965:0xD2967]    # New object's object-id
+romBytes[0x114635:0x1146B0] = romBytes[0xD065F:0xD06DA]    # Vanilla remainder of room data
+# Update the door destinations to lead to the new Rat Shaman boss room
+struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x12C), 0x4600)
 
 
 
