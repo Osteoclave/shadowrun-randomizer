@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2022-07-18"
+randomizerVersion = "2022-10-08"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -217,6 +217,7 @@ Progress = Enum(
         "ITEM___ICED_TEA",
         "ITEM___IRON_KEY",
         "ITEM___JESTER_SPIRIT",
+        "ITEM___KEYWORD___BREMERTON",
         "ITEM___KEYWORD___DOG",
         "ITEM___KEYWORD___JESTER_SPIRIT",
         "ITEM___LEAVES",
@@ -279,7 +280,6 @@ Progress = Enum(
         "EVENT___RAT_SHAMAN_GATE_OPENED",
         "EVENT___RAT_SHAMAN_DEFEATED",
         "EVENT___DARK_BLADE_GATE_OPENED",
-        "EVENT___NIRWANDA_OR_LAUGHLYN",
         "EVENT___ICE_DELIVERED_TO_DOCKS",
         "EVENT___TAXIBOAT_HIRED",
         "EVENT___TOXIC_WATER_COLLECTED",
@@ -404,11 +404,9 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "Nirwanda or Laughlyn",
-        vanilla = Entity(Category.CONSTANT, "Nirwanda or Laughlyn", None, [
-            # Treat every "knows either Nirwanda or Laughlyn" requirement as
-            # "knows Laughlyn" in order to avoid softlocks.
-            (Progress.EVENT___NIRWANDA_OR_LAUGHLYN, [Progress.KEYWORD___LAUGHLYN]),
+        description = "Learn 'Bremerton'",
+        vanilla = Entity(Category.CONSTANT, "Learn 'Bremerton'", None, [
+            (Progress.KEYWORD___BREMERTON, [Progress.ITEM___KEYWORD___BREMERTON]),
         ]),
         requires = [],
         address = None,
@@ -2316,7 +2314,18 @@ thisRegion.locations.extend([
         description = "A Busy Man",
         vanilla = Entity(Category.CONSTANT, "A Busy Man", 0x6CC3F, [
             (Progress.EVENT___ICE_DELIVERED_TO_DOCKS, [
-                Progress.EVENT___NIRWANDA_OR_LAUGHLYN,
+                # In vanilla, the ice delivery guy at Wastelands will not
+                # appear until you know either "Nirwanda" or "Laughlyn".
+                # In vanilla, this is equivalent to knowing "Bremerton",
+                # since you can't learn either of the former without also
+                # learning the latter (and vice versa).
+                # It's been changed to the latter here to match the new
+                # way of learning "Bremerton" (i.e. from a keyword-item).
+                # This requirement is here instead of in "requires" below
+                # because it is part of the ice delivery guy's behaviour
+                # script, and would persist even if the ice delivery guy
+                # was relocated.
+                Progress.KEYWORD___BREMERTON,
                 Progress.KEYWORD___ICE,
                 Progress.KEYWORD___DOCKS,
             ]),
@@ -2588,8 +2597,14 @@ thisRegion.locations.extend([
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Explosives", 0x6C3D3, [
             (Progress.ITEM___EXPLOSIVES, []),
         ]),
-        # In vanilla, this requires knowing either "Nirwanda" or "Laughlyn".
-        requires = [Progress.EVENT___ICE_DELIVERED_TO_DOCKS],
+        # In vanilla, the Massive Orc that drops the Explosives will not
+        # appear until you know either "Nirwanda" or "Laughlyn".
+        # In vanilla, this is equivalent to knowing "Bremerton", since
+        # you can't learn either of the former without also learning the
+        # latter (and vice versa).
+        # It's been changed to the latter here to match the new way of
+        # learning "Bremerton" (i.e. from a keyword-item).
+        requires = [Progress.KEYWORD___BREMERTON],
         address = 0xCA60D,
         hidden = True,
     ),
@@ -3036,6 +3051,17 @@ regions[regionName] = thisRegion
 regionName = "Dark Blade - Left Room"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_KEY_ITEM,
+        description = "Keyword: Bremerton",
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Bremerton", 0x6B17A, [
+            (Progress.ITEM___KEYWORD___BREMERTON, []),
+        ]),
+        requires = [],
+        address = 0xD0A95,
+        hidden = False,
+    ),
     # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
     Location(
         region = thisRegion,
@@ -3155,11 +3181,6 @@ thisRegion.locations.extend([
         description = "Vampire!",
         vanilla = Entity(Category.CONSTANT, "Vampire!", 0x6B1B9, [
             (Progress.KEYWORD___LAUGHLYN, [
-                Progress.ITEM___STROBE,
-                Progress.ITEM___STAKE,
-                Progress.KEYWORD___JESTER_SPIRIT,
-            ]),
-            (Progress.KEYWORD___BREMERTON, [
                 Progress.ITEM___STROBE,
                 Progress.ITEM___STAKE,
                 Progress.KEYWORD___JESTER_SPIRIT,
@@ -6133,7 +6154,7 @@ writeHelper(romBytes, 0x6B8AB, bytes.fromhex("FF 39 3B 30 00 C6 02"))
 writeHelper(romBytes, 0x6B8B2, bytes.fromhex("FF 52 3B 30 00 C6 02"))
 # Keyword-item: Bremerton
 # Vanilla: Vladimir
-#writeHelper(romBytes, 0x6B17A, bytes.fromhex("FF 43 36 30 00 C6 02"))
+writeHelper(romBytes, 0x6B17A, bytes.fromhex("FF 43 36 30 00 C6 02"))
 # Nuyen-item: Rat Shaman
 # Vanilla: Mesh Jacket (Spatter)
 writeHelper(romBytes, 0x6B8B9, bytes.fromhex("FF FD 3A 9E 00 D6 00"))
@@ -6182,7 +6203,7 @@ expandedOffset = scriptHelper(
         "48 6D 00", # 002E: Jump to CHECK_IF_KEYWORD_KNOWN
         # CHECK_IF_BREMERTON
         "16 01",    # 0031: Push short from $13+01 <-- Object-id of the keyword-item executing this code
-        "14 88 08", # 0033: Push short 0x0888      <-- Object-id of keyword-item: Bremerton
+        "14 49 01", # 0033: Push short 0x0149      <-- Object-id of keyword-item: Bremerton
         "AA",       # 0036: Check if equal
         "44 46 00", # 0037: If not equal, jump to CHECK_IF_LAUGHLYN
         # BREMERTON
@@ -7197,6 +7218,18 @@ romBytes[0x65F10] = 0x08
 # Reveal the new item shuffled to this location
 romBytes[0xF9067:0xF9067+2] = romBytes[0xCA7B9:0xCA7B9+2]
 
+# Club Manager <-- Bartender at Wastelands
+# Change conversation when you know the "Bremerton" keyword.
+# In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
+romBytes[0xF68C1] = 0x04 # Keyword-id for "Bremerton"
+romBytes[0xF68C5] = 0x04 # Keyword-id for "Bremerton"
+
+# A Busy Man <-- Ice delivery guy at Wastelands
+# Appear when you know the "Bremerton" keyword.
+# In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
+romBytes[0xF69A9] = 0x04 # Keyword-id for "Bremerton"
+romBytes[0xF69AD] = 0x04 # Keyword-id for "Bremerton"
+
 # Crowbar
 writeHelper(romBytes, 0xF4320, bytes.fromhex(' '.join([
     "52 1D 01", # 0003: Execute behaviour script 0x11D = New item-drawing script
@@ -7222,6 +7255,18 @@ romBytes[0x6B79A] = 0xFF
 # Reveal the new item shuffled to this location
 romBytes[0xF9102:0xF9102+2] = romBytes[0xD08ED:0xD08ED+2]
 
+# Cruel man <-- Left bouncer at the entrance to Jagged Nails
+# Allow access to Jagged Nails without having to defeat the Rust Stilettos
+# Force the "always room for a true shadowrunner" conversation
+writeHelper(romBytes, 0xF628E, bytes.fromhex(' '.join([
+    "BE",       # 0018: Convert to boolean
+    "BC",       # 0019: Pop
+    "48 1D 00", # 001A: Jump to 001D
+])))
+# Truncate the "handled that Stilettos gang mighty fine" text
+romBytes[0xE9950] = 0xB8
+romBytes[0xE9951] = 0x80
+
 # TODO: Leaves <-- Not currently subject to randomization
 
 # TODO: Strobe <-- Not currently subject to randomization
@@ -7236,18 +7281,10 @@ writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
 romBytes[0x675BA] &= ~0x20
 
 # Explosives: Massive Orc
-# Appear after ice has been delivered to the docks. (In vanilla,
-# the Massive Orc appears when you know either the Nirwanda or
-# Laughlyn keywords, but this creates a risk of softlock if you
-# don't collect the Orc's item and then use the Jester Spirit
-# portal, which takes away those keywords.)
-writeHelper(romBytes, 0xFA9EC, bytes.fromhex(' '.join([
-    "14 0E 1C", # 0002: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
-    "58 BA",    # 0005: Push object's flags
-    "00 02",    # 0007: Push unsigned byte 0x02
-    "7E",       # 0009: Bitwise AND
-    "BE",       # 000A: Convert to boolean
-])))
+# Appear when you know the "Bremerton" keyword.
+# In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
+romBytes[0xFA9ED] = 0x04 # Keyword-id for "Bremerton"
+romBytes[0xFA9F1] = 0x04 # Keyword-id for "Bremerton"
 # Reveal the new item shuffled to this location
 writeHelper(romBytes, 0xFAA53, bytes.fromhex(' '.join([
     "00 80",    # 0069: Push unsigned byte 0x80
@@ -7405,6 +7442,20 @@ romBytes[0xFCF06:0xFCF06+2] = romBytes[0xD1745:0xD1745+2]
 # AS-7 A. Cannon: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCF18:0xFCF18+2] = romBytes[0xD174B:0xD174B+2]
+
+# Dark Blade mansion security status
+# Start with the mansion security on alert
+initialItemState[0x83F] |= 0x40
+
+# Mage <-- In the front hall of the Dark Blade mansion
+# Don't disappear when you know the "Laughlyn" keyword
+writeHelper(romBytes, 0xF36E4, bytes.fromhex(' '.join([
+    "C0",       # 003E: Push zero
+    "BC",       # 003F: Pop
+    "C0",       # 0040: Push zero
+    "BC",       # 0041: Pop
+    "48 4C 00", # 0042: Jump to 004C
+])))
 
 # Bronze Key
 writeHelper(romBytes, 0xF4512, bytes.fromhex(' '.join([
@@ -7762,6 +7813,36 @@ writeHelper(romBytes, 0xDE297, bytes.fromhex(' '.join([
     "14 3E 10", # 0085: Push short 0x103E <-- Object-id of "HK 277 A. Rifle" glass case
     "58 4B",    # 0088: Clear bits of object's flags
 ])))
+# - Don't forget "Rust Stilettos"
+writeHelper(romBytes, 0xDE2AE, bytes.fromhex(' '.join([
+    "BC",       # 0093: Pop
+    "C0",       # 0094: Push zero
+])))
+# - Don't forget "Laughlyn"
+writeHelper(romBytes, 0xDE2B3, bytes.fromhex(' '.join([
+    "BC",       # 0098: Pop
+    "C0",       # 0099: Push zero
+])))
+# - Don't forget "Nirwanda"
+writeHelper(romBytes, 0xDE2B8, bytes.fromhex(' '.join([
+    "BC",       # 009D: Pop
+    "C0",       # 009E: Push zero
+])))
+# - Don't forget "Ice"
+writeHelper(romBytes, 0xDE2BD, bytes.fromhex(' '.join([
+    "BC",       # 00A2: Pop
+    "C0",       # 00A3: Push zero
+])))
+# - Don't forget "Docks"
+writeHelper(romBytes, 0xDE2C2, bytes.fromhex(' '.join([
+    "BC",       # 00A7: Pop
+    "C0",       # 00A8: Push zero
+])))
+# - Don't forget "Bremerton"
+writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
+    "BC",       # 00AC: Pop
+    "C0",       # 00AD: Push zero
+])))
 
 # Helicopter Pilot
 # - Stock the $13,000 case at the Dark Blade Gun Shop (vanilla: Concealed Jacket)
@@ -7989,25 +8070,25 @@ expandedOffset = scriptHelper(
 # This causes power growth to be more money-driven.
 equipmentPrices = {
     # Weapons
-    0x1952 :   500, # Beretta Pistol
-    0x17C3 :   500, # Colt L36 Pistol
-    0x12F3 :  2000, # Fichetti L. Pistol
-    0x0157 :  3000, # Viper H. Pistol ($3,000)
-    0x0150 :  4000, # Viper H. Pistol ($4,000)
-    0x013B :  9000, # Warhawk H. Pistol
-    0x0276 : 12000, # T-250 Shotgun ($12,000)
-    0x0261 : 15000, # T-250 Shotgun ($15,000)
-    0x01A4 : 30000, # Uzi III SMG
-    0x0BF3 : 24000, # HK 277 A. Rifle
-    0x1B5F : 40000, # AS-7 A. Cannon
+    0x1952 :   200, # Beretta Pistol
+    0x17C3 :   200, # Colt L36 Pistol
+    0x12F3 :  1000, # Fichetti L. Pistol
+    0x0157 :  1300, # Viper H. Pistol ($3,000)
+    0x0150 :  2000, # Viper H. Pistol ($4,000)
+    0x013B :  4000, # Warhawk H. Pistol
+    0x0276 :  6000, # T-250 Shotgun ($12,000)
+    0x0261 :  7500, # T-250 Shotgun ($15,000)
+    0x01A4 : 14000, # Uzi III SMG
+    0x0BF3 : 11000, # HK 277 A. Rifle
+    0x1B5F : 20000, # AS-7 A. Cannon
     # Armor
-    0x0B21 :  2000, # Leather Jacket
-    0x085E :  5000, # Mesh Jacket (free)
-    0x0850 :  5000, # Mesh Jacket ($5,000)
-    0x18A3 :  8000, # Bulletproof Vest
-    0x1696 : 13000, # Concealed Jacket
-    0x0770 : 20000, # Partial Bodysuit
-    0x129F : 30000, # Full Bodysuit
+    0x0B21 :  1000, # Leather Jacket
+    0x085E :  2500, # Mesh Jacket (free)
+    0x0850 :  2500, # Mesh Jacket ($5,000)
+    0x18A3 :  3000, # Bulletproof Vest
+    0x1696 :  6000, # Concealed Jacket
+    0x0770 :  9000, # Partial Bodysuit
+    0x129F : 15000, # Full Bodysuit
 }
 
 # Oldtown - Gun Shop
@@ -8029,16 +8110,16 @@ struct.pack_into("<H", romBytes, 0xFCEF7, equipmentPrices[struct.unpack_from("<H
 struct.pack_into("<H", romBytes, 0xFCF09, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCF06)[0]]) # Full Bodysuit
 struct.pack_into("<H", romBytes, 0xFCF1B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCF18)[0]]) # AS-7 A. Cannon
 
-# Make all of the "initially out of stock" items available
-# This specifically undoes something we went out of our way to do
-# just after the "common code for glass cases" script.
-# If we decide to keep this behaviour, we can comment out those
-# lines as well as these ones.
-initialItemState[0x9F7] &= ~0x02 # HK 277 A. Rifle  ($24,000)
-initialItemState[0xA01] &= ~0x02 # Concealed Jacket ($13,000)
-initialItemState[0xA06] &= ~0x02 # Partial Bodysuit ($20,000)
-initialItemState[0xA3D] &= ~0x02 # Full Bodysuit    ($30,000)
-initialItemState[0xA42] &= ~0x02 # AS-7 A. Cannon   ($40,000)
+## Make all of the "initially out of stock" items available
+## This specifically undoes something we went out of our way to do
+## just after the "common code for glass cases" script.
+## If we decide to keep this behaviour, we can comment out those
+## lines as well as these ones.
+#initialItemState[0x9F7] &= ~0x02 # HK 277 A. Rifle  ($24,000)
+#initialItemState[0xA01] &= ~0x02 # Concealed Jacket ($13,000)
+#initialItemState[0xA06] &= ~0x02 # Partial Bodysuit ($20,000)
+#initialItemState[0xA3D] &= ~0x02 # Full Bodysuit    ($30,000)
+#initialItemState[0xA42] &= ~0x02 # AS-7 A. Cannon   ($40,000)
 
 # ------------------------------------------------------------------------
 
@@ -8139,51 +8220,35 @@ writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
 #    ],
 #)
 
+# ------------------------------------------------------------------------
+
 # Start with the King paid off, so you can leave the caryards freely
 initialItemState[0x24F] |= 0x01
 
-# ------------------------------------------------------------------------
+# Hide the inescapable-conversation dog at Daley Station
+initialItemState[0x43B] = 0x38
+initialItemState[0x43C] = 0x15
 
-# TODO: hide the inescapable-conversation dog at Daley Station?
-# TODO: make the Dermal Plating always available at Maplethorpe's?
-
-# ------------------------------------------------------------------------
+## Make the Dermal Plating immediately available at Maplethorpe's
+#initialItemState[0x55B] |= 0x01
 
 ## Open the door to the Rust Stilettos HQ
 #initialItemState[0x59C] |= 0x80
 
-# ------------------------------------------------------------------------
-
-# Open up Jagged Nails without having to defeat the Rust Stilettos
-
-# Force the "always room for a true shadowrunner" conversation
-writeHelper(romBytes, 0xF628E, bytes.fromhex(' '.join([
-    "BE",       # 0018: Convert to boolean
-    "BC",       # 0019: Pop
-    "48 1D 00", # 001A: Jump to 001D
-])))
-
-# Truncate the "handled that Stilettos gang mighty fine" text
-romBytes[0xE9950] = 0xB8
-romBytes[0xE9951] = 0x80
-
-## Set the entry fee to 0 nuyen (doesn't change text)
+## Set the Jagged Nails entry fee to 0 nuyen (doesn't change text)
 #romBytes[0x179DF] = 0x00
-
-# ------------------------------------------------------------------------
 
 ## Open the gate to the Rat Shaman Lair
 ## (Side effect: prevents Dog Spirit conversation where you learn "Rat")
 #initialItemState[0x4CA] |= 0x01
 
-## Open the gate to the Dark Blade mansion (creates possibility of
-## softlock if you give Vladimir the Magic Fetish before showing it
-## to the Dog Spirit)
+## Open the gate to the Dark Blade mansion
 ## (Side effect: prevents "DBlade" phone conversation)
 #initialItemState[0x565] |= 0x01
 
-## Make the Massive Orc appear on the Taxiboat Dock (drops Explosives
-## in vanilla, normally requires either "Nirwanda" or "Laughlyn")
+## Make the Massive Orc appear on the Taxiboat Dock
+## In vanilla, this happens if you know either "Nirwanda" or "Laughlyn"
+## In vanilla, this enemy drops the Explosives upon death
 #romBytes[0xFA9F5] = 0xBC
 #romBytes[0xFA9F6] = 0xC0
 #romBytes[0xFA9F7] = 0xBC
