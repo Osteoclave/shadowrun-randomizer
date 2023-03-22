@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2022-10-08"
+randomizerVersion = "2023-03-21"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -220,6 +220,7 @@ Progress = Enum(
         "ITEM___KEYWORD___BREMERTON",
         "ITEM___KEYWORD___DOG",
         "ITEM___KEYWORD___JESTER_SPIRIT",
+        "ITEM___KEYWORD___LAUGHLYN",
         "ITEM___LEAVES",
         "ITEM___LONESTAR_BADGE",
         "ITEM___MAGIC_FETISH",
@@ -228,6 +229,7 @@ Progress = Enum(
         "ITEM___MERMAID_SCALES",
         "ITEM___NUYEN___OCTOPUS",
         "ITEM___NUYEN___RAT_SHAMAN",
+        "ITEM___NUYEN___VAMPIRE",
         "ITEM___PAPERWEIGHT",
         "ITEM___PASSWORD___ANEKI",
         "ITEM___PASSWORD___DRAKE",
@@ -280,6 +282,7 @@ Progress = Enum(
         "EVENT___RAT_SHAMAN_GATE_OPENED",
         "EVENT___RAT_SHAMAN_DEFEATED",
         "EVENT___DARK_BLADE_GATE_OPENED",
+        "EVENT___VAMPIRE_DEFEATED",
         "EVENT___ICE_DELIVERED_TO_DOCKS",
         "EVENT___TAXIBOAT_HIRED",
         "EVENT___TOXIC_WATER_COLLECTED",
@@ -407,6 +410,17 @@ thisRegion.locations.extend([
         description = "Learn 'Bremerton'",
         vanilla = Entity(Category.CONSTANT, "Learn 'Bremerton'", None, [
             (Progress.KEYWORD___BREMERTON, [Progress.ITEM___KEYWORD___BREMERTON]),
+        ]),
+        requires = [],
+        address = None,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Learn 'Laughlyn'",
+        vanilla = Entity(Category.CONSTANT, "Learn 'Laughlyn'", None, [
+            (Progress.KEYWORD___LAUGHLYN, [Progress.ITEM___KEYWORD___LAUGHLYN]),
         ]),
         requires = [],
         address = None,
@@ -3180,15 +3194,38 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "Vampire!",
         vanilla = Entity(Category.CONSTANT, "Vampire!", 0x6B1B9, [
-            (Progress.KEYWORD___LAUGHLYN, [
+            (Progress.EVENT___VAMPIRE_DEFEATED, [
                 Progress.ITEM___STROBE,
                 Progress.ITEM___STAKE,
-                Progress.KEYWORD___JESTER_SPIRIT,
+                # In vanilla, "Progress.KEYWORD___JESTER_SPIRIT" is
+                # also required in order to defeat the Vampire.
             ]),
         ]),
         requires = [],
         address = 0xD0F53,
         hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_KEY_ITEM,
+        description = "Keyword: Laughlyn",
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Laughlyn", 0x6B8B2, [
+            (Progress.ITEM___KEYWORD___LAUGHLYN, []),
+        ]),
+        requires = [Progress.EVENT___VAMPIRE_DEFEATED],
+        address = 0xD29CB,
+        hidden = True,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_ITEM,
+        description = "Nuyen: Vampire",
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Vampire", 0x6B8AB, [
+            (Progress.ITEM___NUYEN___VAMPIRE, []),
+        ]),
+        requires = [Progress.EVENT___VAMPIRE_DEFEATED],
+        address = 0xD29AD,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
@@ -6142,13 +6179,12 @@ writeHelper(romBytes, 0x6B896, bytes.fromhex("FF 0C 3B 30 00 C6 02"))
 # Free object
 # Vanilla: Mesh Jacket (Norbert)
 writeHelper(romBytes, 0x6B89D, bytes.fromhex("FF 16 3B 30 00 C6 02"))
-# Free object
+# Keyword-item: Volcano
 # Vanilla: Mesh Jacket (Anders)
 writeHelper(romBytes, 0x6B8A4, bytes.fromhex("FF 2A 3B 30 00 C6 02"))
-# Keyword-item: Volcano
+# Nuyen-item: Vampire
 # Vanilla: Mesh Jacket (Looks unused)
-writeHelper(romBytes, 0x6B8AB, bytes.fromhex("FF 39 3B 30 00 C6 02"))
-# TODO: create a "VAMPIRE_DEFEATED" event once the "Laughlyn" keyword-item is in logic
+writeHelper(romBytes, 0x6B8AB, bytes.fromhex("FF 39 3B 9E 00 D6 00"))
 # Keyword-item: Laughlyn
 # Vanilla: Mesh Jacket (Hamfist)
 writeHelper(romBytes, 0x6B8B2, bytes.fromhex("FF 52 3B 30 00 C6 02"))
@@ -6225,7 +6261,7 @@ expandedOffset = scriptHelper(
         "48 6D 00", # 0058: Jump to CHECK_IF_KEYWORD_KNOWN
         # CHECK_IF_VOLCANO
         "16 01",    # 005B: Push short from $13+01 <-- Object-id of the keyword-item executing this code
-        "14 7A 08", # 005D: Push short 0x087A      <-- Object-id of keyword-item: Volcano
+        "14 73 08", # 005D: Push short 0x0873      <-- Object-id of keyword-item: Volcano
         "AA",       # 0060: Check if equal
         "44 AE 00", # 0061: If not equal, jump to DONE
         # VOLCANO
@@ -7599,6 +7635,223 @@ expandedOffset = scriptHelper(
     ],
 )
 
+# Vampire
+expandedOffset = scriptHelper(
+    scriptNumber = 0x385,
+    argsLen      = 0x02, # Script 0x385 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x385 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x08, # Header byte: Script uses 0x08 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-003A from the original script.
+        romBytes[0xF3B4F:0xF3B8A].hex(' '),
+        # Spawn the Vampire if the game has been completed (in-credits
+        # Vampire case), or if the Vampire hasn't been defeated yet.
+        "00 2C",    # 003B: Push unsigned byte 0x2C
+        "58 57",    # 003D: Read short from 7E3BBB+n
+        "46 4F 00", # 003F: If nonzero, jump to VAMPIRE_NOT_DEFEATED_YET <-- In-credits Vampire case
+        "C2",       # 0042: Push $13
+        "58 02",    # 0043: Push object's flags
+        "00 01",    # 0045: Push unsigned byte 0x01
+        "7E",       # 0047: Bitwise AND
+        "44 4F 00", # 0048: If zero, jump to VAMPIRE_NOT_DEFEATED_YET
+        # VAMPIRE_ALREADY_DEFEATED
+        "C2",       # 004B: Push $13
+        "58 B8",    # 004C: Despawn object
+        "56",       # 004E: End
+        # VAMPIRE_NOT_DEFEATED_YET
+        # Copy 004F-0121 from the original script.
+        romBytes[0xF3B9E:0xF3C71].hex(' '),
+        # VAMPIRE_STAKED_ONCE
+        # New Vampire behaviour:
+        # - No conversations
+        # - Defeated after one use of the Stake
+        "00 F0",    # 0122: Push unsigned byte 0xF0
+        "C2",       # 0124: Push $13
+        "58 51",    # 0125: Push Z coordinate / 4
+        "C2",       # 0127: Push $13
+        "58 50",    # 0128: Push Y coordinate / 4
+        "C2",       # 012A: Push $13
+        "58 4F",    # 012B: Push X coordinate / 4
+        "00 56",    # 012D: Push unsigned byte 0x56
+        "58 A8",    # 012F: Spawn object at abs coords?
+        "BC",       # 0131: Pop
+        "C2",       # 0132: Push $13
+        "58 AB",    # 0133: ???
+        "00 20",    # 0135: Push unsigned byte 0x20
+        "58 7B",    # 0137: Increase experience
+        "C2",       # 0139: Push $13
+        "58 BF",    # 013A: ???
+        "00 01",    # 013C: Push unsigned byte 0x01
+        "BA",       # 013E: Duplicate
+        "58 9E",    # 013F: Register menu options / time delay
+        "BC",       # 0141: Pop
+        # Keyword: Laughlyn
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xD29CB+0]:02X} {romBytes[0xD29CB+1]:02X}",
+                    # 0142: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 0145: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 07",    # 0147: Pop byte to $13+07  <-- Item drop's spawn index
+        "C2",       # 0149: Push $13
+        "58 51",    # 014A: Push Z coordinate / 4
+        "00 02",    # 014C: Push unsigned byte 0x02
+        "7A",       # 014E: Left shift
+        "C2",       # 014F: Push $13
+        "58 50",    # 0150: Push Y coordinate / 4
+        "00 02",    # 0152: Push unsigned byte 0x02
+        "7A",       # 0154: Left shift
+        "C2",       # 0155: Push $13
+        "58 4F",    # 0156: Push X coordinate / 4
+        "00 02",    # 0158: Push unsigned byte 0x02
+        "7A",       # 015A: Left shift
+        "02 07",    # 015B: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 82",    # 015D: Set object X/Y/Z position
+        "00 80",    # 015F: Push unsigned byte 0x80
+        "02 07",    # 0161: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 33",    # 0163: Set bits of object's flags
+        # Nuyen: Vampire
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xD29AD+0]:02X} {romBytes[0xD29AD+1]:02X}",
+                    # 0165: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 0168: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 07",    # 016A: Pop byte to $13+07  <-- Item drop's spawn index
+        "C2",       # 016C: Push $13
+        "58 51",    # 016D: Push Z coordinate / 4
+        "00 02",    # 016F: Push unsigned byte 0x02
+        "7A",       # 0171: Left shift
+        "C2",       # 0172: Push $13
+        "58 50",    # 0173: Push Y coordinate / 4
+        "00 02",    # 0175: Push unsigned byte 0x02
+        "7A",       # 0177: Left shift
+        "C2",       # 0178: Push $13
+        "58 4F",    # 0179: Push X coordinate / 4
+        "00 02",    # 017B: Push unsigned byte 0x02
+        "7A",       # 017D: Left shift
+        "02 07",    # 017E: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 82",    # 0180: Set object X/Y/Z position
+        "00 80",    # 0182: Push unsigned byte 0x80
+        "02 07",    # 0184: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 33",    # 0186: Set bits of object's flags
+        # Despawn the Vampire and give the 5,000 nuyen reward.
+        "C2",       # 0188: Push $13
+        "58 B8",    # 0189: Despawn object
+        "00 50",    # 018B: Push unsigned byte 0x50
+        "00 01",    # 018D: Push unsigned byte 0x01
+        "58 9E",    # 018F: Register menu options / time delay
+        "BC",       # 0191: Pop
+        "14 88 13", # 0192: Push short 0x1388
+        "58 98",    # 0195: Increase nuyen
+        "52 4B 00", # 0197: Execute behaviour script 0x4B = "Got item" sound effect
+        "00 B4",    # 019A: Push unsigned byte 0xB4
+        "14 F6 01", # 019C: Push short 0x01F6
+        "C0",       # 019F: Push zero
+        "00 03",    # 01A0: Push unsigned byte 0x03
+        "00 16",    # 01A2: Push unsigned byte 0x16
+        "00 04",    # 01A4: Push unsigned byte 0x04
+        "00 04",    # 01A6: Push unsigned byte 0x04
+        "58 C7",    # 01A8: Print text ("The vampire had 5,000 nuyen.")
+        "56",       # 01AA: End
+    ],
+)
+
+# Ghoul <-- The ghouls in the Vampire boss room
+expandedOffset = scriptHelper(
+    scriptNumber = 0x6C,
+    argsLen      = 0x02, # Script 0x6C now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x6C now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x07, # Header byte: Script uses 0x07 bytes of $13+xx space
+    maxStackLen  = 0x0C, # Header byte: Maximum stack height of 0x0C bytes (= 6 stack items)
+    commandList  = [
+        # 0000-0050
+        # Copy 0000-0050 from the original script.
+        romBytes[0xF3E1F:0xF3E70].hex(' '),
+        # 0051-0069
+        # Spawn the ghouls if the game has been completed (in-credits
+        # Vampire case).
+        "00 2C",    # 0051: Push unsigned byte 0x2C
+        "58 57",    # 0053: Read short from 7E3BBB+n
+        "44 61 00", # 0055: If zero, jump to GAME_NOT_COMPLETED_YET
+        # IN_CREDITS_CASE
+        # Clear the Vampire's flags to prevent the ghouls from despawning
+        # almost immediately during the credits. (This happens if the
+        # Vampire's 0x40 "strobed successfully" flag is still set.)
+        "C0",       # 0058: Push zero
+        "14 88 01", # 0059: Push short 0x0188 <-- Object-id of "Vampire!"
+        "58 60",    # 005C: Write byte to object's flags
+        "48 73 00", # 005E: Jump to VAMPIRE_NOT_DEFEATED_YET
+        # GAME_NOT_COMPLETED_YET
+        # Wait one frame for the Vampire to update its flags.
+        "00 01",    # 0061: Push unsigned byte 0x01
+        "BA",       # 0063: Duplicate
+        "58 9E",    # 0064: Register menu options / time delay
+        "BC",       # 0066: Pop
+        # Don't spawn the ghouls if the Vampire has been defeated.
+        "14 88 01", # 0067: Push short 0x0188 <-- Object-id of "Vampire!"
+        "58 BA",    # 006A: Push object's flags
+        "00 01",    # 006C: Push unsigned byte 0x01
+        "7E",       # 006E: Bitwise AND
+        "BE",       # 006F: Convert to boolean
+        "46 55 01", # 0070: If true, jump to 0155
+        # VAMPIRE_NOT_DEFEATED_YET
+        # 0073-008D
+        # Copy 0051-006B from the original script.
+        romBytes[0xF3E70:0xF3E8B].hex(' '),
+        # ------------------------------------------------------------
+        # We're skipping 006C-0071 from the original script here.
+        # The skipped bytes zero out the Vampire's flags, probably
+        # to fix the "ghouls despawning during the credits" bug
+        # that we fixed in IN_CREDITS_CASE above.
+        # ------------------------------------------------------------
+        # 008E-0096
+        # Copy 0072-007A from the original script.
+        romBytes[0xF3E91:0xF3E9A].hex(' '),
+        # 0097-0099
+        # Update jump destination (changed due to presence of new code).
+        "44 A1 00", # 0097: If false, jump to 00A1
+        # 009A-009D
+        # Copy 007E-0081 from the original script.
+        romBytes[0xF3E9D:0xF3EA1].hex(' '),
+        # 009E-00A0
+        # Update jump destination (changed due to presence of new code).
+        "48 2F 01", # 009E: Jump to 012F
+        # 00A1-00A9
+        # Copy 0085-008D from the original script.
+        romBytes[0xF3EA4:0xF3EAD].hex(' '),
+        # 00AA-00AC
+        # Update jump destination (changed due to presence of new code).
+        "44 1B 01", # 00AA: If false, jump to 011B
+        # 00AD-00D2
+        # Copy 0091-00B6 from the original script.
+        romBytes[0xF3EB0:0xF3ED6].hex(' '),
+        # 00D3-00D5
+        # Update jump destination (changed due to presence of new code).
+        "46 1B 01", # 00D3: If true, jump to 011B
+        # 00D6-00EF
+        # Copy 00BA-00D3 from the original script.
+        romBytes[0xF3ED9:0xF3EF3].hex(' '),
+        # 00F0-00F2
+        # Update jump destination (changed due to presence of new code).
+        "44 1B 01", # 00F0: If false, jump to 011B
+        # 00F3-013A
+        # Copy 00D7-011E from the original script.
+        romBytes[0xF3EF6:0xF3F3E].hex(' '),
+        # 013B-013D
+        # Update jump destination (changed due to presence of new code).
+        "44 8E 00", # 013B: If false, jump to 008E
+        # 013E-0146
+        # Copy 0122-012A from the original script.
+        romBytes[0xF3F41:0xF3F4A].hex(' '),
+        # 0147-0149
+        # Update jump destination (changed due to presence of new code).
+        "46 52 01", # 0147: If true, jump to 0152
+        # 014A-0158
+        # Copy 012E-013C from the original script.
+        romBytes[0xF3F4D:0xF3F5C].hex(' '),
+    ],
+)
+
 # Dog Tag
 writeHelper(romBytes, 0xC9C75, bytes.fromhex(' '.join([
     "8F 21",    # Move the spawn point to match the Doggie's spawn point
@@ -7843,6 +8096,14 @@ writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
     "BC",       # 00AC: Pop
     "C0",       # 00AD: Push zero
 ])))
+# TODO:
+# Should the "Vampire respawns after going through the portal" behaviour
+# be reinstated? It happens in vanilla because the portal takes away the
+# "Laughlyn" keyword, and the Vampire appears if you don't know it.
+# The Vampire has been updated to appear (or not appear) based on its
+# event flags, so this arguably good bug doesn't happen anymore.
+# To restore the vanilla behaviour, write 0x00 to the Vampire's flags as
+# part of the portal's behaviour script.
 
 # Helicopter Pilot
 # - Stock the $13,000 case at the Dark Blade Gun Shop (vanilla: Concealed Jacket)
@@ -8400,6 +8661,23 @@ romBytes[0x114633:0x114635] = romBytes[0xD2965:0xD2967]    # New object's object
 romBytes[0x114635:0x1146B0] = romBytes[0xD065F:0xD06DA]    # Vanilla remainder of room data
 # Update the door destinations to lead to the new Rat Shaman boss room
 struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x12C), 0x4600)
+
+# Make a new version of the Vampire boss room at 0x114700.
+# This version has two additional objects:
+# - Item shuffled to the "Keyword: Laughlyn" location
+# - Item shuffled to the "Nuyen: Vampire" location
+romBytes[0x114700]          = romBytes[0xD0F4A]            # Vanilla drawing data
+romBytes[0x114701]          = romBytes[0xD0F4B]            # Vanilla music
+romBytes[0x114702:0x114704] = struct.pack("<H", 0xC796)    # Vanilla camera pointer, adjusted for the new room data location
+romBytes[0x114704]          = 0x07                         # +2 to the number of objects
+romBytes[0x114705:0x114723] = romBytes[0xD0F4F:0xD0F6D]    # Vanilla objects
+romBytes[0x114723:0x114727] = bytes.fromhex("C8 01 90 11") # New object's coordinates (near the entrance stairs)
+romBytes[0x114727:0x114729] = romBytes[0xD29CB:0xD29CD]    # New object's object-id
+romBytes[0x114729:0x11472D] = bytes.fromhex("C8 01 90 11") # New object's coordinates (near the entrance stairs)
+romBytes[0x11472D:0x11472F] = romBytes[0xD29AD:0xD29AF]    # New object's object-id
+romBytes[0x11472F:0x1147A0] = romBytes[0xD0F6D:0xD0FDE]    # Vanilla remainder of room data
+# Update the door destinations to lead to the new Vampire boss room
+struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x13D), 0x4700)
 
 
 
