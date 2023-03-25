@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-03-21"
+randomizerVersion = "2023-03-25"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -308,6 +308,20 @@ Progress = Enum(
         "EVENT___ANEKI_BUILDING_4F_UNLOCKED",
         "EVENT___ANEKI_BUILDING_5F_UNLOCKED",
         "EVENT___GAME_COMPLETED",
+        # NPCs
+        "NPC___HAMFIST",
+        "NPC___JANGADANCE",
+        "NPC___LONELY_GAL",
+        "NPC___DANCES_WITH_CLAMS",
+        "NPC___ORIFICE",
+        "NPC___NORBERT",
+        "NPC___JETBOY",
+        "NPC___ANDERS",
+        "NPC___FROGTONGUE",
+        "NPC___KITSUNE",
+        "NPC___STEELFLIGHT",
+        "NPC___SPATTER",
+        "NPC___AKIMI",
     ],
 )
 
@@ -1047,27 +1061,24 @@ thisRegion.locations.extend([
         address = 0xC87AD,
         hidden = False,
     ),
-    # TODO: This is Hamfist
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Orc",
-        vanilla = Entity(Category.CONSTANT, "Orc", 0x6B7D2, []),
+        category = Category.NPC,
+        description = "Orc (Hamfist)",
+        vanilla = Entity(Category.NPC, "Orc (Hamfist)", 0x6B7D2, [
+            (Progress.NPC___HAMFIST, []),
+        ]),
         requires = [],
         address = 0xC87CB,
         hidden = False,
     ),
-    # TODO: This is Jangadance
-    # He gets off the phone after you ask that one guy in The Cage
-    # about Ghouls. Not sure if that's the only trigger or not.
-    # If I'm going to randomize his location, I'll have to remove
-    # all of that stuff, as well as change his coordinates to the
-    # waypoint he gets placed at when not on the phone.
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Jamaican",
-        vanilla = Entity(Category.CONSTANT, "Jamaican", 0x6BBD0, []),
+        category = Category.NPC,
+        description = "Jamaican (Jangadance)",
+        vanilla = Entity(Category.NPC, "Jamaican (Jangadance)", 0x6BBD0, [
+            (Progress.NPC___JANGADANCE, []),
+        ]),
         requires = [],
         address = 0xC87A1,
         hidden = False,
@@ -1319,9 +1330,11 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
+        category = Category.NPC,
         description = "Lonely Gal",
-        vanilla = Entity(Category.CONSTANT, "Lonely Gal", 0x6BB3D, []),
+        vanilla = Entity(Category.NPC, "Lonely Gal", 0x6BB3D, [
+            (Progress.NPC___LONELY_GAL, []),
+        ]),
         requires = [],
         address = 0xC86D3,
         hidden = False,
@@ -1575,12 +1588,13 @@ regions[regionName] = thisRegion
 regionName = "Oldtown - Sputnik Club"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: This is Dances with Clams
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Magic user",
-        vanilla = Entity(Category.CONSTANT, "Magic user", 0x6B9C3, []),
+        category = Category.NPC,
+        description = "Magic user (Dances with Clams)",
+        vanilla = Entity(Category.NPC, "Magic user (Dances with Clams)", 0x6B9C3, [
+            (Progress.NPC___DANCES_WITH_CLAMS, []),
+        ]),
         requires = [],
         address = 0xC977D,
         hidden = False,
@@ -1636,12 +1650,13 @@ thisRegion.locations.extend([
         address = 0xC976B,
         hidden = False,
     ),
-    # TODO: This is Orifice
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Large orc",
-        vanilla = Entity(Category.CONSTANT, "Large orc", 0x6BB67, []),
+        category = Category.NPC,
+        description = "Large orc (Orifice)",
+        vanilla = Entity(Category.NPC, "Large orc (Orifice)", 0x6BB67, [
+            (Progress.NPC___ORIFICE, []),
+        ]),
         requires = [],
         address = 0xC9771,
         hidden = False,
@@ -1955,12 +1970,14 @@ thisRegion.locations.extend([
         address = 0xCA6F9,
         hidden = False,
     ),
-    # TODO: This is Akimi
+    # Akimi's location is intentionally constant.
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
         description = "Akimi",
-        vanilla = Entity(Category.CONSTANT, "Akimi", 0x6CBA5, []),
+        vanilla = Entity(Category.CONSTANT, "Akimi", 0x6CBA5, [
+            (Progress.NPC___AKIMI, []),
+        ]),
         requires = [],
         address = 0xCA717,
         hidden = False,
@@ -2248,22 +2265,26 @@ regions[regionName] = thisRegion
 regionName = "Downtown - Wastelands Club"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: This is Norbert
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Dwarf",
-        vanilla = Entity(Category.CONSTANT, "Dwarf", 0x6C497, []),
+        category = Category.NPC,
+        description = "Dwarf (Norbert)",
+        vanilla = Entity(Category.NPC, "Dwarf (Norbert)", 0x6C497, [
+            (Progress.NPC___NORBERT, []),
+        ]),
         requires = [],
         address = 0xCBB4F,
         hidden = False,
     ),
-    # TODO: This is Jetboy
+    # Jetboy's location is intentionally constant. This way, it's
+    # easier to collect the $2,000 that he finds if you defeat the
+    # Rust Stiletto leader with him in your party.
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "Decker",
-        vanilla = Entity(Category.CONSTANT, "Decker", 0x6C5FC, [
+        description = "Decker (Jetboy)",
+        vanilla = Entity(Category.CONSTANT, "Decker (Jetboy)", 0x6C5FC, [
+            (Progress.NPC___JETBOY,      []),
             (Progress.KEYWORD___RAITSOV, [Progress.KEYWORD___MATRIX_SYSTEMS]),
         ]),
         requires = [],
@@ -2281,12 +2302,12 @@ thisRegion.locations.extend([
         address = 0xCBB43,
         hidden = False,
     ),
-    # TODO: This is Anders
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Mercenary",
-        vanilla = Entity(Category.CONSTANT, "Mercenary", 0x6B8D5, [
+        category = Category.NPC,
+        description = "Mercenary (Anders)",
+        vanilla = Entity(Category.NPC, "Mercenary (Anders)", 0x6B8D5, [
+            (Progress.NPC___ANDERS,          []),
             (Progress.KEYWORD___AKIMI,       [Progress.KEYWORD___SHADOWRUNNERS]),
             (Progress.KEYWORD___STEELFLIGHT, [Progress.KEYWORD___SHADOWRUNNERS]),
         ]),
@@ -2294,12 +2315,13 @@ thisRegion.locations.extend([
         address = 0xCBB5B,
         hidden = False,
     ),
-    # TODO: This is Frogtongue
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Orc",
-        vanilla = Entity(Category.CONSTANT, "Orc", 0x6B7AF, []),
+        category = Category.NPC,
+        description = "Orc (Frogtongue)",
+        vanilla = Entity(Category.NPC, "Orc (Frogtongue)", 0x6B7AF, [
+            (Progress.NPC___FROGTONGUE, []),
+        ]),
         requires = [],
         address = 0xCBB91,
         hidden = False,
@@ -2478,12 +2500,12 @@ regions[regionName] = thisRegion
 regionName = "Downtown - Jagged Nails"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: This is Kitsune
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
+        category = Category.NPC,
         description = "Kitsune",
-        vanilla = Entity(Category.CONSTANT, "Kitsune", 0x6BB7C, [
+        vanilla = Entity(Category.NPC, "Kitsune", 0x6BB7C, [
+            (Progress.NPC___KITSUNE,        []),
             (Progress.ITEM___LEAVES,        [Progress.KEYWORD___DOG]),
             (Progress.KEYWORD___DARK_BLADE, [Progress.KEYWORD___JESTER_SPIRIT]),
             (Progress.KEYWORD___VAMPIRES,   [Progress.KEYWORD___DARK_BLADE]),
@@ -2504,13 +2526,13 @@ thisRegion.locations.extend([
         address = 0xCB77D,
         hidden = False,
     ),
-    # TODO: This is Steelflight
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Decker",
-        vanilla = Entity(Category.CONSTANT, "Decker", 0x6C611, [
-            (Progress.KEYWORD___ANDERS, [Progress.KEYWORD___SHADOWRUNNERS]),
+        category = Category.NPC,
+        description = "Decker (Steelflight)",
+        vanilla = Entity(Category.NPC, "Decker (Steelflight)", 0x6C611, [
+            (Progress.NPC___STEELFLIGHT, []),
+            (Progress.KEYWORD___ANDERS,  [Progress.KEYWORD___SHADOWRUNNERS]),
         ]),
         requires = [],
         address = 0xCB78F,
@@ -2529,12 +2551,13 @@ thisRegion.locations.extend([
         address = 0xCB783,
         hidden = False,
     ),
-    # TODO: This is Spatter
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Mage",
-        vanilla = Entity(Category.CONSTANT, "Mage", 0x6BA41, []),
+        category = Category.NPC,
+        description = "Mage (Spatter)",
+        vanilla = Entity(Category.NPC, "Mage (Spatter)", 0x6BA41, [
+            (Progress.NPC___SPATTER, []),
+        ]),
         requires = [],
         address = 0xCB7A1,
         hidden = False,
@@ -4937,7 +4960,7 @@ if args.verbose:
     for i, sphere in enumerate(spheres):
         print(f"Sphere {i}")
         for location, prize in sphere:
-            print(f"{location.region.name:<60}   {location.description:<24} --> {prize.name}")
+            print(f"{location.region.name:<60}   {location.description:<30} --> {prize.name}")
         print()
 
 # If we're in dry-run mode, there's nothing left to do at this point.
@@ -6610,6 +6633,24 @@ writeHelper(romBytes, 0xDF2D1, bytes.fromhex(' '.join([
 # Reveal the new item shuffled to this location
 romBytes[0x1E66C:0x1E66C+2] = romBytes[0xC87BF:0xC87BF+2]
 
+# Jamaican <-- Jangadance
+writeHelper(romBytes, 0xC879D, bytes.fromhex(' '.join([
+    "08 02",    # Move the spawn point to waypoint 0x02 on the nightclub map
+    "CC 11",    # Waypoint 0x02 coordinates: (520, 460, 64)
+])))
+# Skip the "on the phone" case
+writeHelper(romBytes, 0xDD3AE, bytes.fromhex(' '.join([
+    "44 54 00", # 000B: If false, jump to 0054
+])))
+
+# Video Phone <-- In the Grim Reaper Club
+# Change the behaviour script for the Video Phone from 0x2DF
+# (Video Phone in the Grim Reaper Club) to 0x206 (Video Phone).
+# We're doing this because with NPC randomization, this phone
+# will not initially be in use by someone making a call.
+# With this change, script 0x2DF should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6B1A2, 0x0206)
+
 # Ghoul Bone
 expandedOffset = scriptHelper(
     scriptNumber = 0x200,
@@ -7302,6 +7343,16 @@ writeHelper(romBytes, 0xF628E, bytes.fromhex(' '.join([
 # Truncate the "handled that Stilettos gang mighty fine" text
 romBytes[0xE9950] = 0xB8
 romBytes[0xE9951] = 0x80
+
+# Kitsune
+writeHelper(romBytes, 0xCB797, bytes.fromhex(' '.join([
+    "3E 01",    # Move the spawn point to waypoint 0x04 on the nightclub map
+    "9A 11",    # Waypoint 0x04 coordinates: (318, 410, 64)
+])))
+# Change the behaviour script for Kitsune from 0xE (Kitsune on
+# stage) to 0x1F1 (Kitsune off stage).
+# With this change, script 0xE should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6BB81, 0x01F1)
 
 # TODO: Leaves <-- Not currently subject to randomization
 
