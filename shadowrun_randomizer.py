@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-03-25"
+randomizerVersion = "2023-04-29"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -221,6 +221,7 @@ Progress = Enum(
         "ITEM___KEYWORD___DOG",
         "ITEM___KEYWORD___JESTER_SPIRIT",
         "ITEM___KEYWORD___LAUGHLYN",
+        "ITEM___KEYWORD___VOLCANO",
         "ITEM___LEAVES",
         "ITEM___LONESTAR_BADGE",
         "ITEM___MAGIC_FETISH",
@@ -452,6 +453,17 @@ thisRegion.locations.extend([
         ]),
         requires = [],
         address = 0xCB953,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Learn 'Volcano'",
+        vanilla = Entity(Category.CONSTANT, "Learn 'Volcano'", None, [
+            (Progress.KEYWORD___VOLCANO, [Progress.ITEM___KEYWORD___VOLCANO]),
+        ]),
+        requires = [],
+        address = None,
         hidden = False,
     ),
     # TODO: Change to Category.ITEM, update datafile behaviour script to make it spawnable on map
@@ -3642,21 +3654,45 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "Jester Spirit",
-        vanilla = Entity(Category.CONSTANT, "Jester Spirit", 0x6BBB4, [
-            (Progress.KEYWORD___DRAKE,                   []),
+        description = "Jester Spirit (boss)",
+        vanilla = Entity(Category.CONSTANT, "Jester Spirit (boss)", 0x6BBB4, [
+            # In vanilla, the Jester Spirit boss script silently and
+            # automatically teaches you "Progress.KEYWORD___DRAKE",
+            # which is required to get "Progress.KEYWORD___VOLCANO".
             (Progress.EVENT___JESTER_SPIRIT_DEFEATED,    [Progress.KEYWORD___LAUGHLYN]),
-            (Progress.KEYWORD___VOLCANO,                 [
-                Progress.EVENT___JESTER_SPIRIT_DEFEATED,
-                Progress.KEYWORD___DRAKE,
-            ]),
-            (Progress.ITEM___JESTER_SPIRIT,              [Progress.KEYWORD___VOLCANO]),
-            (Progress.EVENT___JESTER_SPIRIT_PORTAL_OPEN, [Progress.ITEM___JESTER_SPIRIT]),
+            (Progress.EVENT___JESTER_SPIRIT_PORTAL_OPEN, [Progress.EVENT___JESTER_SPIRIT_DEFEATED]),
             (Progress.EVENT___JESTER_SPIRIT_PORTAL_USED, [Progress.EVENT___JESTER_SPIRIT_PORTAL_OPEN]),
+            # In vanilla, the following progression order is enforced:
+            # - Progress.EVENT___JESTER_SPIRIT_DEFEATED
+            # - Progress.KEYWORD___VOLCANO
+            # - Progress.ITEM___JESTER_SPIRIT
+            # - Progress.EVENT___JESTER_SPIRIT_PORTAL_OPEN
         ]),
         requires = [],
         address = 0xCAE11,
         hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_KEY_ITEM,
+        description = "Keyword: Volcano",
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Volcano", 0x6B8A4, [
+            (Progress.ITEM___KEYWORD___VOLCANO, []),
+        ]),
+        requires = [Progress.EVENT___JESTER_SPIRIT_DEFEATED],
+        address = 0xD299B,
+        hidden = True,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_KEY_ITEM,
+        description = "Jester Spirit (insignia)",
+        vanilla = Entity(Category.KEY_ITEM, "Jester Spirit (insignia)", 0x6BBC9, [
+            (Progress.ITEM___JESTER_SPIRIT, []),
+        ]),
+        requires = [Progress.EVENT___JESTER_SPIRIT_DEFEATED],
+        address = 0xCAE23,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
@@ -3927,7 +3963,12 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.CONSTANT,
         description = "Helicopter Pilot",
-        vanilla = Entity(Category.CONSTANT, "Helicopter Pilot", 0x6BCEF, []),
+        vanilla = Entity(Category.CONSTANT, "Helicopter Pilot", 0x6BCEF, [
+            # In vanilla, the Helicopter Pilot doesn't teach the
+            # "Drake" keyword. We're teaching it here automatically
+            # to guarantee that players can return to Drake Towers.
+            (Progress.KEYWORD___DRAKE, []),
+        ]),
         requires = [],
         address = 0xCBEAD,
         hidden = False,
@@ -4477,15 +4518,14 @@ regions[regionName] = thisRegion
 regionName = "Volcano - Sublevel Four (9)"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO: This is Professor Pushkin
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
-        description = "Scientist",
-        vanilla = Entity(Category.CONSTANT, "Scientist", 0x6B4E5, [
+        description = "Scientist (Professor Pushkin)",
+        vanilla = Entity(Category.CONSTANT, "Scientist (Professor Pushkin)", 0x6B4E5, [
             # In vanilla, Professor Pushkin doesn't teach the
-            # "Head Computer" keyword. We do it here to avoid
-            # a possible softlock.
+            # "Head Computer" keyword. We're teaching it here
+            # automatically to avoid a possible softlock.
             (Progress.KEYWORD___HEAD_COMPUTER,           []),
             (Progress.ITEM___PASSWORD___ANEKI,           [Progress.KEYWORD___HEAD_COMPUTER]),
             (Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED, [Progress.KEYWORD___HEAD_COMPUTER]),
@@ -5885,7 +5925,7 @@ expandedOffset = scriptHelper(
         # OUT_OF_STOCK
         "00 80",    # 0036: Push unsigned byte 0x80
         "C2",       # 0038: Push $13
-        "58 CE",    # 0039: Set bits of 7E1474+n <-- Makes case contents invisible
+        "58 CE",    # 0039: Set bits of 7E1474+n <-- Makes the case contents invisible
         "C0",       # 003B: Push zero
         "00 80",    # 003C: Push unsigned byte 0x80
         "58 9E",    # 003E: Register menu options / time delay
@@ -6437,7 +6477,7 @@ expandedOffset = scriptHelper(
         # PICKUP
         # Interaction menu option: Pickup
         "58 28",    # 0038: Push Jake's spawn index
-        "58 4F",    # 003A: Push X coordinate / 4
+        "58 4F",    # 003A: Push object's X coordinate / 4
         "14 D0 01", # 003C: Push short 0x01D0
         "9A",       # 003F: Check if greater than
         "44 49 00", # 0040: If no, jump to PICKUP_OK
@@ -6559,17 +6599,17 @@ writeHelper(romBytes, 0xDD15A, bytes.fromhex(' '.join([
     "58 C2",    # 00CC: Push object's RAM_1 <-- Item drop's spawn index
     "2C 01",    # 00CE: Pop byte to $13+01  <-- Item drop's spawn index
     "C2",       # 00D0: Push $13
-    "58 51",    # 00D1: Push Z coordinate / 4
+    "58 51",    # 00D1: Push object's Z coordinate / 4
     "00 02",    # 00D3: Push unsigned byte 0x02
     "7A",       # 00D5: Left shift
     "C2",       # 00D6: Push $13
-    "58 50",    # 00D7: Push Y coordinate / 4
+    "58 50",    # 00D7: Push object's Y coordinate / 4
     "00 02",    # 00D9: Push unsigned byte 0x02
     "7A",       # 00DB: Left shift
     "00 02",    # 00DC: Push unsigned byte 0x02
     "5E",       # 00DE: Subtraction
     "C2",       # 00DF: Push $13
-    "58 4F",    # 00E0: Push X coordinate / 4
+    "58 4F",    # 00E0: Push object's X coordinate / 4
     "00 02",    # 00E2: Push unsigned byte 0x02
     "7A",       # 00E4: Left shift
     "00 02",    # 00E5: Push unsigned byte 0x02
@@ -6590,7 +6630,7 @@ writeHelper(romBytes, 0xDD15A, bytes.fromhex(' '.join([
     "BC",       # 00FF: Pop
     "00 20",    # 0100: Push unsigned byte 0x20
     "02 01",    # 0102: Push unsigned byte from $13+01 <-- Item drop's spawn index
-    "58 CE",    # 0104: Set bits of 7E1474+n <-- Makes item drop subject to gravity
+    "58 CE",    # 0104: Set bits of 7E1474+n <-- Makes the item drop subject to gravity
     "C0",       # 0106: Push zero
     "00 80",    # 0107: Push unsigned byte 0x80
     "58 9E",    # 0109: Register menu options / time delay
@@ -6740,15 +6780,15 @@ writeHelper(romBytes, 0x1FEE6, bytes.fromhex(' '.join([
     "BE",       # 00FB: Convert to boolean
     "46 5C 01", # 00FC: If true, jump to 015C
     "C2",       # 00FF: Push $13
-    "58 51",    # 0100: Push Z coordinate / 4
+    "58 51",    # 0100: Push object's Z coordinate / 4
     "00 02",    # 0102: Push unsigned byte 0x02
     "7A",       # 0104: Left shift
     "C2",       # 0105: Push $13
-    "58 50",    # 0106: Push Y coordinate / 4
+    "58 50",    # 0106: Push object's Y coordinate / 4
     "00 02",    # 0108: Push unsigned byte 0x02
     "7A",       # 010A: Left shift
     "C2",       # 010B: Push $13
-    "58 4F",    # 010C: Push X coordinate / 4
+    "58 4F",    # 010C: Push object's X coordinate / 4
     "00 02",    # 010E: Push unsigned byte 0x02
     "7A",       # 0110: Left shift
     "02 0A",    # 0111: Push unsigned byte from $13+0A <-- Item drop's spawn index
@@ -6767,7 +6807,7 @@ writeHelper(romBytes, 0x1FEE6, bytes.fromhex(' '.join([
     "BC",       # 0128: Pop
     "00 20",    # 0129: Push unsigned byte 0x20
     "02 0A",    # 012B: Push unsigned byte from $13+0A <-- Item drop's spawn index
-    "58 CE",    # 012D: Set bits of 7E1474+n <-- Makes item drop subject to gravity
+    "58 CE",    # 012D: Set bits of 7E1474+n <-- Makes the item drop subject to gravity
     "48 5C 01", # 012F: Jump to 015C
 ])))
 
@@ -7318,6 +7358,12 @@ romBytes[0x6C6B9] = 0xFF
 # Reveal the new item shuffled to this location
 romBytes[0xF95F4:0xF95F4+2] = romBytes[0xD0827:0xD0827+2]
 
+# TODO:
+# might want to remove the post-defeat conversation from the Rust Stiletto boss
+# should probably remove the "you're on Rust Stiletto turf" conversation too
+# should probably remove the post-defeat conversation from the Rust Stiletto
+#   hitman at Daley Station as well ("Aaarrggh. You swine!"), but I digress
+
 # Password (Drake)
 writeHelper(romBytes, 0xF4909, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
@@ -7440,15 +7486,15 @@ expandedOffset = scriptHelper(
         "58 C2",    # 0192: Push object's RAM_1 <-- Item drop's spawn index
         "2C 0E",    # 0194: Pop byte to $13+0E  <-- Item drop's spawn index
         "02 0A",    # 0196: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 51",    # 0198: Push Z coordinate / 4
+        "58 51",    # 0198: Push object's Z coordinate / 4
         "00 02",    # 019A: Push unsigned byte 0x02
         "7A",       # 019C: Left shift
         "02 0A",    # 019D: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 50",    # 019F: Push Y coordinate / 4
+        "58 50",    # 019F: Push object's Y coordinate / 4
         "00 02",    # 01A1: Push unsigned byte 0x02
         "7A",       # 01A3: Left shift
         "02 0A",    # 01A4: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 4F",    # 01A6: Push X coordinate / 4
+        "58 4F",    # 01A6: Push object's X coordinate / 4
         "00 02",    # 01A8: Push unsigned byte 0x02
         "7A",       # 01AA: Left shift
         "02 0E",    # 01AB: Push unsigned byte from $13+0E <-- Item drop's spawn index
@@ -7463,15 +7509,15 @@ expandedOffset = scriptHelper(
         "58 C2",    # 01B8: Push object's RAM_1 <-- Item drop's spawn index
         "2C 0E",    # 01BA: Pop byte to $13+0E  <-- Item drop's spawn index
         "02 0A",    # 01BC: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 51",    # 01BE: Push Z coordinate / 4
+        "58 51",    # 01BE: Push object's Z coordinate / 4
         "00 02",    # 01C0: Push unsigned byte 0x02
         "7A",       # 01C2: Left shift
         "02 0A",    # 01C3: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 50",    # 01C5: Push Y coordinate / 4
+        "58 50",    # 01C5: Push object's Y coordinate / 4
         "00 02",    # 01C7: Push unsigned byte 0x02
         "7A",       # 01C9: Left shift
         "02 0A",    # 01CA: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 4F",    # 01CC: Push X coordinate / 4
+        "58 4F",    # 01CC: Push object's X coordinate / 4
         "00 02",    # 01CE: Push unsigned byte 0x02
         "7A",       # 01D0: Left shift
         "02 0E",    # 01D1: Push unsigned byte from $13+0E <-- Item drop's spawn index
@@ -7720,11 +7766,11 @@ expandedOffset = scriptHelper(
         # - Defeated after one use of the Stake
         "00 F0",    # 0122: Push unsigned byte 0xF0
         "C2",       # 0124: Push $13
-        "58 51",    # 0125: Push Z coordinate / 4
+        "58 51",    # 0125: Push object's Z coordinate / 4
         "C2",       # 0127: Push $13
-        "58 50",    # 0128: Push Y coordinate / 4
+        "58 50",    # 0128: Push object's Y coordinate / 4
         "C2",       # 012A: Push $13
-        "58 4F",    # 012B: Push X coordinate / 4
+        "58 4F",    # 012B: Push object's X coordinate / 4
         "00 56",    # 012D: Push unsigned byte 0x56
         "58 A8",    # 012F: Spawn object at abs coords?
         "BC",       # 0131: Pop
@@ -7745,15 +7791,15 @@ expandedOffset = scriptHelper(
         "58 C2",    # 0145: Push object's RAM_1 <-- Item drop's spawn index
         "2C 07",    # 0147: Pop byte to $13+07  <-- Item drop's spawn index
         "C2",       # 0149: Push $13
-        "58 51",    # 014A: Push Z coordinate / 4
+        "58 51",    # 014A: Push object's Z coordinate / 4
         "00 02",    # 014C: Push unsigned byte 0x02
         "7A",       # 014E: Left shift
         "C2",       # 014F: Push $13
-        "58 50",    # 0150: Push Y coordinate / 4
+        "58 50",    # 0150: Push object's Y coordinate / 4
         "00 02",    # 0152: Push unsigned byte 0x02
         "7A",       # 0154: Left shift
         "C2",       # 0155: Push $13
-        "58 4F",    # 0156: Push X coordinate / 4
+        "58 4F",    # 0156: Push object's X coordinate / 4
         "00 02",    # 0158: Push unsigned byte 0x02
         "7A",       # 015A: Left shift
         "02 07",    # 015B: Push unsigned byte from $13+07 <-- Item drop's spawn index
@@ -7768,15 +7814,15 @@ expandedOffset = scriptHelper(
         "58 C2",    # 0168: Push object's RAM_1 <-- Item drop's spawn index
         "2C 07",    # 016A: Pop byte to $13+07  <-- Item drop's spawn index
         "C2",       # 016C: Push $13
-        "58 51",    # 016D: Push Z coordinate / 4
+        "58 51",    # 016D: Push object's Z coordinate / 4
         "00 02",    # 016F: Push unsigned byte 0x02
         "7A",       # 0171: Left shift
         "C2",       # 0172: Push $13
-        "58 50",    # 0173: Push Y coordinate / 4
+        "58 50",    # 0173: Push object's Y coordinate / 4
         "00 02",    # 0175: Push unsigned byte 0x02
         "7A",       # 0177: Left shift
         "C2",       # 0178: Push $13
-        "58 4F",    # 0179: Push X coordinate / 4
+        "58 4F",    # 0179: Push object's X coordinate / 4
         "00 02",    # 017B: Push unsigned byte 0x02
         "7A",       # 017D: Left shift
         "02 07",    # 017E: Push unsigned byte from $13+07 <-- Item drop's spawn index
@@ -7999,15 +8045,15 @@ expandedOffset = scriptHelper(
         "58 C2",    # 00EB: Push object's RAM_1 <-- Item drop's spawn index
         "2C 04",    # 00ED: Pop byte to $13+04  <-- Item drop's spawn index
         "C2",       # 00EF: Push $13
-        "58 51",    # 00F0: Push Z coordinate / 4
+        "58 51",    # 00F0: Push object's Z coordinate / 4
         "00 02",    # 00F2: Push unsigned byte 0x02
         "7A",       # 00F4: Left shift
         "C2",       # 00F5: Push $13
-        "58 50",    # 00F6: Push Y coordinate / 4
+        "58 50",    # 00F6: Push object's Y coordinate / 4
         "00 02",    # 00F8: Push unsigned byte 0x02
         "7A",       # 00FA: Left shift
         "C2",       # 00FB: Push $13
-        "58 4F",    # 00FC: Push X coordinate / 4
+        "58 4F",    # 00FC: Push object's X coordinate / 4
         "00 02",    # 00FE: Push unsigned byte 0x02
         "7A",       # 0100: Left shift
         "02 04",    # 0101: Push unsigned byte from $13+04 <-- Item drop's spawn index
@@ -8106,7 +8152,447 @@ writeHelper(romBytes, 0xF4314, bytes.fromhex(' '.join([
     "44 0C 00", # 0086: If not owned, jump to TOP_OF_LOOP
 ])))
 
+# Jester Spirit (boss)
+expandedOffset = scriptHelper(
+    scriptNumber = 0x19E,
+    argsLen      = 0x02, # Script 0x19E now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x19E now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x05, # Header byte: Script uses 0x05 bytes of $13+xx space
+    maxStackLen  = 0x10, # Header byte: Maximum stack height of 0x10 bytes (= 8 stack items)
+    commandList  = [
+        # 0000-0005
+        # Remove the silent teaching of the "Drake" keyword.
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 0E",    # 0002: Push unsigned byte 0x0E <-- Keyword-id for "Drake"
+        "BE",       # 0004: Convert to boolean <-- Was "58 71" in vanilla ("Learn keyword")
+        "BC",       # 0005: Pop
+        # 0006-00FE
+        # Copy 0006-00FE from the original script.
+        romBytes[0xDE041:0xDE13A].hex(' '),
+        # 00FF-0100
+        # Move the defeated Jester Spirit a bit more to the lower left.
+        "00 18",    # 00FF: Push unsigned byte 0x18
+        # 0101-0132
+        # Copy 0101-0132 from the original script.
+        romBytes[0xDE13C:0xDE16E].hex(' '),
+        # Skip the vanilla code that handles the post-defeat conversation.
+        # 0133-017D
+        # Copy 0157-01A1 from the original script.
+        romBytes[0xDE192:0xDE1DD].hex(' '),
+        # 017E-0180
+        # Update jump destination (changed due to removal of some vanilla code).
+        "44 3E 01", # 017E: If false, jump to 013E
+        # 0181-01ED
+        # New code.
+        # Make the defeated Jester Spirit disappear in a puff of smoke.
+        "C2",       # 0181: Push $13
+        "58 4D",    # 0182: Stop object's movement?
+        "00 F0",    # 0184: Push unsigned byte 0xF0
+        "C2",       # 0186: Push $13
+        "58 51",    # 0187: Push object's Z coordinate / 4
+        "C2",       # 0189: Push $13
+        "58 50",    # 018A: Push object's Y coordinate / 4
+        "C2",       # 018C: Push $13
+        "58 4F",    # 018D: Push object's X coordinate / 4
+        "00 56",    # 018F: Push unsigned byte 0x56
+        "58 A8",    # 0191: Spawn object at abs coords?
+        "BC",       # 0193: Pop
+        "00 01",    # 0194: Push unsigned byte 0x01
+        "BA",       # 0196: Duplicate
+        "58 9E",    # 0197: Register menu options / time delay
+        "BC",       # 0199: Pop
+        # Keyword: Volcano
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xD299B+0]:02X} {romBytes[0xD299B+1]:02X}",
+                    # 019A: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 019D: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 04",    # 019F: Pop byte to $13+04  <-- Item drop's spawn index
+        "C2",       # 01A1: Push $13
+        "58 51",    # 01A2: Push object's Z coordinate / 4
+        "00 02",    # 01A4: Push unsigned byte 0x02
+        "7A",       # 01A6: Left shift
+        "C2",       # 01A7: Push $13
+        "58 50",    # 01A8: Push object's Y coordinate / 4
+        "00 02",    # 01AA: Push unsigned byte 0x02
+        "7A",       # 01AC: Left shift
+        "C2",       # 01AD: Push $13
+        "58 4F",    # 01AE: Push object's X coordinate / 4
+        "00 02",    # 01B0: Push unsigned byte 0x02
+        "7A",       # 01B2: Left shift
+        "02 04",    # 01B3: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 82",    # 01B5: Set object X/Y/Z position
+        "00 80",    # 01B7: Push unsigned byte 0x80
+        "02 04",    # 01B9: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 33",    # 01BB: Set bits of object's flags
+        # Jester Spirit (insignia)
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xCAE23+0]:02X} {romBytes[0xCAE23+1]:02X}",
+                    # 01BD: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 01C0: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 04",    # 01C2: Pop byte to $13+04  <-- Item drop's spawn index
+        "C2",       # 01C4: Push $13
+        "58 51",    # 01C5: Push object's Z coordinate / 4
+        "00 02",    # 01C7: Push unsigned byte 0x02
+        "7A",       # 01C9: Left shift
+        "C2",       # 01CA: Push $13
+        "58 50",    # 01CB: Push object's Y coordinate / 4
+        "00 02",    # 01CD: Push unsigned byte 0x02
+        "7A",       # 01CF: Left shift
+        "C2",       # 01D0: Push $13
+        "58 4F",    # 01D1: Push object's X coordinate / 4
+        "00 02",    # 01D3: Push unsigned byte 0x02
+        "7A",       # 01D5: Left shift
+        "02 04",    # 01D6: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 82",    # 01D8: Set object X/Y/Z position
+        "00 80",    # 01DA: Push unsigned byte 0x80
+        "02 04",    # 01DC: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 33",    # 01DE: Set bits of object's flags
+        # Reveal the Jester Spirit portal.
+        "00 01",    # 01E0: Push unsigned byte 0x01
+        "14 DF 1E", # 01E2: Push short 0x1EDF <-- Object-id of the Jester Spirit portal
+        "58 0D",    # 01E5: Set bits of object's flags
+        # Mark the Jester Spirit as defeated.
+        "C2",       # 01E7: Push $13
+        "58 C4",    # 01E8: Set object's owner to "Dog Food"
+        # Despawn the Jester Spirit.
+        "C2",       # 01EA: Push $13
+        "58 B8",    # 01EB: Despawn object
+        "56",       # 01ED: End
+    ],
+)
+
+# Jester Spirit (insignia)
+expandedOffset = scriptHelper(
+    scriptNumber = 0x1F6,
+    argsLen      = 0x02, # Script 0x1F6 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x1F6 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x09, # Header byte: Script uses 0x09 bytes of $13+xx space
+    maxStackLen  = 0x10, # Header byte: Maximum stack height of 0x10 bytes (= 8 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "C2",       # 0002: Push $13
+        "58 C5",    # 0003: Check if object has an owner
+        "46 11 00", # 0005: If yes, jump to TOP_OF_LOOP
+        "C2",       # 0008: Push $13
+        "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
+        "00 05",    # 000C: Push unsigned byte 0x05
+        "C2",       # 000E: Push $13
+        "58 6A",    # 000F: Set object's facing direction
+        # TOP_OF_LOOP
+        "C2",       # 0011: Push $13
+        "58 C5",    # 0012: Check if object has an owner
+        "2C 01",    # 0014: Pop byte to $13+01 <-- Whether object has an owner
+        "14 00 01", # 0016: Push short 0x0100
+        "0C 01",    # 0019: Push signed byte from $13+01 <-- Whether object has an owner
+        "52 AA 02", # 001B: Execute behaviour script 0x2AA = Interaction menu helper
+        "BA",       # 001E: Duplicate
+        "34 02",    # 001F: Pop short to $13+02 <-- Selected menu option
+        # CHECK_IF_EXAMINE
+        "00 80",    # 0021: Push unsigned byte 0x80
+        "AA",       # 0023: Check if equal
+        "44 3C 00", # 0024: If not equal, jump to CHECK_IF_PICKUP
+        # EXAMINE
+        # Interaction menu option: Examine
+        "00 F0",    # 0027: Push unsigned byte 0xF0
+        "14 0F 01", # 0029: Push short 0x010F
+        "14 00 08", # 002C: Push short 0x0800
+        "00 03",    # 002F: Push unsigned byte 0x03
+        "00 11",    # 0031: Push unsigned byte 0x11 <-- Was 0x13
+        "00 15",    # 0033: Push unsigned byte 0x15 <-- Was 0x16
+        "00 02",    # 0035: Push unsigned byte 0x02
+        "58 C7",    # 0037: Print text ("Jester Spirit Insignia")
+        "48 B2 01", # 0039: Jump to BOTTOM_OF_LOOP
+        # CHECK_IF_PICKUP
+        "16 02",    # 003C: Push short from $13+02 <-- Selected menu option
+        "00 10",    # 003E: Push unsigned byte 0x10
+        "AA",       # 0040: Check if equal
+        "44 51 00", # 0041: If not equal, jump to CHECK_IF_USE
+        # PICKUP
+        # Interaction menu option: Pickup
+        "C2",       # 0044: Push $13
+        "58 6F",    # 0045: Set object's owner to Jake
+        "52 4B 00", # 0047: Execute behaviour script 0x4B = "Got item" sound effect
+        "0A FF",    # 004A: Push signed byte 0xFF
+        "2C 01",    # 004C: Pop byte to $13+01 <-- Whether object has an owner
+        "48 B2 01", # 004E: Jump to BOTTOM_OF_LOOP
+        # CHECK_IF_USE
+        "16 02",    # 0051: Push short from $13+02 <-- Selected menu option
+        "14 00 01", # 0053: Push short 0x0100
+        "AA",       # 0056: Check if equal
+        "44 B2 01", # 0057: If not equal, jump to BOTTOM_OF_LOOP
+        # USE
+        # Interaction menu option: Use
+        "C2",       # 005A: Push $13
+        "58 02",    # 005B: Push object's flags
+        "00 01",    # 005D: Push unsigned byte 0x01
+        "7E",       # 005F: Bitwise AND
+        "BE",       # 0060: Convert to boolean
+        "46 B2 01", # 0061: If true, jump to BOTTOM_OF_LOOP
+        # CHECK_IF_INSIDE_DRAKE_BOSS_ROOM
+        "58 7E",    # 0064: Push current map data pointer
+        "14 22 01", # 0066: Push short 0x0122
+        "58 17",    # 0069: Push a door destination's map data pointer
+        "AA",       # 006B: Check if equal
+        "44 A1 01", # 006C: If not equal, jump to NOT_USING_IT_HERE
+        # SPAWN_JESTER_SPIRIT
+        "00 01",    # 006F: Push unsigned byte 0x01
+        "C2",       # 0071: Push $13
+        "58 33",    # 0072: Set bits of object's flags
+        "14 01 80", # 0074: Push short 0x8001
+        "C2",       # 0077: Push $13
+        "58 B2",    # 0078: ???
+        "58 7F",    # 007A: ???
+        "00 01",    # 007C: Push unsigned byte 0x01
+        "BA",       # 007E: Duplicate
+        "58 9E",    # 007F: Register menu options / time delay
+        "BC",       # 0081: Pop
+        "C2",       # 0082: Push $13
+        "58 C4",    # 0083: Set object's owner to "Dog Food"
+        "00 0F",    # 0085: Push unsigned byte 0x0F
+        "00 FF",    # 0087: Push unsigned byte 0xFF
+        "00 58",    # 0089: Push unsigned byte 0x58
+        "C2",       # 008B: Push $13
+        "58 4C",    # 008C: Play sound effect
+        "00 01",    # 008E: Push unsigned byte 0x01
+        "00 14",    # 0090: Push unsigned byte 0x14
+        "58 9A",    # 0092: Set bits of 7E3BBB+n
+        "C0",       # 0094: Push zero
+        "C0",       # 0095: Push zero
+        "C2",       # 0096: Push $13
+        "58 D1",    # 0097: Display sprite
+        "00 01",    # 0099: Push unsigned byte 0x01
+        "C2",       # 009B: Push $13
+        "58 B5",    # 009C: Move object instantly to waypoint?
+        "00 20",    # 009E: Push unsigned byte 0x20
+        "C2",       # 00A0: Push $13
+        "58 CE",    # 00A1: Set bits of 7E1474+n <-- Makes the Jester Spirit subject to gravity
+        "00 10",    # 00A3: Push unsigned byte 0x10
+        "C0",       # 00A5: Push zero
+        "C0",       # 00A6: Push zero
+        "C2",       # 00A7: Push $13
+        "58 79",    # 00A8: Set object X/Y/Z deltas?
+        "C0",       # 00AA: Push zero
+        "2C 04",    # 00AB: Pop byte to $13+04 <-- Facing direction (was $13+03 in vanilla)
+        "00 80",    # 00AD: Push unsigned byte 0x80
+        "34 05",    # 00AF: Pop short to $13+05 <-- Movement countdown (was $13+04 in vanilla)
+        "00 01",    # 00B1: Push unsigned byte 0x01
+        "34 07",    # 00B3: Pop short to $13+07 <-- Frames spent per facing (was $13+06 in vanilla)
+        # ROTATE
+        "02 04",    # 00B5: Push unsigned byte from $13+04 <-- Facing direction
+        "C2",       # 00B7: Push $13
+        "58 6A",    # 00B8: Set object's facing direction
+        "02 04",    # 00BA: Push unsigned byte from $13+04 <-- Facing direction
+        "86",       # 00BC: Increment
+        "00 07",    # 00BD: Push unsigned byte 0x07
+        "7E",       # 00BF: Bitwise AND
+        "2C 04",    # 00C0: Pop byte to $13+04 <-- Facing direction
+        "16 07",    # 00C2: Push short from $13+07 <-- Frames spent per facing
+        "00 01",    # 00C4: Push unsigned byte 0x01
+        "58 9E",    # 00C6: Register menu options / time delay
+        "BC",       # 00C8: Pop
+        "16 05",    # 00C9: Push short from $13+05 <-- Movement countdown
+        "00 0A",    # 00CB: Push unsigned byte 0x0A
+        "8A",       # 00CD: Check if less than
+        "44 D6 00", # 00CE: If greater than or equal to ten, jump to CHECK_IF_DONE_ROTATING
+        # SLOW_DOWN_ROTATION
+        "16 07",    # 00D1: Push short from $13+07 <-- Frames spent per facing
+        "86",       # 00D3: Increment
+        "34 07",    # 00D4: Pop short to $13+07 <-- Frames spent per facing
+        # CHECK_IF_DONE_ROTATING
+        "16 05",    # 00D6: Push short from $13+05 <-- Movement countdown
+        "C0",       # 00D8: Push zero
+        "AA",       # 00D9: Check if equal
+        "46 E5 00", # 00DA: If equal, jump to WAIT_FOR_DRAKE
+        # ROTATION_COUNTDOWN
+        "16 05",    # 00DD: Push short from $13+05 <-- Movement countdown
+        "88",       # 00DF: Decrement
+        "34 05",    # 00E0: Pop short to $13+05 <-- Movement countdown
+        "48 B5 00", # 00E2: Jump to ROTATE
+        # WAIT_FOR_DRAKE
+        "00 05",    # 00E5: Push unsigned byte 0x05
+        "00 01",    # 00E7: Push unsigned byte 0x01
+        "58 9E",    # 00E9: Register menu options / time delay
+        "BC",       # 00EB: Pop
+        "00 14",    # 00EC: Push unsigned byte 0x14
+        "58 57",    # 00EE: Read short from 7E3BBB+n
+        "00 02",    # 00F0: Push unsigned byte 0x02
+        "7E",       # 00F2: Bitwise AND
+        "BE",       # 00F3: Convert to boolean
+        "44 E5 00", # 00F4: If false, jump to WAIT_FOR_DRAKE
+        # PREPARE_TO_ASCEND
+        "0A DF",    # 00F7: Push signed byte 0xDF
+        "C2",       # 00F9: Push $13
+        "58 2C",    # 00FA: Clear bits of 7E1474+n <-- Makes the Jester Spirit no longer subject to gravity
+        "00 01",    # 00FC: Push unsigned byte 0x01
+        "C0",       # 00FE: Push zero
+        "C0",       # 00FF: Push zero
+        "C2",       # 0100: Push $13
+        "58 79",    # 0101: Set object X/Y/Z deltas?
+        "00 0F",    # 0103: Push unsigned byte 0x0F
+        "34 05",    # 0105: Pop short to $13+05 <-- Movement countdown
+        # ASCEND
+        "00 0F",    # 0107: Push unsigned byte 0x0F
+        "00 01",    # 0109: Push unsigned byte 0x01
+        "58 9E",    # 010B: Register menu options / time delay
+        "BC",       # 010D: Pop
+        "4C CC 01", # 010E: Execute SUBROUTINE_CREATE_HOVER_BUBBLE subroutine
+        "16 05",    # 0111: Push short from $13+05 <-- Movement countdown
+        "88",       # 0113: Decrement
+        "BA",       # 0114: Duplicate
+        "34 05",    # 0115: Pop short to $13+05 <-- Movement countdown
+        "C0",       # 0117: Push zero
+        "AA",       # 0118: Check if equal
+        "44 07 01", # 0119: If not equal, jump to ASCEND
+        # PREPARE_TO_ATTACK
+        "C2",       # 011C: Push $13
+        "58 4D",    # 011D: Stop object's movement?
+        "00 14",    # 011F: Push unsigned byte 0x14
+        "34 05",    # 0121: Pop short to $13+05 <-- Movement countdown
+        # ATTACK
+        "00 0F",    # 0123: Push unsigned byte 0x0F
+        "00 01",    # 0125: Push unsigned byte 0x01
+        "58 9E",    # 0127: Register menu options / time delay
+        "BC",       # 0129: Pop
+        "4C BB 01", # 012A: Execute SUBROUTINE_CREATE_PROJECTILE subroutine
+        "4C CC 01", # 012D: Execute SUBROUTINE_CREATE_HOVER_BUBBLE subroutine
+        "16 05",    # 0130: Push short from $13+05 <-- Movement countdown
+        "00 03",    # 0132: Push unsigned byte 0x03
+        "7E",       # 0134: Bitwise AND
+        "BE",       # 0135: Convert to boolean
+        "46 42 01", # 0136: If true, jump to CHECK_IF_DONE_ATTACKING
+        # LAUGH
+        "00 06",    # 0139: Push unsigned byte 0x06
+        "00 60",    # 013B: Push unsigned byte 0x60
+        "00 56",    # 013D: Push unsigned byte 0x56
+        "C2",       # 013F: Push $13
+        "58 4C",    # 0140: Play sound effect
+        # CHECK_IF_DONE_ATTACKING
+        "16 05",    # 0142: Push short from $13+05 <-- Movement countdown
+        "88",       # 0144: Decrement
+        "BA",       # 0145: Duplicate
+        "34 05",    # 0146: Pop short to $13+05 <-- Movement countdown
+        "C0",       # 0148: Push zero
+        "AA",       # 0149: Check if equal
+        "44 23 01", # 014A: If not equal, jump to ATTACK
+        # PREPARE_TO_DISAPPEAR
+        "00 01",    # 014D: Push unsigned byte 0x01
+        "C0",       # 014F: Push zero
+        "C0",       # 0150: Push zero
+        "C2",       # 0151: Push $13
+        "58 79",    # 0152: Set object X/Y/Z deltas?
+        "00 3C",    # 0154: Push unsigned byte 0x3C
+        "34 05",    # 0156: Pop short to $13+05 <-- Movement countdown
+        "00 04",    # 0158: Push unsigned byte 0x04
+        "00 FF",    # 015A: Push unsigned byte 0xFF
+        "00 56",    # 015C: Push unsigned byte 0x56
+        "C2",       # 015E: Push $13
+        "58 4C",    # 015F: Play sound effect
+        # DISAPPEAR
+        "00 01",    # 0161: Push unsigned byte 0x01
+        "BA",       # 0163: Duplicate
+        "58 9E",    # 0164: Register menu options / time delay
+        "BC",       # 0166: Pop
+        "00 80",    # 0167: Push unsigned byte 0x80
+        "C2",       # 0169: Push $13
+        "58 CE",    # 016A: Set bits of 7E1474+n <-- Makes the Jester Spirit invisible
+        "00 01",    # 016C: Push unsigned byte 0x01
+        "BA",       # 016E: Duplicate
+        "58 9E",    # 016F: Register menu options / time delay
+        "BC",       # 0171: Pop
+        "14 7F FF", # 0172: Push short 0xFF7F
+        "C2",       # 0175: Push $13
+        "58 2C",    # 0176: Clear bits of 7E1474+n <-- Makes the Jester Spirit visible
+        "16 05",    # 0178: Push short from $13+05 <-- Movement countdown
+        "00 02",    # 017A: Push unsigned byte 0x02
+        "5E",       # 017C: Subtraction
+        "BA",       # 017D: Duplicate
+        "34 05",    # 017E: Pop short to $13+05 <-- Movement countdown
+        "00 03",    # 0180: Push unsigned byte 0x03
+        "7E",       # 0182: Bitwise AND
+        "BE",       # 0183: Convert to boolean
+        "46 91 01", # 0184: If true, jump to CHECK_IF_DONE_DISAPPEARING
+        # ROTATE_WHILE_DISAPPEARING
+        "C2",       # 0187: Push $13
+        "58 5D",    # 0188: Push object's facing direction
+        "86",       # 018A: Increment
+        "00 07",    # 018B: Push unsigned byte 0x07
+        "7E",       # 018D: Bitwise AND
+        "C2",       # 018E: Push $13
+        "58 6A",    # 018F: Set object's facing direction
+        # CHECK_IF_DONE_DISAPPEARING
+        "16 05",    # 0191: Push short from $13+05 <-- Movement countdown
+        "C0",       # 0193: Push zero
+        "AA",       # 0194: Check if equal
+        "44 61 01", # 0195: If not equal, jump to DISAPPEAR
+        # FINAL_ACTIONS
+        "0A FE",    # 0198: Push signed byte 0xFE
+        "00 14",    # 019A: Push unsigned byte 0x14
+        "58 03",    # 019C: Clear bits of 7E3BBB+n
+        "48 B2 01", # 019E: Jump to BOTTOM_OF_LOOP
+        # NOT_USING_IT_HERE
+        "00 F0",    # 01A1: Push unsigned byte 0xF0
+        "00 07",    # 01A3: Push unsigned byte 0x07
+        "14 00 08", # 01A5: Push short 0x0800
+        "00 03",    # 01A8: Push unsigned byte 0x03
+        "00 11",    # 01AA: Push unsigned byte 0x11 <-- Was 0x13
+        "00 15",    # 01AC: Push unsigned byte 0x15 <-- Was 0x16
+        "00 02",    # 01AE: Push unsigned byte 0x02
+        "58 C7",    # 01B0: Print text ("I'm not using it HERE!")
+        # BOTTOM_OF_LOOP
+        "0C 01",    # 01B2: Push signed byte from $13+01 <-- Whether object has an owner
+        "44 11 00", # 01B4: If no, jump to TOP_OF_LOOP
+        # DONE
+        "C2",       # 01B7: Push $13
+        "58 B8",    # 01B8: Despawn object
+        "56",       # 01BA: End
+        # SUBROUTINE_CREATE_PROJECTILE
+        "00 2E",    # 01BB: Push unsigned byte 0x2E
+        "C2",       # 01BD: Push $13
+        "58 51",    # 01BE: Push object's Z coordinate / 4
+        "C2",       # 01C0: Push $13
+        "58 50",    # 01C1: Push object's Y coordinate / 4
+        "C2",       # 01C3: Push $13
+        "58 4F",    # 01C4: Push object's X coordinate / 4
+        "00 78",    # 01C6: Push unsigned byte 0x78
+        "58 A8",    # 01C8: Spawn object at abs coords?
+        "BC",       # 01CA: Pop
+        "50",       # 01CB: Return
+        # SUBROUTINE_CREATE_HOVER_BUBBLE
+        "0A FC",    # 01CC: Push signed byte 0xFC
+        "C0",       # 01CE: Push zero
+        "C0",       # 01CF: Push zero
+        "14 31 03", # 01D0: Push short 0x0331
+        "C2",       # 01D3: Push $13
+        "58 51",    # 01D4: Push object's Z coordinate / 4
+        "C2",       # 01D6: Push $13
+        "58 50",    # 01D7: Push object's Y coordinate / 4
+        "88",       # 01D9: Decrement
+        "C2",       # 01DA: Push $13
+        "58 4F",    # 01DB: Push object's X coordinate / 4
+        "88",       # 01DD: Decrement
+        "00 78",    # 01DE: Push unsigned byte 0x78
+        "58 A8",    # 01E0: Spawn object at abs coords?
+        "58 79",    # 01E2: Set object X/Y/Z deltas?
+        "50",       # 01E4: Return
+    ],
+)
+
 # Jester Spirit portal
+# - Wait for the portal's 0x01 flag to be set before appearing.
+#   Using the 0x80 flag would be more consistent, but the portal script
+#   is already using that flag as part of player proximity detection.
+writeHelper(romBytes, 0xDE224, bytes.fromhex(' '.join([
+    "C2",       # 0009: Push $13
+    "58 02",    # 000A: Push object's flags
+    "00 01",    # 000C: Push unsigned byte 0x01
+    "7E",       # 000E: Bitwise AND
+    "BE",       # 000F: Convert to boolean
+    "44 02 00", # 0010: If false, jump to 0002
+    "C0",       # 0013: Push zero
+    "BC",       # 0014: Pop
+])))
 # - Stock the $20,000 case at the Dark Blade Gun Shop (vanilla: Partial Bodysuit)
 # - Stock the $24,000 case at the Dark Blade Gun Shop (vanilla: HK 277 A. Rifle)
 writeHelper(romBytes, 0xDE297, bytes.fromhex(' '.join([
@@ -8156,12 +8642,28 @@ writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
 # To restore the vanilla behaviour, write 0x00 to the Vampire's flags as
 # part of the portal's behaviour script.
 
-# Helicopter Pilot
+# Helicopter Pilot <-- Drake Towers
 # - Stock the $13,000 case at the Dark Blade Gun Shop (vanilla: Concealed Jacket)
 writeHelper(romBytes, 0x177C0, bytes.fromhex(' '.join([
     "0A FD",    # 0010: Push signed byte 0xFD
     "14 45 10", # 0012: Push short 0x1045 <-- Object-id of "Concealed Jacket" glass case
     "58 4B",    # 0015: Clear bits of object's flags
+])))
+
+# Helicopter Pilot <-- Volcano
+# - Silently teach the "Drake" keyword, to avoid a possible softlock
+# - Don't spawn the pilot after landing the helicopter. Spawn the pilot
+#   when entering the helipad map from Sublevel Zero of the volcano.
+#   (This is vanilla behaviour, but implemented more efficiently.)
+writeHelper(romBytes, 0x1753A, bytes.fromhex(' '.join([
+    "00 0E",    # 0002: Push unsigned byte 0x0E <-- Keyword-id for "Drake"
+    "58 71",    # 0004: Learn keyword
+    "18 E2 2D", # 0006: Push short from $7E2DE2
+    "14 F4 00", # 0009: Push short 0x00F4
+    "AA",       # 000C: Check if equal
+    "46 12 00", # 000D: If equal, jump to 0012
+    "56",       # 0010: End
+    "56",       # 0011: End
 ])))
 
 # Serpent Scales
@@ -8276,15 +8778,15 @@ expandedOffset = scriptHelper(
         "58 C2",    # 002E: Push object's RAM_1 <-- Item drop's spawn index
         "2C 01",    # 0030: Pop byte to $13+01  <-- Item drop's spawn index
         "C2",       # 0032: Push $13
-        "58 51",    # 0033: Push Z coordinate / 4
+        "58 51",    # 0033: Push object's Z coordinate / 4
         "00 02",    # 0035: Push unsigned byte 0x02
         "7A",       # 0037: Left shift
         "C2",       # 0038: Push $13
-        "58 50",    # 0039: Push Y coordinate / 4
+        "58 50",    # 0039: Push object's Y coordinate / 4
         "00 02",    # 003B: Push unsigned byte 0x02
         "7A",       # 003D: Left shift
         "C2",       # 003E: Push $13
-        "58 4F",    # 003F: Push X coordinate / 4
+        "58 4F",    # 003F: Push object's X coordinate / 4
         "00 02",    # 0041: Push unsigned byte 0x02
         "7A",       # 0043: Left shift
         "02 01",    # 0044: Push unsigned byte from $13+01 <-- Item drop's spawn index
@@ -8303,7 +8805,7 @@ expandedOffset = scriptHelper(
         "BC",       # 005B: Pop
         "00 20",    # 005C: Push unsigned byte 0x20
         "02 01",    # 005E: Push unsigned byte from $13+01 <-- Item drop's spawn index
-        "58 CE",    # 0060: Set bits of 7E1474+n <-- Makes item drop subject to gravity
+        "58 CE",    # 0060: Set bits of 7E1474+n <-- Makes the item drop subject to gravity
         # DONE
         "C2",       # 0062: Push $13
         "58 B8",    # 0063: Despawn object
@@ -8331,7 +8833,7 @@ expandedOffset = scriptHelper(
         "58 D0",    # 0008: Change displayed sprite?
         "00 40",    # 000A: Push unsigned byte 0x40
         "C2",       # 000C: Push $13
-        "58 B4",    # 000D: Conversation related?
+        "58 B4",    # 000D: Register conversation?
         # TOP_OF_LOOP
         "C2",       # 000F: Push $13
         "58 6C",    # 0010: ???
@@ -8460,6 +8962,8 @@ writeHelper(romBytes, 0xDCE1A, bytes.fromhex(' '.join([
 
 # ------------------------------------------------------------------------
 
+# TODO: Start with 1 defense (Leather Jacket equivalent) instead of 0?
+
 ## Start out ridiculously overpowered
 #romBytes[0x172E] = 0x14 # defense power: 20 <-- vanilla best: 6, or 8 w/ Dermal Plating
 #romBytes[0x172F] = 0x00 # 0x0000 = object-id for Zip Gun
@@ -8538,7 +9042,7 @@ writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
 initialItemState[0x24F] |= 0x01
 
 # Hide the inescapable-conversation dog at Daley Station
-initialItemState[0x43B] = 0x38
+initialItemState[0x43B] = 0x38 # 0x1538 = Object-id for Dog Food
 initialItemState[0x43C] = 0x15
 
 ## Make the Dermal Plating immediately available at Maplethorpe's
@@ -8574,8 +9078,12 @@ initialItemState[0x43C] = 0x15
 ## Open the door leading to Bremerton's interior
 #initialItemState[0x32B] |= 0x01
 
+## Warp to the Jester Spirit boss room when exiting the morgue's main room
+#romBytes[0xC84F4] = 0x4B # 0x004B = Door-id to enter Jester Spirit boss room
+#romBytes[0xC84F5] = 0x00
+
 ## Start with the Cyberdeck
-#initialItemState[0x229] = 0xB2 # 0x08B2 = object-id for Jake
+#initialItemState[0x229] = 0xB2 # 0x08B2 = Object-id for Jake
 #initialItemState[0x22A] = 0x08
 
 ## In the Computer helper script, skip the "Jake + datajack damaged" check
@@ -8587,18 +9095,18 @@ initialItemState[0x43C] = 0x15
 ## The computer on the first floor of the Drake Towers requires you to
 ## have the Drake Password in your inventory in order to proceed.
 ## Examining the Drake Password has no effect.
-#initialItemState[0x81E] = 0xB2 # 0x08B2 = object-id for Jake
+#initialItemState[0x81E] = 0xB2 # 0x08B2 = Object-id for Jake
 #initialItemState[0x81F] = 0x08
 
 ## Warp to the Gold Naga boss room when exiting the morgue's main room
 ## (For testing the item drop in the Serpent Scales location)
-#romBytes[0xC84F4] = 0x9F # 0x009F = door-id to enter Gold Naga boss room from lower left
+#romBytes[0xC84F4] = 0x9F # 0x009F = Door-id to enter Gold Naga boss room from lower left
 #romBytes[0xC84F5] = 0x00
 
 ## Start with the Aneki Password
 ## The computer on the first floor of the Aneki Building requires you to
 ## have the Aneki Password in your inventory in order to proceed.
-#initialItemState[0x666] = 0xB2 # 0x08B2 = object-id for Jake
+#initialItemState[0x666] = 0xB2 # 0x08B2 = Object-id for Jake
 #initialItemState[0x667] = 0x08
 
 # ------------------------------------------------------------------------
@@ -8697,38 +9205,56 @@ romBytes[0x118000:0x11AD64] = romBytes[0xD0000:0xD2D64]
 romBytes[0x23DE] = 0xA2
 
 # Make a new version of the Rat Shaman boss room at 0x114600.
-# This version has two additional objects:
-# - Item shuffled to the "Keyword: Jester Spirit" location
-# - Item shuffled to the "Nuyen: Rat Shaman" location
+# This version has two randomized objects:
+# - Item shuffled to the new "Keyword: Jester Spirit" location
+# - Item shuffled to the new "Nuyen: Rat Shaman" location
 romBytes[0x114600]          = romBytes[0xD0636]            # Vanilla drawing data
 romBytes[0x114601]          = romBytes[0xD0637]            # Vanilla music
 romBytes[0x114602:0x114604] = struct.pack("<H", 0xC6AE)    # Vanilla camera pointer, adjusted for the new room data location
 romBytes[0x114604]          = 0x08                         # +2 to the number of objects
 romBytes[0x114605:0x114629] = romBytes[0xD063B:0xD065F]    # Vanilla objects
-romBytes[0x114629:0x11462D] = bytes.fromhex("78 01 D0 19") # New object's coordinates (same location as Rat Shaman)
-romBytes[0x11462D:0x11462F] = romBytes[0xD29A7:0xD29A9]    # New object's object-id
-romBytes[0x11462F:0x114633] = bytes.fromhex("78 01 D0 19") # New object's coordinates (same location as Rat Shaman)
-romBytes[0x114633:0x114635] = romBytes[0xD2965:0xD2967]    # New object's object-id
+romBytes[0x114629:0x11462D] = bytes.fromhex("78 01 D0 19") # Randomized object's coordinates (same location as Rat Shaman)
+romBytes[0x11462D:0x11462F] = romBytes[0xD29A7:0xD29A9]    # Randomized object's object-id
+romBytes[0x11462F:0x114633] = bytes.fromhex("78 01 D0 19") # Randomized object's coordinates (same location as Rat Shaman)
+romBytes[0x114633:0x114635] = romBytes[0xD2965:0xD2967]    # Randomized object's object-id
 romBytes[0x114635:0x1146B0] = romBytes[0xD065F:0xD06DA]    # Vanilla remainder of room data
 # Update the door destinations to lead to the new Rat Shaman boss room
 struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x12C), 0x4600)
 
 # Make a new version of the Vampire boss room at 0x114700.
-# This version has two additional objects:
-# - Item shuffled to the "Keyword: Laughlyn" location
-# - Item shuffled to the "Nuyen: Vampire" location
+# This version has two randomized objects:
+# - Item shuffled to the new "Keyword: Laughlyn" location
+# - Item shuffled to the new "Nuyen: Vampire" location
 romBytes[0x114700]          = romBytes[0xD0F4A]            # Vanilla drawing data
 romBytes[0x114701]          = romBytes[0xD0F4B]            # Vanilla music
 romBytes[0x114702:0x114704] = struct.pack("<H", 0xC796)    # Vanilla camera pointer, adjusted for the new room data location
 romBytes[0x114704]          = 0x07                         # +2 to the number of objects
 romBytes[0x114705:0x114723] = romBytes[0xD0F4F:0xD0F6D]    # Vanilla objects
-romBytes[0x114723:0x114727] = bytes.fromhex("C8 01 90 11") # New object's coordinates (near the entrance stairs)
-romBytes[0x114727:0x114729] = romBytes[0xD29CB:0xD29CD]    # New object's object-id
-romBytes[0x114729:0x11472D] = bytes.fromhex("C8 01 90 11") # New object's coordinates (near the entrance stairs)
-romBytes[0x11472D:0x11472F] = romBytes[0xD29AD:0xD29AF]    # New object's object-id
+romBytes[0x114723:0x114727] = bytes.fromhex("C8 01 90 11") # Randomized object's coordinates (near the entrance stairs)
+romBytes[0x114727:0x114729] = romBytes[0xD29CB:0xD29CD]    # Randomized object's object-id
+romBytes[0x114729:0x11472D] = bytes.fromhex("C8 01 90 11") # Randomized object's coordinates (near the entrance stairs)
+romBytes[0x11472D:0x11472F] = romBytes[0xD29AD:0xD29AF]    # Randomized object's object-id
 romBytes[0x11472F:0x1147A0] = romBytes[0xD0F6D:0xD0FDE]    # Vanilla remainder of room data
 # Update the door destinations to lead to the new Vampire boss room
 struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x13D), 0x4700)
+
+# Make a new version of the Jester Spirit boss room at 0x114800.
+# This version has two randomized objects:
+# - Item shuffled to the existing "Jester Spirit (insignia)" location
+# - Item shuffled to the new "Keyword: Volcano" location
+romBytes[0x114800]          = romBytes[0xCAE08]            # Vanilla drawing data
+romBytes[0x114801]          = romBytes[0xCAE09]            # Vanilla music
+romBytes[0x114802:0x114804] = struct.pack("<H", 0xC946)    # Vanilla camera pointer, adjusted for the new room data location
+romBytes[0x114804]          = 0x06                         # +1 to the number of objects
+romBytes[0x114805:0x114817] = romBytes[0xCAE0D:0xCAE1F]    # Vanilla objects
+romBytes[0x114817:0x11481B] = bytes.fromhex("B0 01 3A 12") # Randomized object's coordinates (near the exit portal)
+romBytes[0x11481B:0x11481D] = romBytes[0xCAE23:0xCAE25]    # Randomized object's object-id
+romBytes[0x11481D:0x114823] = romBytes[0xCAE25:0xCAE2B]    # Vanilla object
+romBytes[0x114823:0x114827] = bytes.fromhex("B0 01 3A 12") # Randomized object's coordinates (near the exit portal)
+romBytes[0x114827:0x114829] = romBytes[0xD299B:0xD299D]    # Randomized object's object-id
+romBytes[0x114829:0x114948] = romBytes[0xCAE2B:0xCAF4A]    # Vanilla remainder of room data
+# Update the door destinations to lead to the new Jester Spirit boss room
+struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x4B), 0x4800)
 
 
 
