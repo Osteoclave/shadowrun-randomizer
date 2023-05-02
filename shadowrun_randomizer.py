@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-04-29"
+randomizerVersion = "2023-05-02"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -509,7 +509,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Scalpel",
         vanilla = Entity(Category.KEY_ITEM, "Scalpel", 0x6B555, [
             (Progress.ITEM___SCALPEL, []),
@@ -556,9 +556,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Tickets",
-        vanilla = Entity(Category.KEY_ITEM, "Tickets", 0x6B268, [
+        vanilla = Entity(Category.ITEM, "Tickets", 0x6B268, [
             (Progress.ITEM___TICKETS, []),
         ]),
         requires = [Progress.EVENT___MORGUE_CABINETS_UNLOCKED],
@@ -567,7 +567,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Credstick",
         vanilla = Entity(Category.KEY_ITEM, "Credstick", 0x6C6C0, [
             (Progress.ITEM___CREDSTICK, []),
@@ -799,9 +799,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Shades",
-        vanilla = Entity(Category.KEY_ITEM, "Shades", 0x6B3F7, [
+        vanilla = Entity(Category.ITEM, "Shades", 0x6B3F7, [
             (Progress.ITEM___SHADES, []),
         ]),
         requires = [],
@@ -812,7 +812,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Ripped Note",
-        vanilla = Entity(Category.KEY_ITEM, "Ripped Note", 0x6B674, [
+        vanilla = Entity(Category.ITEM, "Ripped Note", 0x6B674, [
             (Progress.ITEM___RIPPED_NOTE, []),
         ]),
         requires = [],
@@ -870,7 +870,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Keyword: Dog",
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Dog", 0x6BC16, [
             (Progress.ITEM___KEYWORD___DOG, []),
@@ -1051,7 +1051,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Iced Tea",
-        vanilla = Entity(Category.KEY_ITEM, "Iced Tea", 0x6BC08, [
+        vanilla = Entity(Category.ITEM, "Iced Tea", 0x6BC08, [
             (Progress.ITEM___ICED_TEA, []),
         ]),
         requires = [],
@@ -2643,17 +2643,12 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Explosives",
-        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Explosives", 0x6C3D3, [
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Explosives", 0x6C3D3, [
             (Progress.ITEM___EXPLOSIVES, []),
         ]),
         # In vanilla, the Massive Orc that drops the Explosives will not
         # appear until you know either "Nirwanda" or "Laughlyn".
-        # In vanilla, this is equivalent to knowing "Bremerton", since
-        # you can't learn either of the former without also learning the
-        # latter (and vice versa).
-        # It's been changed to the latter here to match the new way of
-        # learning "Bremerton" (i.e. from a keyword-item).
-        requires = [Progress.KEYWORD___BREMERTON],
+        requires = [Progress.EVENT___ICE_DELIVERED_TO_DOCKS],
         address = 0xCA60D,
         hidden = True,
     ),
@@ -2800,7 +2795,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Nuyen: Octopus",
         vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Octopus", 0x6B7E7, [
             (Progress.ITEM___NUYEN___OCTOPUS, []),
@@ -2911,7 +2906,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Nuyen: Rat Shaman",
         vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Rat Shaman", 0x6B8B9, [
             (Progress.ITEM___NUYEN___RAT_SHAMAN, []),
@@ -3102,7 +3097,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Keyword: Bremerton",
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Bremerton", 0x6B17A, [
             (Progress.ITEM___KEYWORD___BREMERTON, []),
@@ -3253,7 +3248,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Nuyen: Vampire",
         vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Vampire", 0x6B8AB, [
             (Progress.ITEM___NUYEN___VAMPIRE, []),
@@ -3400,9 +3395,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Detonator",
-        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Detonator", 0x6C5EE, [
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Detonator", 0x6C5EE, [
             (Progress.ITEM___DETONATOR, []),
         ]),
         requires = [Progress.ITEM___SAFE_KEY],
@@ -3517,7 +3512,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Green Bottle",
         vanilla = Entity(Category.KEY_ITEM, "Green Bottle", 0x6C092, [
             (Progress.ITEM___GREEN_BOTTLE, []),
@@ -5287,7 +5282,7 @@ expandedOffset = scriptHelper(
 # Zip-Gun: Use the Beretta Pistol's sprite data (0xD420 --> 0xD052)
 struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xB6), 0xD052)
 # Zip-Gun: Increase the Zip-Gun's sprite priority
-romBytes[0x6B031] = 0xFF
+romBytes[0x6B031] |= 0x40
 
 # Beretta Pistol
 expandedOffset = scriptHelper(
@@ -5405,7 +5400,7 @@ expandedOffset = scriptHelper(
 # Fichetti L. Pistol: Use the Beretta Pistol's sprite data (0xE018 --> 0xD052)
 struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xCC), 0xD052)
 # Fichetti L. Pistol: Increase the Fichetti L. Pistol's sprite priority
-romBytes[0x6C324] = 0xFF
+romBytes[0x6C324] |= 0x40
 
 # Viper H. Pistol
 expandedOffset = scriptHelper(
@@ -5629,7 +5624,7 @@ expandedOffset = scriptHelper(
 # AS-7 A. Cannon: Use the Beretta Pistol's sprite data (0xE040 --> 0xD052)
 struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xCE), 0xD052)
 # AS-7 A. Cannon: Increase the AS-7 A. Cannon's sprite priority
-romBytes[0x6CB90] = 0xFF
+romBytes[0x6CB90] |= 0x40
 
 # ------------------------------------------------------------------------
 # Armor
@@ -6586,7 +6581,7 @@ writeHelper(romBytes, 0xC8873, bytes.fromhex(' '.join([
 # With this change, script 0x354 should now be entirely unused.
 struct.pack_into("<H", romBytes, 0x6BB57, 0x0292)
 # Increase the Leather Jacket's sprite priority
-romBytes[0x6BB52] = 0xFF
+romBytes[0x6BB52] |= 0x40
 
 # Leather Jacket: Orc
 # Reveal the new item shuffled to this location
@@ -6762,7 +6757,7 @@ expandedOffset = scriptHelper(
 # Use facing direction 03's sprite for direction 00
 romBytes[0x6661E] = 0x08
 # Increase the Ghoul Bone's sprite priority
-romBytes[0x6C172] = 0xFF
+romBytes[0x6C172] |= 0x40
 # Make the Ghoul Bone not inherently subject to gravity
 romBytes[0x674F4] &= ~0x20
 
@@ -7324,6 +7319,10 @@ romBytes[0xE5F83:0xE5F83+2] = romBytes[0xC966D:0xC966D+2]
 romBytes[0xE5F95:0xE5F95+2] = romBytes[0xC9673:0xC9673+2]
 
 # Iron Key
+writeHelper(romBytes, 0xCA7B5, bytes.fromhex(' '.join([
+    "6F 02",    # Move the spawn point to slightly below the Ferocious Orc
+    "1C 1A",    # New coordinates: (623, 540, 96)
+])))
 writeHelper(romBytes, 0xF448C, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     "48 12 00", # 000C: Jump to 0012
@@ -7348,11 +7347,15 @@ romBytes[0xF69A9] = 0x04 # Keyword-id for "Bremerton"
 romBytes[0xF69AD] = 0x04 # Keyword-id for "Bremerton"
 
 # Crowbar
+writeHelper(romBytes, 0xD0823, bytes.fromhex(' '.join([
+    "70 01",    # Move the spawn point to slightly below the Ferocious Orc's waypoint
+    "B3 11",    # New coordinates: (368, 435, 64)
+])))
 writeHelper(romBytes, 0xF4320, bytes.fromhex(' '.join([
     "52 1D 01", # 0003: Execute behaviour script 0x11D = New item-drawing script
 ])))
 # Increase the Crowbar's sprite priority
-romBytes[0x6C6B9] = 0xFF
+romBytes[0x6C6B9] |= 0x40
 
 # Crowbar: Ferocious Orc
 # Reveal the new item shuffled to this location
@@ -7365,14 +7368,16 @@ romBytes[0xF95F4:0xF95F4+2] = romBytes[0xD0827:0xD0827+2]
 #   hitman at Daley Station as well ("Aaarrggh. You swine!"), but I digress
 
 # Password (Drake)
+writeHelper(romBytes, 0xD08E9, bytes.fromhex(' '.join([
+    "E3 02",    # Move the spawn point to slightly below the Gang Leader
+    "FE 11",    # New coordinates: (739, 510, 64)
+])))
 writeHelper(romBytes, 0xF4909, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     "48 12 00", # 000C: Jump to 0012
 ])))
 # Use facing direction 05's sprite for direction 00
 romBytes[0x66864] = 0x08
-# Increase the Password's sprite priority
-romBytes[0x6B79A] = 0xFF
 
 # Password (Drake): Gang Leader
 # Reveal the new item shuffled to this location
@@ -7405,6 +7410,10 @@ struct.pack_into("<H", romBytes, 0x6BB81, 0x01F1)
 # TODO: Strobe <-- Not currently subject to randomization
 
 # Explosives
+writeHelper(romBytes, 0xCA609, bytes.fromhex(' '.join([
+    "E1 81",    # Move the spawn point to slightly below the Massive Orc
+    "F4 19",    # New coordinates: (481, 500, 112)
+])))
 writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
     "C2",       # 0008: Push $13
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
@@ -7414,10 +7423,18 @@ writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
 romBytes[0x675BA] &= ~0x20
 
 # Explosives: Massive Orc
-# Appear when you know the "Bremerton" keyword.
-# In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
-romBytes[0xFA9ED] = 0x04 # Keyword-id for "Bremerton"
-romBytes[0xFA9F1] = 0x04 # Keyword-id for "Bremerton"
+# Appear after ice has been delivered to the docks.
+# In vanilla, this happens after learning "Nirwanda" or "Laughlyn".
+# Previously, the Massive Orc appeared after learning "Bremerton".
+# This worked, but if you learned "Bremerton" early, it made getting
+# the "Docks" keyword from the taxiboat driver difficult.
+writeHelper(romBytes, 0xFA9EC, bytes.fromhex(' '.join([
+    "14 0E 1C", # 0002: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
+    "58 BA",    # 0005: Push object's flags
+    "00 02",    # 0007: Push unsigned byte 0x02
+    "7E",       # 0009: Bitwise AND
+    "BE",       # 000A: Convert to boolean
+])))
 # Reveal the new item shuffled to this location
 writeHelper(romBytes, 0xFAA53, bytes.fromhex(' '.join([
     "00 80",    # 0069: Push unsigned byte 0x80
@@ -7442,14 +7459,14 @@ expandedOffset = scriptHelper(
     scratchLen   = 0x00, # Header byte: Script uses 0x00 bytes of $13+xx space
     maxStackLen  = 0x04, # Header byte: Maximum stack height of 0x04 bytes (= 2 stack items)
     commandList  = [
-        "00 80",    # 0000: Push unsigned byte 0x80
-        f"14 {romBytes[0xCA691+0]:02X} {romBytes[0xCA691+1]:02X}",
-                    # 0002: Push short 0x#### <-- Object-id of new item in "Mermaid Scales" location
+        "00 02",    # 0000: Push unsigned byte 0x02
+        "14 0E 1C", # 0002: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
         "58 0D",    # 0005: Set bits of object's flags
-        "00 02",    # 0007: Push unsigned byte 0x02
-        "14 0E 1C", # 0009: Push short 0x1C0E <-- Object-id of ice delivery guy at Wastelands
+        "00 80",    # 0007: Push unsigned byte 0x80
+        f"14 {romBytes[0xCA691+0]:02X} {romBytes[0xCA691+1]:02X}",
+                    # 0009: Push short 0x#### <-- Object-id of new item in "Mermaid Scales" location
         "58 0D",    # 000C: Set bits of object's flags
-        "56",       # 000D: End
+        "56",       # 000E: End
     ],
 )
 
@@ -7465,7 +7482,7 @@ romBytes[0xF8677:0xF8677+2] = romBytes[0xCB18D:0xCB18D+2]
 # Randomly-appearing enemies in Waterfront - Octopus boss room
 # Take into account the new item shuffled to the "Nuyen: Octopus" location
 romBytes[0xFA9AC:0xFA9AC+2] = romBytes[0xCB18D:0xCB18D+2]
-romBytes[0xFA9CD:0xFA9CD+2] = romBytes[0xCB18D:0xCB18D+2]
+romBytes[0xFA9D2:0xFA9D2+2] = romBytes[0xCB18D:0xCB18D+2]
 
 # Rat Shaman
 expandedOffset = scriptHelper(
@@ -7493,38 +7510,46 @@ expandedOffset = scriptHelper(
         "58 50",    # 019F: Push object's Y coordinate / 4
         "00 02",    # 01A1: Push unsigned byte 0x02
         "7A",       # 01A3: Left shift
-        "02 0A",    # 01A4: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 4F",    # 01A6: Push object's X coordinate / 4
-        "00 02",    # 01A8: Push unsigned byte 0x02
-        "7A",       # 01AA: Left shift
-        "02 0E",    # 01AB: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 82",    # 01AD: Set object X/Y/Z position
-        "00 80",    # 01AF: Push unsigned byte 0x80
+        "00 42",    # 01A4: Push unsigned byte 0x42
+        "5E",       # 01A6: Subtraction
+        "02 0A",    # 01A7: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 4F",    # 01A9: Push object's X coordinate / 4
+        "00 02",    # 01AB: Push unsigned byte 0x02
+        "7A",       # 01AD: Left shift
+        "00 02",    # 01AE: Push unsigned byte 0x02
+        "5E",       # 01B0: Subtraction
         "02 0E",    # 01B1: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 33",    # 01B3: Set bits of object's flags
+        "58 82",    # 01B3: Set object X/Y/Z position
+        "00 80",    # 01B5: Push unsigned byte 0x80
+        "02 0E",    # 01B7: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 33",    # 01B9: Set bits of object's flags
         # Nuyen: Rat Shaman
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xD2965+0]:02X} {romBytes[0xD2965+1]:02X}",
-                    # 01B5: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 01B8: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 0E",    # 01BA: Pop byte to $13+0E  <-- Item drop's spawn index
-        "02 0A",    # 01BC: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 51",    # 01BE: Push object's Z coordinate / 4
-        "00 02",    # 01C0: Push unsigned byte 0x02
-        "7A",       # 01C2: Left shift
-        "02 0A",    # 01C3: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 50",    # 01C5: Push object's Y coordinate / 4
-        "00 02",    # 01C7: Push unsigned byte 0x02
-        "7A",       # 01C9: Left shift
-        "02 0A",    # 01CA: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 4F",    # 01CC: Push object's X coordinate / 4
-        "00 02",    # 01CE: Push unsigned byte 0x02
-        "7A",       # 01D0: Left shift
-        "02 0E",    # 01D1: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 82",    # 01D3: Set object X/Y/Z position
-        "00 80",    # 01D5: Push unsigned byte 0x80
-        "02 0E",    # 01D7: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 33",    # 01D9: Set bits of object's flags
+                    # 01BB: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 01BE: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 0E",    # 01C0: Pop byte to $13+0E  <-- Item drop's spawn index
+        "02 0A",    # 01C2: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 51",    # 01C4: Push object's Z coordinate / 4
+        "00 02",    # 01C6: Push unsigned byte 0x02
+        "7A",       # 01C8: Left shift
+        "02 0A",    # 01C9: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 50",    # 01CB: Push object's Y coordinate / 4
+        "00 02",    # 01CD: Push unsigned byte 0x02
+        "7A",       # 01CF: Left shift
+        "00 02",    # 01D0: Push unsigned byte 0x02
+        "5E",       # 01D2: Subtraction
+        "02 0A",    # 01D3: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 4F",    # 01D5: Push object's X coordinate / 4
+        "00 02",    # 01D7: Push unsigned byte 0x02
+        "7A",       # 01D9: Left shift
+        "00 42",    # 01DA: Push unsigned byte 0x42
+        "5E",       # 01DC: Subtraction
+        "02 0E",    # 01DD: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 82",    # 01DF: Set object X/Y/Z position
+        "00 80",    # 01E1: Push unsigned byte 0x80
+        "02 0E",    # 01E3: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 33",    # 01E5: Set bits of object's flags
         # Copy 01A3-01D9 from the original script.
         romBytes[0xF4E6A:0xF4EA1].hex(' '),
     ],
@@ -7602,8 +7627,6 @@ writeHelper(romBytes, 0xF4524, bytes.fromhex(' '.join([
 ])))
 # Use facing direction 05's sprite for direction 00
 romBytes[0x65EFC] = 0x08
-# Increase the Bronze Key's sprite priority
-romBytes[0x6C921] = 0xFF
 
 # Mesh Jacket (free)
 # Change the behaviour script for the free Mesh Jacket from 0x388
@@ -7613,7 +7636,7 @@ romBytes[0x6C921] = 0xFF
 # With this change, script 0x388 should now be entirely unused.
 struct.pack_into("<H", romBytes, 0x6B894, 0x01A8)
 # Increase the free Mesh Jacket's sprite priority
-romBytes[0x6B88F] = 0xFF
+romBytes[0x6B88F] |= 0x40
 
 # Bronze Key and Mesh Jacket (free): Samurai Warrior
 # Reveal the new items shuffled to these locations
@@ -7798,57 +7821,65 @@ expandedOffset = scriptHelper(
         "58 50",    # 0150: Push object's Y coordinate / 4
         "00 02",    # 0152: Push unsigned byte 0x02
         "7A",       # 0154: Left shift
-        "C2",       # 0155: Push $13
-        "58 4F",    # 0156: Push object's X coordinate / 4
-        "00 02",    # 0158: Push unsigned byte 0x02
-        "7A",       # 015A: Left shift
-        "02 07",    # 015B: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 82",    # 015D: Set object X/Y/Z position
-        "00 80",    # 015F: Push unsigned byte 0x80
+        "00 42",    # 0155: Push unsigned byte 0x42
+        "5E",       # 0157: Subtraction
+        "C2",       # 0158: Push $13
+        "58 4F",    # 0159: Push object's X coordinate / 4
+        "00 02",    # 015B: Push unsigned byte 0x02
+        "7A",       # 015D: Left shift
+        "00 02",    # 015E: Push unsigned byte 0x02
+        "5E",       # 0160: Subtraction
         "02 07",    # 0161: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 33",    # 0163: Set bits of object's flags
+        "58 82",    # 0163: Set object X/Y/Z position
+        "00 80",    # 0165: Push unsigned byte 0x80
+        "02 07",    # 0167: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 33",    # 0169: Set bits of object's flags
         # Nuyen: Vampire
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xD29AD+0]:02X} {romBytes[0xD29AD+1]:02X}",
-                    # 0165: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 0168: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 07",    # 016A: Pop byte to $13+07  <-- Item drop's spawn index
-        "C2",       # 016C: Push $13
-        "58 51",    # 016D: Push object's Z coordinate / 4
-        "00 02",    # 016F: Push unsigned byte 0x02
-        "7A",       # 0171: Left shift
+                    # 016B: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 016E: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 07",    # 0170: Pop byte to $13+07  <-- Item drop's spawn index
         "C2",       # 0172: Push $13
-        "58 50",    # 0173: Push object's Y coordinate / 4
+        "58 51",    # 0173: Push object's Z coordinate / 4
         "00 02",    # 0175: Push unsigned byte 0x02
         "7A",       # 0177: Left shift
         "C2",       # 0178: Push $13
-        "58 4F",    # 0179: Push object's X coordinate / 4
+        "58 50",    # 0179: Push object's Y coordinate / 4
         "00 02",    # 017B: Push unsigned byte 0x02
         "7A",       # 017D: Left shift
-        "02 07",    # 017E: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 82",    # 0180: Set object X/Y/Z position
-        "00 80",    # 0182: Push unsigned byte 0x80
-        "02 07",    # 0184: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 33",    # 0186: Set bits of object's flags
+        "00 02",    # 017E: Push unsigned byte 0x02
+        "5E",       # 0180: Subtraction
+        "C2",       # 0181: Push $13
+        "58 4F",    # 0182: Push object's X coordinate / 4
+        "00 02",    # 0184: Push unsigned byte 0x02
+        "7A",       # 0186: Left shift
+        "00 42",    # 0187: Push unsigned byte 0x42
+        "5E",       # 0189: Subtraction
+        "02 07",    # 018A: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 82",    # 018C: Set object X/Y/Z position
+        "00 80",    # 018E: Push unsigned byte 0x80
+        "02 07",    # 0190: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 33",    # 0192: Set bits of object's flags
         # Despawn the Vampire and give the 5,000 nuyen reward.
-        "C2",       # 0188: Push $13
-        "58 B8",    # 0189: Despawn object
-        "00 50",    # 018B: Push unsigned byte 0x50
-        "00 01",    # 018D: Push unsigned byte 0x01
-        "58 9E",    # 018F: Register menu options / time delay
-        "BC",       # 0191: Pop
-        "14 88 13", # 0192: Push short 0x1388
-        "58 98",    # 0195: Increase nuyen
-        "52 4B 00", # 0197: Execute behaviour script 0x4B = "Got item" sound effect
-        "00 B4",    # 019A: Push unsigned byte 0xB4
-        "14 F6 01", # 019C: Push short 0x01F6
-        "C0",       # 019F: Push zero
-        "00 03",    # 01A0: Push unsigned byte 0x03
-        "00 16",    # 01A2: Push unsigned byte 0x16
-        "00 04",    # 01A4: Push unsigned byte 0x04
-        "00 04",    # 01A6: Push unsigned byte 0x04
-        "58 C7",    # 01A8: Print text ("The vampire had 5,000 nuyen.")
-        "56",       # 01AA: End
+        "C2",       # 0194: Push $13
+        "58 B8",    # 0195: Despawn object
+        "00 50",    # 0197: Push unsigned byte 0x50
+        "00 01",    # 0199: Push unsigned byte 0x01
+        "58 9E",    # 019B: Register menu options / time delay
+        "BC",       # 019D: Pop
+        "14 88 13", # 019E: Push short 0x1388
+        "58 98",    # 01A1: Increase nuyen
+        "52 4B 00", # 01A3: Execute behaviour script 0x4B = "Got item" sound effect
+        "00 B4",    # 01A6: Push unsigned byte 0xB4
+        "14 F6 01", # 01A8: Push short 0x01F6
+        "C0",       # 01AB: Push zero
+        "00 03",    # 01AC: Push unsigned byte 0x03
+        "00 16",    # 01AE: Push unsigned byte 0x16
+        "00 04",    # 01B0: Push unsigned byte 0x04
+        "00 04",    # 01B2: Push unsigned byte 0x04
+        "58 C7",    # 01B4: Print text ("The vampire had 5,000 nuyen.")
+        "56",       # 01B6: End
     ],
 )
 
@@ -8216,49 +8247,57 @@ expandedOffset = scriptHelper(
         "58 50",    # 01A8: Push object's Y coordinate / 4
         "00 02",    # 01AA: Push unsigned byte 0x02
         "7A",       # 01AC: Left shift
-        "C2",       # 01AD: Push $13
-        "58 4F",    # 01AE: Push object's X coordinate / 4
-        "00 02",    # 01B0: Push unsigned byte 0x02
-        "7A",       # 01B2: Left shift
-        "02 04",    # 01B3: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 82",    # 01B5: Set object X/Y/Z position
-        "00 80",    # 01B7: Push unsigned byte 0x80
+        "00 42",    # 01AD: Push unsigned byte 0x42
+        "5E",       # 01AF: Subtraction
+        "C2",       # 01B0: Push $13
+        "58 4F",    # 01B1: Push object's X coordinate / 4
+        "00 02",    # 01B3: Push unsigned byte 0x02
+        "7A",       # 01B5: Left shift
+        "00 02",    # 01B6: Push unsigned byte 0x02
+        "5E",       # 01B8: Subtraction
         "02 04",    # 01B9: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 33",    # 01BB: Set bits of object's flags
+        "58 82",    # 01BB: Set object X/Y/Z position
+        "00 80",    # 01BD: Push unsigned byte 0x80
+        "02 04",    # 01BF: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 33",    # 01C1: Set bits of object's flags
         # Jester Spirit (insignia)
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xCAE23+0]:02X} {romBytes[0xCAE23+1]:02X}",
-                    # 01BD: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 01C0: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 04",    # 01C2: Pop byte to $13+04  <-- Item drop's spawn index
-        "C2",       # 01C4: Push $13
-        "58 51",    # 01C5: Push object's Z coordinate / 4
-        "00 02",    # 01C7: Push unsigned byte 0x02
-        "7A",       # 01C9: Left shift
+                    # 01C3: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 01C6: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 04",    # 01C8: Pop byte to $13+04  <-- Item drop's spawn index
         "C2",       # 01CA: Push $13
-        "58 50",    # 01CB: Push object's Y coordinate / 4
+        "58 51",    # 01CB: Push object's Z coordinate / 4
         "00 02",    # 01CD: Push unsigned byte 0x02
         "7A",       # 01CF: Left shift
         "C2",       # 01D0: Push $13
-        "58 4F",    # 01D1: Push object's X coordinate / 4
+        "58 50",    # 01D1: Push object's Y coordinate / 4
         "00 02",    # 01D3: Push unsigned byte 0x02
         "7A",       # 01D5: Left shift
-        "02 04",    # 01D6: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 82",    # 01D8: Set object X/Y/Z position
-        "00 80",    # 01DA: Push unsigned byte 0x80
-        "02 04",    # 01DC: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 33",    # 01DE: Set bits of object's flags
+        "00 02",    # 01D6: Push unsigned byte 0x02
+        "5E",       # 01D8: Subtraction
+        "C2",       # 01D9: Push $13
+        "58 4F",    # 01DA: Push object's X coordinate / 4
+        "00 02",    # 01DC: Push unsigned byte 0x02
+        "7A",       # 01DE: Left shift
+        "00 42",    # 01DF: Push unsigned byte 0x42
+        "5E",       # 01E1: Subtraction
+        "02 04",    # 01E2: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 82",    # 01E4: Set object X/Y/Z position
+        "00 80",    # 01E6: Push unsigned byte 0x80
+        "02 04",    # 01E8: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 33",    # 01EA: Set bits of object's flags
         # Reveal the Jester Spirit portal.
-        "00 01",    # 01E0: Push unsigned byte 0x01
-        "14 DF 1E", # 01E2: Push short 0x1EDF <-- Object-id of the Jester Spirit portal
-        "58 0D",    # 01E5: Set bits of object's flags
+        "00 01",    # 01EC: Push unsigned byte 0x01
+        "14 DF 1E", # 01EE: Push short 0x1EDF <-- Object-id of the Jester Spirit portal
+        "58 0D",    # 01F1: Set bits of object's flags
         # Mark the Jester Spirit as defeated.
-        "C2",       # 01E7: Push $13
-        "58 C4",    # 01E8: Set object's owner to "Dog Food"
+        "C2",       # 01F3: Push $13
+        "58 C4",    # 01F4: Set object's owner to "Dog Food"
         # Despawn the Jester Spirit.
-        "C2",       # 01EA: Push $13
-        "58 B8",    # 01EB: Despawn object
-        "56",       # 01ED: End
+        "C2",       # 01F6: Push $13
+        "58 B8",    # 01F7: Despawn object
+        "56",       # 01F9: End
     ],
 )
 
@@ -8578,6 +8617,8 @@ expandedOffset = scriptHelper(
         "50",       # 01E4: Return
     ],
 )
+# Increase the Jester Spirit insignia's sprite priority
+romBytes[0x6BBC9] |= 0x40
 
 # Jester Spirit portal
 # - Wait for the portal's 0x01 flag to be set before appearing.
@@ -9213,9 +9254,9 @@ romBytes[0x114601]          = romBytes[0xD0637]            # Vanilla music
 romBytes[0x114602:0x114604] = struct.pack("<H", 0xC6AE)    # Vanilla camera pointer, adjusted for the new room data location
 romBytes[0x114604]          = 0x08                         # +2 to the number of objects
 romBytes[0x114605:0x114629] = romBytes[0xD063B:0xD065F]    # Vanilla objects
-romBytes[0x114629:0x11462D] = bytes.fromhex("78 01 D0 19") # Randomized object's coordinates (same location as Rat Shaman)
+romBytes[0x114629:0x11462D] = bytes.fromhex("88 01 C8 19") # Randomized object's coordinates (near the Rat Shaman)
 romBytes[0x11462D:0x11462F] = romBytes[0xD29A7:0xD29A9]    # Randomized object's object-id
-romBytes[0x11462F:0x114633] = bytes.fromhex("78 01 D0 19") # Randomized object's coordinates (same location as Rat Shaman)
+romBytes[0x11462F:0x114633] = bytes.fromhex("70 01 E0 19") # Randomized object's coordinates (near the Rat Shaman)
 romBytes[0x114633:0x114635] = romBytes[0xD2965:0xD2967]    # Randomized object's object-id
 romBytes[0x114635:0x1146B0] = romBytes[0xD065F:0xD06DA]    # Vanilla remainder of room data
 # Update the door destinations to lead to the new Rat Shaman boss room
@@ -9230,9 +9271,9 @@ romBytes[0x114701]          = romBytes[0xD0F4B]            # Vanilla music
 romBytes[0x114702:0x114704] = struct.pack("<H", 0xC796)    # Vanilla camera pointer, adjusted for the new room data location
 romBytes[0x114704]          = 0x07                         # +2 to the number of objects
 romBytes[0x114705:0x114723] = romBytes[0xD0F4F:0xD0F6D]    # Vanilla objects
-romBytes[0x114723:0x114727] = bytes.fromhex("C8 01 90 11") # Randomized object's coordinates (near the entrance stairs)
+romBytes[0x114723:0x114727] = bytes.fromhex("C8 01 80 11") # Randomized object's coordinates (near the entrance stairs)
 romBytes[0x114727:0x114729] = romBytes[0xD29CB:0xD29CD]    # Randomized object's object-id
-romBytes[0x114729:0x11472D] = bytes.fromhex("C8 01 90 11") # Randomized object's coordinates (near the entrance stairs)
+romBytes[0x114729:0x11472D] = bytes.fromhex("C8 01 A0 11") # Randomized object's coordinates (near the entrance stairs)
 romBytes[0x11472D:0x11472F] = romBytes[0xD29AD:0xD29AF]    # Randomized object's object-id
 romBytes[0x11472F:0x1147A0] = romBytes[0xD0F6D:0xD0FDE]    # Vanilla remainder of room data
 # Update the door destinations to lead to the new Vampire boss room
@@ -9240,18 +9281,18 @@ struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x13D), 0x4700)
 
 # Make a new version of the Jester Spirit boss room at 0x114800.
 # This version has two randomized objects:
-# - Item shuffled to the existing "Jester Spirit (insignia)" location
 # - Item shuffled to the new "Keyword: Volcano" location
+# - Item shuffled to the existing "Jester Spirit (insignia)" location
 romBytes[0x114800]          = romBytes[0xCAE08]            # Vanilla drawing data
 romBytes[0x114801]          = romBytes[0xCAE09]            # Vanilla music
 romBytes[0x114802:0x114804] = struct.pack("<H", 0xC946)    # Vanilla camera pointer, adjusted for the new room data location
 romBytes[0x114804]          = 0x06                         # +1 to the number of objects
 romBytes[0x114805:0x114817] = romBytes[0xCAE0D:0xCAE1F]    # Vanilla objects
-romBytes[0x114817:0x11481B] = bytes.fromhex("B0 01 3A 12") # Randomized object's coordinates (near the exit portal)
-romBytes[0x11481B:0x11481D] = romBytes[0xCAE23:0xCAE25]    # Randomized object's object-id
+romBytes[0x114817:0x11481B] = bytes.fromhex("B0 01 3D 12") # Randomized object's coordinates (near the exit portal)
+romBytes[0x11481B:0x11481D] = romBytes[0xD299B:0xD299D]    # Randomized object's object-id
 romBytes[0x11481D:0x114823] = romBytes[0xCAE25:0xCAE2B]    # Vanilla object
-romBytes[0x114823:0x114827] = bytes.fromhex("B0 01 3A 12") # Randomized object's coordinates (near the exit portal)
-romBytes[0x114827:0x114829] = romBytes[0xD299B:0xD299D]    # Randomized object's object-id
+romBytes[0x114823:0x114827] = bytes.fromhex("90 01 3D 12") # Randomized object's coordinates (near the exit portal)
+romBytes[0x114827:0x114829] = romBytes[0xCAE23:0xCAE25]    # Randomized object's object-id
 romBytes[0x114829:0x114948] = romBytes[0xCAE2B:0xCAF4A]    # Vanilla remainder of room data
 # Update the door destinations to lead to the new Jester Spirit boss room
 struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x4B), 0x4800)
