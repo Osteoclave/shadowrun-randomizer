@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-05-02"
+randomizerVersion = "2023-05-05"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -228,6 +228,7 @@ Progress = Enum(
         "ITEM___MATCHBOX",
         "ITEM___MEMO",
         "ITEM___MERMAID_SCALES",
+        "ITEM___NUYEN___GLUTMAN",
         "ITEM___NUYEN___OCTOPUS",
         "ITEM___NUYEN___RAT_SHAMAN",
         "ITEM___NUYEN___VAMPIRE",
@@ -271,7 +272,6 @@ Progress = Enum(
         "EVENT___CHROME_COYOTE_HEALED",
         "EVENT___TICKETS_REDEEMED",
         "EVENT___GLUTMAN_AT_THE_CAGE",
-        "EVENT___GLUTMAN_HIDES_YOU",
         "EVENT___UNLIMITED_SLAP_PATCHES",
         "EVENT___CLEAN_WATER_COLLECTED",
         "EVENT___MAPLETHORPE_DOOR_OPENED",
@@ -695,8 +695,8 @@ thisRegion.doors.extend([
     Door("Tenth Street - Center", []),
     Door("Tenth Street - Dead Man's Building (hallway)", []),
     Door("Tenth Street - East", []),
-    # In vanilla, "Progress.EVENT___GLUTMAN_HIDES_YOU" is required
-    # to enter the Tenth Street monorail station.
+    # In vanilla, you can't enter the Tenth Street monorail station
+    # until after Glutman hides you in the caryards.
     Door("Tenth Street - Monorail Platform to Oldtown", []),
 ])
 regions[regionName] = thisRegion
@@ -868,6 +868,7 @@ thisRegion.locations.extend([
         address = 0xC8877,
         hidden = True,
     ),
+    # In vanilla, this is "hmmm...." (Dog in alley)
     Location(
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
@@ -1407,21 +1408,22 @@ thisRegion.locations.extend([
         address = 0xC86C7,
         hidden = False,
     ),
+    # In vanilla, this is "Shady character..." (Glutman)
     Location(
         region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Shady character...",
-        vanilla = Entity(Category.CONSTANT, "Shady character...", 0x6B3F0, [
-            (Progress.EVENT___GLUTMAN_HIDES_YOU, []),
+        category = Category.PHYSICAL_ITEM,
+        description = "Nuyen: Glutman",
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Glutman", 0x6B3F0, [
+            # In vanilla, Glutman would hide you in the caryards here.
+            (Progress.ITEM___NUYEN___GLUTMAN, []),
         ]),
         requires = [Progress.EVENT___GLUTMAN_AT_THE_CAGE],
         address = 0xC86D9,
-        hidden = False,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
     Door("Tenth Street - The Cage // Lobby", []),
-    Door("Caryards - North", [Progress.EVENT___GLUTMAN_HIDES_YOU]),
 ])
 regions[regionName] = thisRegion
 
@@ -3095,6 +3097,7 @@ regions[regionName] = thisRegion
 regionName = "Dark Blade - Left Room"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
+    # In vanilla, this is "Vladimir"
     Location(
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
@@ -6255,7 +6258,9 @@ writeHelper(romBytes, 0x6B8B9, bytes.fromhex("FF FD 3A 9E 00 D6 00"))
 # Keyword-item: Jester Spirit
 # Vanilla: Mesh Jacket (Jetboy)
 writeHelper(romBytes, 0x6B8C0, bytes.fromhex("FF 34 3B 30 00 C6 02"))
-# TODO: Consider turning Glutman into a nuyen-item
+# Nuyen-item: Glutman
+# Vanilla: "Shady character..." (Glutman)
+writeHelper(romBytes, 0x6B3F0, bytes.fromhex("FF FA 2E 9E 00 D6 00"))
 # Keyword-item: Dog
 # Vanilla: "hmmm...." (Dog in alley)
 writeHelper(romBytes, 0x6BC16, bytes.fromhex("FF 1D 2F 30 00 C6 02"))
@@ -6819,6 +6824,14 @@ writeHelper(romBytes, 0x1FEE6, bytes.fromhex(' '.join([
 writeHelper(romBytes, 0x16FD8, bytes.fromhex(' '.join([
     "18 1C 3C", # 005E: Push short from $7E3C1C
 ])))
+
+# Nuyen: Glutman
+writeHelper(romBytes, 0xC86D5, bytes.fromhex(' '.join([
+    "48 02",    # Move the spawn point a short distance up and right
+    "14 12",    # New coordinates: (584, 532, 64)
+])))
+# Reveal the new item shuffled to this location
+romBytes[0x1FFF5:0x1FFF5+2] = romBytes[0xC86D9:0xC86D9+2]
 
 # Potion Bottles
 expandedOffset = scriptHelper(
@@ -8995,12 +9008,6 @@ romBytes[0x1733] = 0x00 # accuracy: 0
 romBytes[0x1CDA] = 0xBD
 romBytes[0x1CE3] = 0xBD
 
-# Update Glutman so he never gives you the Zip Gun
-writeHelper(romBytes, 0xDCE1A, bytes.fromhex(' '.join([
-    "48 0C 00", # 0000: Jump to 000C
-])))
-# TODO: Prevent keyword removal in the "Glutman hides you" cutscene?
-
 # ------------------------------------------------------------------------
 
 # TODO: Start with 1 defense (Leather Jacket equivalent) instead of 0?
@@ -9040,42 +9047,6 @@ writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
     "BC",       # 0011: Pop
     "48 29 00", # 0012: Jump to 0029
 ])))
-
-# ------------------------------------------------------------------------
-
-## Forbid entry to the caryards until Glutman hides you there
-#expandedOffset = scriptHelper(
-#    scriptNumber = 0x246,
-#    argsLen      = 0x00, # Script 0x246 now takes 0 bytes (= 0 stack item) as arguments
-#    returnLen    = 0x00, # Script 0x246 now returns 0 bytes (= 0 stack items) upon completion
-#    offset       = expandedOffset,
-#    scratchLen   = 0x00, # Header byte: Script uses 0x00 bytes of $13+xx space
-#    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
-#    commandList  = [
-#        "14 BF 03", # 0000: Push short 0x03BF <-- Object-id for Glutman
-#        "14 38 15", # 0003: Push short 0x1538 <-- Object-id for Dog Food
-#        "58 42",    # 0006: Check if first object owns second object
-#        "46 27 00", # 0008: If yes, jump to SHADOWRUNNERS_WAIT_OUTSIDE
-#        # NOT_HIDDEN_BY_GLUTMAN_YET
-#        "00 01",    # 000B: Push unsigned byte 0x01
-#        "14 CD 00", # 000D: Push short 0x00CD
-#        "14 00 04", # 0010: Push short 0x0400
-#        "00 04",    # 0013: Push unsigned byte 0x04
-#        "00 13",    # 0015: Push unsigned byte 0x13
-#        "00 06",    # 0017: Push unsigned byte 0x06
-#        "00 07",    # 0019: Push unsigned byte 0x07
-#        "58 C7",    # 001B: Print text ("Hey, where do you think you're going?")
-#        "58 A2",    # 001D: Wait for player input
-#        "14 18 00", # 001F: Push short 0x0018
-#        "58 56",    # 0022: Teleport to door destination
-#        "48 2C 00", # 0024: Jump to DONE
-#        # SHADOWRUNNERS_WAIT_OUTSIDE
-#        "00 3B",    # 0027: Push unsigned byte 0x3B
-#        "52 0E 01", # 0029: Execute behaviour script 0x10E = "Shadowrunners wait outside" helper script
-#        # DONE
-#        "56",       # 002C: End
-#    ],
-#)
 
 # ------------------------------------------------------------------------
 
