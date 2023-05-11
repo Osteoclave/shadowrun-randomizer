@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-05-05"
+randomizerVersion = "2023-05-10"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -403,6 +403,17 @@ thisRegion.locations.extend([
         description = "Examine Ripped Note",
         vanilla = Entity(Category.CONSTANT, "Examine Ripped Note", None, [
             (Progress.PHONE_NUMBER___SASSIE, [Progress.ITEM___RIPPED_NOTE]),
+        ]),
+        requires = [],
+        address = None,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Learn 'Magic Fetish'",
+        vanilla = Entity(Category.CONSTANT, "Learn 'Magic Fetish'", None, [
+            (Progress.KEYWORD___MAGIC_FETISH, [Progress.ITEM___MAGIC_FETISH]),
         ]),
         requires = [],
         address = None,
@@ -1144,11 +1155,6 @@ regions[regionName] = thisRegion
 regionName = "Tenth Street - Graveyard"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    # TODO:
-    # Might want to update the behaviour scripts so you don't have to
-    # heal Chrome Coyote to get the item in the Ghoul Bone location.
-    # Make that "definitely" if Chrome Coyote's location becomes
-    # eligible for randomization.
     Location(
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
@@ -1182,13 +1188,26 @@ thisRegion.locations.extend([
         description = "Indian Shaman",
         vanilla = Entity(Category.CONSTANT, "Indian Shaman", 0x6BBFA, [
             (Progress.EVENT___CHROME_COYOTE_HEALED, [Progress.EVENT___UNLIMITED_SLAP_PATCHES]),
-            (Progress.KEYWORD___SHAMAN,             [Progress.EVENT___CHROME_COYOTE_HEALED]),
-            (Progress.KEYWORD___MAGIC_FETISH,       [Progress.EVENT___CHROME_COYOTE_HEALED]),
-            (Progress.ITEM___MAGIC_FETISH,          [Progress.EVENT___CHROME_COYOTE_HEALED]),
+            # In vanilla, you can get the following progressions by
+            # talking to Chrome Coyote after you heal him:
+            # - Progress.KEYWORD___SHAMAN
+            # - Progress.KEYWORD___MAGIC_FETISH
+            # - Progress.ITEM___MAGIC_FETISH
         ]),
         requires = [],
         address = 0xC8933,
         hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.PHYSICAL_ITEM,
+        description = "Magic Fetish",
+        vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Magic Fetish", 0x6B9CA, [
+            (Progress.ITEM___MAGIC_FETISH, []),
+        ]),
+        requires = [Progress.EVENT___CHROME_COYOTE_HEALED],
+        address = 0xC8951,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
@@ -6811,7 +6830,156 @@ writeHelper(romBytes, 0x1FEE6, bytes.fromhex(' '.join([
     "48 5C 01", # 012F: Jump to 015C
 ])))
 
-# TODO: Magic Fetish <-- Not currently subject to randomization
+# Magic Fetish
+writeHelper(romBytes, 0xC894D, bytes.fromhex(' '.join([
+    "76 02",    # Move the spawn point to match Chrome Coyote's spawn point
+    "A0 11",    # Chrome Coyote's spawn coordinates: (630, 416, 64)
+])))
+expandedOffset = scriptHelper(
+    scriptNumber = 0x1BB,
+    argsLen      = 0x02, # Script 0x1BB now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x1BB now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x04, # Header byte: Script uses 0x04 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "C2",       # 0002: Push $13
+        "58 C5",    # 0003: Check if object has an owner
+        "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
+        "C2",       # 0008: Push $13
+        "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
+        # TOP_OF_LOOP
+        "C2",       # 000C: Push $13
+        "58 C5",    # 000D: Check if object has an owner
+        "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
+        "C0",       # 0011: Push zero
+        "0C 01",    # 0012: Push signed byte from $13+01 <-- Whether object has an owner
+        "52 AA 02", # 0014: Execute behaviour script 0x2AA = Interaction menu helper
+        "BA",       # 0017: Duplicate
+        "34 02",    # 0018: Pop short to $13+02 <-- Selected menu option
+        # CHECK_IF_EXAMINE
+        "00 80",    # 001A: Push unsigned byte 0x80
+        "AA",       # 001C: Check if equal
+        "44 3D 00", # 001D: If not equal, jump to CHECK_IF_PICKUP
+        # EXAMINE
+        # Interaction menu option: Examine
+        "00 03",    # 0020: Push unsigned byte 0x03
+        "00 FF",    # 0022: Push unsigned byte 0xFF
+        "00 32",    # 0024: Push unsigned byte 0x32
+        "C2",       # 0026: Push $13
+        "58 4C",    # 0027: Play sound effect
+        "00 F0",    # 0029: Push unsigned byte 0xF0
+        "00 83",    # 002B: Push unsigned byte 0x83
+        "14 00 08", # 002D: Push short 0x0800
+        "00 03",    # 0030: Push unsigned byte 0x03
+        "00 19",    # 0032: Push unsigned byte 0x19
+        "00 15",    # 0034: Push unsigned byte 0x15 <-- Was 0x14
+        "00 02",    # 0036: Push unsigned byte 0x02
+        "58 C7",    # 0038: Print text ("Engraved on the amulet is a bat.")
+        "48 53 00", # 003A: Jump to BOTTOM_OF_LOOP
+        # CHECK_IF_PICKUP
+        "16 02",    # 003D: Push short from $13+02 <-- Selected menu option
+        "00 10",    # 003F: Push unsigned byte 0x10
+        "AA",       # 0041: Check if equal
+        "44 53 00", # 0042: If not equal, jump to BOTTOM_OF_LOOP
+        # In vanilla, picking up the Magic Fetish does not teach you
+        # the "Magic Fetish" keyword. Instead, you get both keyword
+        # and item by talking to Chrome Coyote after you heal him.
+        # So this "Pickup" case is actually entirely new.
+        # PICKUP
+        # Interaction menu option: Pickup
+        "00 1E",    # 0045: Push unsigned byte 0x1E <-- Keyword-id for "Magic Fetish"
+        "58 71",    # 0047: Learn keyword
+        "C2",       # 0049: Push $13
+        "58 6F",    # 004A: Set object's owner to Jake
+        "52 4B 00", # 004C: Execute behaviour script 0x4B = "Got item" sound effect
+        "0A FF",    # 004F: Push signed byte 0xFF
+        "2C 01",    # 0051: Pop byte to $13+01 <-- Whether object has an owner
+        # In vanilla, you could "Give" the Magic Fetish to Vladimir.
+        # The code for that interaction would be here, but since we've
+        # replaced Vladimir with the "Bremerton" keyword-item, there's
+        # no one to give the Magic Fetish to. Hence, no "Give" case.
+        # BOTTOM_OF_LOOP
+        "0C 01",    # 0053: Push signed byte from $13+01 <-- Whether object has an owner
+        "44 0C 00", # 0055: If no, jump to TOP_OF_LOOP
+        # DONE
+        "C2",       # 0058: Push $13
+        "58 B8",    # 0059: Despawn object
+        "56",       # 005B: End
+    ],
+)
+# Use the Talisman Case's sprite data (0xC1F4 --> 0xCFEC)
+struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x7F), 0xCFEC)
+
+# Magic Fetish: Indian Shaman <-- Chrome Coyote
+# Reveal the new item shuffled to this location
+expandedOffset = scriptHelper(
+    scriptNumber = 0x190,
+    argsLen      = 0x02, # Script 0x190 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x190 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x04, # Header byte: Script uses 0x04 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # 0000-0008
+        # Copy 0000-0008 from the original script.
+        romBytes[0xDC3C2:0xDC3CB].hex(' '),
+        # 0009-000B
+        # Update jump destination (changed due to presence of new code).
+        "46 67 00", # 0009: If true, jump to 0067
+        # 000C-0066
+        # Copy 000C-0066 from the original script.
+        romBytes[0xDC3CE:0xDC429].hex(' '),
+        # 0067-00B2
+        # New code.
+        "00 05",    # 0067: Push unsigned byte 0x05
+        "00 07",    # 0069: Push unsigned byte 0x07
+        "C2",       # 006B: Push $13
+        "58 D1",    # 006C: Display sprite
+        "00 78",    # 006E: Push unsigned byte 0x78
+        "00 16",    # 0070: Push unsigned byte 0x16
+        "14 00 04", # 0072: Push short 0x0400
+        "00 03",    # 0075: Push unsigned byte 0x03
+        "00 07",    # 0077: Push unsigned byte 0x07
+        "00 15",    # 0079: Push unsigned byte 0x15
+        "00 0D",    # 007B: Push unsigned byte 0x0D
+        "58 C7",    # 007D: Print text ("Thanks!")
+        "00 02",    # 007F: Push unsigned byte 0x02
+        "C2",       # 0081: Push $13
+        "58 D0",    # 0082: Change displayed sprite?
+        "C0",       # 0084: Push zero
+        "00 08",    # 0085: Push unsigned byte 0x08
+        "58 9E",    # 0087: Register menu options / time delay
+        "BC",       # 0089: Pop
+        "00 80",    # 008A: Push unsigned byte 0x80
+        f"14 {romBytes[0xC8951+0]:02X} {romBytes[0xC8951+1]:02X}",
+                    # 008C: Push short 0x#### <-- Object-id of new item in "Magic Fetish" location
+        "58 0D",    # 008F: Set bits of object's flags
+        "00 03",    # 0091: Push unsigned byte 0x03
+        "C2",       # 0093: Push $13
+        "58 D0",    # 0094: Change displayed sprite?
+        "00 02",    # 0096: Push unsigned byte 0x02
+        "C0",       # 0098: Push zero
+        "C0",       # 0099: Push zero
+        "C2",       # 009A: Push $13
+        "58 79",    # 009B: Set object X/Y/Z deltas?
+        "00 03",    # 009D: Push unsigned byte 0x03
+        "00 FF",    # 009F: Push unsigned byte 0xFF
+        "00 66",    # 00A1: Push unsigned byte 0x66
+        "C2",       # 00A3: Push $13
+        "58 4C",    # 00A4: Play sound effect
+        "C0",       # 00A6: Push zero
+        "00 08",    # 00A7: Push unsigned byte 0x08
+        "58 9E",    # 00A9: Register menu options / time delay
+        "BC",       # 00AB: Pop
+        "C2",       # 00AC: Push $13
+        "58 C4",    # 00AD: Set object's owner to "Dog Food"
+        "C2",       # 00AF: Push $13
+        "58 B8",    # 00B0: Despawn object
+        "56",       # 00B2: End
+    ],
+)
 
 # Video Phone
 # In vanilla, the Video Phone script checks if you know any phone
