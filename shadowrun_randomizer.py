@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-05-10"
+randomizerVersion = "2023-05-11"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -332,6 +332,7 @@ class Category(Flag):
     KEY_ITEM = auto()
     WEAPON = auto()
     ARMOR = auto()
+    TALISMAN = auto()
     ITEM = auto()
     NPC = auto()
     PHYSICAL_KEY_ITEM = PHYSICAL | KEY_ITEM
@@ -919,7 +920,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Paperweight",
-        vanilla = Entity(Category.ITEM, "Paperweight", 0x6B7A8, [
+        vanilla = Entity(Category.TALISMAN, "Paperweight", 0x6B7A8, [
             (Progress.ITEM___PAPERWEIGHT, []),
         ]),
         requires = [],
@@ -1159,7 +1160,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Ghoul Bone",
-        vanilla = Entity(Category.ITEM, "Ghoul Bone", 0x6C172, [
+        vanilla = Entity(Category.TALISMAN, "Ghoul Bone", 0x6C172, [
             (Progress.ITEM___GHOUL_BONE, []),
         ]),
         requires = [Progress.EVENT___CHROME_COYOTE_HEALED],
@@ -1786,9 +1787,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.TALISMAN,
         description = "Potion Bottles",
-        vanilla = Entity(Category.ITEM, "Potion Bottles", 0x6B689, [
+        vanilla = Entity(Category.TALISMAN, "Potion Bottles", 0x6B689, [
             (Progress.ITEM___POTION_BOTTLES, []),
         ]),
         requires = [],
@@ -1797,9 +1798,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.TALISMAN,
         description = "Black Bottle",
-        vanilla = Entity(Category.ITEM, "Black Bottle", 0x6C975, [
+        vanilla = Entity(Category.TALISMAN, "Black Bottle", 0x6C975, [
             (Progress.ITEM___BLACK_BOTTLE, []),
         ]),
         requires = [],
@@ -1808,7 +1809,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ITEM,
+        category = Category.TALISMAN,
         description = "Stake",
         vanilla = Entity(Category.KEY_ITEM, "Stake", 0x6B35D, [
             (Progress.ITEM___STAKE, []),
@@ -2714,7 +2715,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Mermaid Scales",
-        vanilla = Entity(Category.ITEM, "Mermaid Scales", 0x6B8C7, [
+        vanilla = Entity(Category.TALISMAN, "Mermaid Scales", 0x6B8C7, [
             (Progress.ITEM___MERMAID_SCALES, []),
         ]),
         requires = [Progress.EVENT___ICE_DELIVERED_TO_DOCKS],
@@ -3317,7 +3318,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Dog Tag",
-        vanilla = Entity(Category.ITEM, "Dog Tag", 0x6C55B, [
+        vanilla = Entity(Category.TALISMAN, "Dog Tag", 0x6C55B, [
             (Progress.ITEM___DOG_TAG, []),
         ]),
         requires = [],
@@ -4459,7 +4460,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Serpent Scales",
-        vanilla = Entity(Category.ITEM, "Serpent Scales", 0x6B3FE, [
+        vanilla = Entity(Category.TALISMAN, "Serpent Scales", 0x6B3FE, [
             (Progress.ITEM___SERPENT_SCALES, []),
         ]),
         requires = [],
@@ -4958,6 +4959,18 @@ while True:
     remainingLocations[Category.WEAPON_OR_ARMOR].clear()
     remainingEntities[Category.ITEM].extend(remainingEntities[Category.WEAPON_OR_ARMOR])
     remainingEntities[Category.WEAPON_OR_ARMOR].clear()
+
+    # Talismans
+    rng.shuffle(remainingLocations[Category.TALISMAN])
+    rng.shuffle(remainingEntities[Category.TALISMAN])
+    while remainingLocations[Category.TALISMAN] and remainingEntities[Category.TALISMAN]:
+        poppedLocation = remainingLocations[Category.TALISMAN].pop()
+        poppedEntity = remainingEntities[Category.TALISMAN].pop()
+        poppedLocation.current = poppedEntity
+    remainingLocations[Category.ITEM].extend(remainingLocations[Category.TALISMAN])
+    remainingLocations[Category.TALISMAN].clear()
+    remainingEntities[Category.ITEM].extend(remainingEntities[Category.TALISMAN])
+    remainingEntities[Category.TALISMAN].clear()
 
     # Physical items
     rng.shuffle(remainingLocations[Category.PHYSICAL_ITEM])
