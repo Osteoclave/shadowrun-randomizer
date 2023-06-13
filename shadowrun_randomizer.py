@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-05-11"
+randomizerVersion = "2023-06-13"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -2456,7 +2456,9 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "Gang Leader",
         vanilla = Entity(Category.CONSTANT, "Gang Leader", 0x6C2C9, [
-            (Progress.KEYWORD___DRAKE,                 []),
+            # In vanilla, defeating the Gang Leader would start an
+            # automatic conversation that would teach you the
+            # "Drake" keyword.
             (Progress.EVENT___RUST_STILETTOS_DEFEATED, []),
         ]),
         requires = [],
@@ -6453,8 +6455,31 @@ writeHelper(romBytes, 0xDEF22, bytes.fromhex(' '.join([
 romBytes[0xC848C] = 0x01
 
 # Torn Paper: Slab
+# Skip the text popup for the vanilla Torn Paper
 # Reveal the new item shuffled to this location
-romBytes[0x1EF7A:0x1EF7A+2] = romBytes[0xC848F:0xC848F+2]
+writeHelper(romBytes, 0x1EF66, bytes.fromhex(' '.join([
+    "C0",       # 011B: Push zero
+    "BE",       # 011C: Convert to boolean
+    "BE",       # 011D: Convert to boolean
+    "BE",       # 011E: Convert to boolean
+    "BE",       # 011F: Convert to boolean
+    "BE",       # 0120: Convert to boolean
+    "BE",       # 0121: Convert to boolean
+    "BE",       # 0122: Convert to boolean
+    "BE",       # 0123: Convert to boolean
+    "BE",       # 0124: Convert to boolean
+    "BE",       # 0125: Convert to boolean
+    "BE",       # 0126: Convert to boolean
+    "BE",       # 0127: Convert to boolean
+    "BE",       # 0128: Convert to boolean
+    "BE",       # 0129: Convert to boolean
+    "BE",       # 012A: Convert to boolean
+    "BC",       # 012B: Pop
+    "00 80",    # 012C: Push unsigned byte 0x80
+    f"14 {romBytes[0xC848F+0]:02X} {romBytes[0xC848F+1]:02X}",
+                # 012E: Push short 0x#### <-- Object-id of new item in "Torn Paper" location
+    "58 0D",    # 0131: Set bits of object's flags
+])))
 
 # Scalpel
 writeHelper(romBytes, 0xDEE85, bytes.fromhex(' '.join([
@@ -6531,6 +6556,28 @@ expandedOffset = scriptHelper(
     ],
 )
 
+# Morgue Filing Cabinet helper script
+# Skip the text popups for the vanilla Tickets and Credstick
+writeHelper(romBytes, 0x1F292, bytes.fromhex(' '.join([
+    "C0",       # 009B: Push zero
+    "BE",       # 009C: Convert to boolean
+    "BE",       # 009D: Convert to boolean
+    "BE",       # 009E: Convert to boolean
+    "BE",       # 009F: Convert to boolean
+    "BE",       # 00A0: Convert to boolean
+    "BE",       # 00A1: Convert to boolean
+    "BE",       # 00A2: Convert to boolean
+    "BE",       # 00A3: Convert to boolean
+    "BE",       # 00A4: Convert to boolean
+    "BE",       # 00A5: Convert to boolean
+    "BE",       # 00A6: Convert to boolean
+    "BE",       # 00A7: Convert to boolean
+    "BE",       # 00A8: Convert to boolean
+    "BE",       # 00A9: Convert to boolean
+    "BE",       # 00AA: Convert to boolean
+    "BC",       # 00AB: Pop
+])))
+
 # Tickets
 writeHelper(romBytes, 0xDF139, bytes.fromhex(' '.join([
     "52 1D 01", # 0003: Execute behaviour script 0x11D = New item-drawing script
@@ -6561,6 +6608,36 @@ romBytes[0x649C4] = 0x08
 # Reveal the new item shuffled to this location
 romBytes[0xDCA5F:0xDCA5F+2] = romBytes[0xC817B:0xC817B+2]
 
+# Glass Door <-- Left door to Tenth Street monorail station
+# Open up the monorail early
+# Change the behaviour script for the left Glass Door from 0x37D
+# (left Glass Door helper) to 0xAD (left Glass Door unlocked).
+# In vanilla, script 0x37D would check if Glutman had hidden you
+# in the caryards and then execute either script 0x6 (locked) or
+# script 0xAD (unlocked), as appropriate.
+# With this change, script 0x37D should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6C0B3, 0x00AD)
+
+# Glass Door <-- Right door to Tenth Street monorail station
+# Open up the monorail early
+# Change the behaviour script for the right Glass Door from 0x1A6
+# (right Glass Door helper) to 0x2B4 (right Glass Door unlocked).
+# In vanilla, script 0x1A6 would check if Glutman had hidden you
+# in the caryards and then execute either script 0x1DC (locked) or
+# script 0x2B4 (unlocked), as appropriate.
+# With this change, script 0x1A6 should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6C0AC, 0x02B4)
+
+# Bulletin Board <-- Outside Tenth Street monorail station
+# We've opened up the monorail early, so let's update the bulletin
+# board to match. ("TENTH STREET STATION IS NOW FULLY REPAIRED")
+writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
+    "BC",       # 000F: Pop
+    "C0",       # 0010: Push zero
+    "BC",       # 0011: Pop
+    "48 29 00", # 0012: Jump to 0029
+])))
+
 # Memo
 writeHelper(romBytes, 0xDF523, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
@@ -6575,8 +6652,33 @@ writeHelper(romBytes, 0xDF415, bytes.fromhex(' '.join([
 romBytes[0x6418C] = 0x08
 
 # Door Key: Seems familiar...
+# Skip the text popup for the vanilla Door Key
 # Reveal the new item shuffled to this location
-romBytes[0xDD221:0xDD221+2] = romBytes[0xC93F3:0xC93F3+2]
+writeHelper(romBytes, 0xDD209, bytes.fromhex(' '.join([
+    "C0",       # 0046: Push zero
+    "BE",       # 0047: Convert to boolean
+    "BE",       # 0048: Convert to boolean
+    "BE",       # 0049: Convert to boolean
+    "BE",       # 004A: Convert to boolean
+    "BE",       # 004B: Convert to boolean
+    "BE",       # 004C: Convert to boolean
+    "BE",       # 004D: Convert to boolean
+    "BE",       # 004E: Convert to boolean
+    "BE",       # 004F: Convert to boolean
+    "BE",       # 0050: Convert to boolean
+    "BE",       # 0051: Convert to boolean
+    "BE",       # 0052: Convert to boolean
+    "BE",       # 0053: Convert to boolean
+    "BE",       # 0054: Convert to boolean
+    "BC",       # 0055: Pop
+    "00 01",    # 0056: Push unsigned byte 0x01
+    "C2",       # 0058: Push $13
+    "58 33",    # 0059: Set bits of object's flags
+    "00 80",    # 005B: Push unsigned byte 0x80
+    f"14 {romBytes[0xC93F3+0]:02X} {romBytes[0xC93F3+1]:02X}",
+                # 005D: Push short 0x#### <-- Object-id of new item in "Door Key" location
+    "58 0D",    # 0060: Set bits of object's flags
+])))
 
 # Shades
 writeHelper(romBytes, 0xDF49D, bytes.fromhex(' '.join([
@@ -7013,6 +7115,10 @@ writeHelper(romBytes, 0xC86D5, bytes.fromhex(' '.join([
 ])))
 # Reveal the new item shuffled to this location
 romBytes[0x1FFF5:0x1FFF5+2] = romBytes[0xC86D9:0xC86D9+2]
+
+# The King
+# Start with the King paid off, so you can leave the caryards freely
+initialItemState[0x24F] |= 0x01
 
 # Potion Bottles
 expandedOffset = scriptHelper(
@@ -7525,8 +7631,23 @@ writeHelper(romBytes, 0xF448C, bytes.fromhex(' '.join([
 romBytes[0x65F10] = 0x08
 
 # Iron Key: Ferocious Orc
+# Skip the automatic conversation after defeating the Ferocious Orc
 # Reveal the new item shuffled to this location
-romBytes[0xF9067:0xF9067+2] = romBytes[0xCA7B9:0xCA7B9+2]
+writeHelper(romBytes, 0xF905F, bytes.fromhex(' '.join([
+    "C0",       # 0006: Push zero
+    "BE",       # 0007: Convert to boolean
+    "BE",       # 0008: Convert to boolean
+    "BE",       # 0009: Convert to boolean
+    "BC",       # 000A: Pop
+    "00 80",    # 000B: Push unsigned byte 0x80
+    f"14 {romBytes[0xCA7B9+0]:02X} {romBytes[0xCA7B9+1]:02X}",
+                # 000D: Push short 0x#### <-- Object-id of new item in "Iron Key" location
+    "58 0D",    # 0010: Set bits of object's flags
+])))
+
+# Doggie <-- Daley Station
+# Hide the Doggie to skip its automatic conversation
+struct.pack_into("<H", initialItemState, 0x43B, 0x1538)
 
 # Club Manager <-- Bartender at Wastelands
 # Change conversation when you know the "Bremerton" keyword.
@@ -7539,6 +7660,17 @@ romBytes[0xF68C5] = 0x04 # Keyword-id for "Bremerton"
 # In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
 romBytes[0xF69A9] = 0x04 # Keyword-id for "Bremerton"
 romBytes[0xF69AD] = 0x04 # Keyword-id for "Bremerton"
+
+# Heavy Dude <-- Guarding entrance to Rust Stiletto turf
+# Skip the automatic conversation when entering Rust Stiletto turf
+writeHelper(romBytes, 0xF9143, bytes.fromhex(' '.join([
+    "C0",       # 0012: Push zero
+    "BE",       # 0013: Convert to boolean
+    "BE",       # 0014: Convert to boolean
+    "BE",       # 0015: Convert to boolean
+    "BE",       # 0016: Convert to boolean
+    "BC",       # 0017: Pop
+])))
 
 # Crowbar
 writeHelper(romBytes, 0xD0823, bytes.fromhex(' '.join([
@@ -7555,12 +7687,6 @@ romBytes[0x6C6B9] |= 0x40
 # Reveal the new item shuffled to this location
 romBytes[0xF95F4:0xF95F4+2] = romBytes[0xD0827:0xD0827+2]
 
-# TODO:
-# might want to remove the post-defeat conversation from the Rust Stiletto boss
-# should probably remove the "you're on Rust Stiletto turf" conversation too
-# should probably remove the post-defeat conversation from the Rust Stiletto
-#   hitman at Daley Station as well ("Aaarrggh. You swine!"), but I digress
-
 # Password (Drake)
 writeHelper(romBytes, 0xD08E9, bytes.fromhex(' '.join([
     "E3 02",    # Move the spawn point to slightly below the Gang Leader
@@ -7574,8 +7700,24 @@ writeHelper(romBytes, 0xF4909, bytes.fromhex(' '.join([
 romBytes[0x66864] = 0x08
 
 # Password (Drake): Gang Leader
+# Skip the automatic conversation after defeating the Gang Leader
 # Reveal the new item shuffled to this location
-romBytes[0xF9102:0xF9102+2] = romBytes[0xD08ED:0xD08ED+2]
+writeHelper(romBytes, 0xF90F1, bytes.fromhex(' '.join([
+    "C0",       # 006A: Push zero
+    "BE",       # 006B: Convert to boolean
+    "BE",       # 006C: Convert to boolean
+    "BE",       # 006D: Convert to boolean
+    "BC",       # 006E: Pop
+    "00 28",    # 006F: Push unsigned byte 0x28
+    "58 57",    # 0071: Read short from 7E3BBB+n
+    "86",       # 0073: Increment
+    "00 28",    # 0074: Push unsigned byte 0x28
+    "58 12",    # 0076: Write short to 7E3BBB+n
+    "00 80",    # 0078: Push unsigned byte 0x80
+    f"14 {romBytes[0xD08ED+0]:02X} {romBytes[0xD08ED+1]:02X}",
+                # 007A: Push short 0x#### <-- Object-id of new item in "Password (Drake)" location
+    "58 0D",    # 007D: Set bits of object's flags
+])))
 
 # Cruel man <-- Left bouncer at the entrance to Jagged Nails
 # Allow access to Jagged Nails without having to defeat the Rust Stilettos
@@ -7633,7 +7775,7 @@ writeHelper(romBytes, 0xFA9EC, bytes.fromhex(' '.join([
 writeHelper(romBytes, 0xFAA53, bytes.fromhex(' '.join([
     "00 80",    # 0069: Push unsigned byte 0x80
     f"14 {romBytes[0xCA60D+0]:02X} {romBytes[0xCA60D+1]:02X}",
-                # 006B: Push short 0x#### <-- Item drop's object-id
+                # 006B: Push short 0x#### <-- Object-id of new item in "Explosives" location
 ])))
 
 # Mermaid Scales
@@ -9114,6 +9256,67 @@ expandedOffset = scriptHelper(
 # (Some of these may get promoted to permanent changes)
 # ------------------------------------------------------------------------
 
+# Double Jake's walking speed
+# - 5EF1 to 5F02 are X coordinate deltas for Jake walking
+# - 5F03 to 5F14 are Y coordinate deltas for Jake walking
+# - Ordering: deltas for directions 00-07, delta for no-input case
+for offset in range(0x5EF1, 0x5F15, 2):
+    delta = struct.unpack_from("<h", romBytes, offset)[0]
+    delta *= 2
+    struct.pack_into("<h", romBytes, offset, delta)
+
+# ------------------------------------------------------------------------
+
+# Auto-pickup nuyen dropped by defeated enemies
+# Does not affect nuyen-items
+# TODO: This also affects the multiple nuyen spawned at once
+#   from examining Coffin Lids. Each nuyen prints an "amount"
+#   text window, but the windows are all in the same place,
+#   so only the topmost is visible. This makes it look like
+#   you've picked up one 10-20 nuyen when you've actually
+#   picked up several. Maybe change the Coffin Lids to drop
+#   a single 30-60 nuyen instead?
+
+# Behaviour script 15C: Random 10/20 nuyen
+# Jump from "display sprite" setup to the pickup code
+writeHelper(romBytes, 0xF96CD, bytes.fromhex(' '.join([
+    "48 1D 00", # 0009: Jump to 001D
+])))
+
+# Behaviour script 15E: Random 30/40/50/60 nuyen
+# Jump from "display sprite" setup to the pickup code
+writeHelper(romBytes, 0xF972C, bytes.fromhex(' '.join([
+    "48 1D 00", # 0009: Jump to 001D
+])))
+
+# Behaviour script 15F: Random 70/80/90/100 nuyen
+# Jump from "display sprite" setup to the pickup code
+writeHelper(romBytes, 0xF97C7, bytes.fromhex(' '.join([
+    "48 1D 00", # 0009: Jump to 001D
+])))
+
+# Behaviour script 164: Random 150/170/180/200 nuyen
+# Jump from "display sprite" setup to the pickup code
+writeHelper(romBytes, 0xF9863, bytes.fromhex(' '.join([
+    "48 1D 00", # 0009: Jump to 001D
+])))
+
+# Behaviour script 247: Spawn random 30/40/50/60 nuyen and fall lower-left to ground
+# Repoint to use script 15E ("Random 30/40/50/60 nuyen") instead
+struct.pack_into(
+    "<H", romBytes, 0x15D18 + (2 * 0x247),
+    struct.unpack_from("<H", romBytes, 0x15D18 + (2 * 0x15E))[0]
+)
+
+# Behaviour script 270: Spawn random 30/40/50/60 nuyen and fall lower-right to ground
+# Repoint to use script 15E ("Random 30/40/50/60 nuyen") instead
+struct.pack_into(
+    "<H", romBytes, 0x15D18 + (2 * 0x270),
+    struct.unpack_from("<H", romBytes, 0x15D18 + (2 * 0x15E))[0]
+)
+
+# ------------------------------------------------------------------------
+
 # Update the glass cases containing weapons and armor so that their
 # cost matches the new randomized contents.
 # This causes power growth to be more money-driven.
@@ -9191,7 +9394,8 @@ romBytes[0x1CE3] = 0xBD
 
 # ------------------------------------------------------------------------
 
-# TODO: Start with 1 defense (Leather Jacket equivalent) instead of 0?
+## Start with 1 defense (Leather Jacket equivalent) instead of 0
+#romBytes[0x172E] = 0x01 # defense power: 1
 
 ## Start out ridiculously overpowered
 #romBytes[0x172E] = 0x14 # defense power: 20 <-- vanilla best: 6, or 8 w/ Dermal Plating
@@ -9202,41 +9406,6 @@ romBytes[0x1CE3] = 0xBD
 #romBytes[0x1733] = 0x09 # accuracy: 9      <-- vanilla best: 6
 
 # ------------------------------------------------------------------------
-
-# Open up the monorail early
-
-# Change the behaviour script for the left Glass Door from 0x37D
-# (left Glass Door helper) to 0xAD (left Glass Door unlocked).
-# In vanilla, script 0x37D would check if Glutman had hidden you
-# in the caryards and then execute either script 0x6 (locked) or
-# script 0xAD (unlocked), as appropriate.
-# With this change, script 0x37D should now be entirely unused.
-struct.pack_into("<H", romBytes, 0x6C0B3, 0x00AD)
-
-# Change the behaviour script for the right Glass Door from 0x1A6
-# (right Glass Door helper) to 0x2B4 (right Glass Door unlocked).
-# In vanilla, script 0x1A6 would check if Glutman had hidden you
-# in the caryards and then execute either script 0x1DC (locked) or
-# script 0x2B4 (unlocked), as appropriate.
-# With this change, script 0x1A6 should now be entirely unused.
-struct.pack_into("<H", romBytes, 0x6C0AC, 0x02B4)
-
-# Update the station billboard ("station is now fully repaired")
-writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
-    "BC",       # 000F: Pop
-    "C0",       # 0010: Push zero
-    "BC",       # 0011: Pop
-    "48 29 00", # 0012: Jump to 0029
-])))
-
-# ------------------------------------------------------------------------
-
-# Start with the King paid off, so you can leave the caryards freely
-initialItemState[0x24F] |= 0x01
-
-# Hide the inescapable-conversation dog at Daley Station
-initialItemState[0x43B] = 0x38 # 0x1538 = Object-id for Dog Food
-initialItemState[0x43C] = 0x15
 
 ## Make the Dermal Plating immediately available at Maplethorpe's
 #initialItemState[0x55B] |= 0x01
