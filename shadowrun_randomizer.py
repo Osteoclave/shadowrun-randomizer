@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-06-13"
+randomizerVersion = "2023-06-17"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -330,12 +330,15 @@ class Category(Flag):
     CONSTANT = auto()
     PHYSICAL = auto()
     KEY_ITEM = auto()
+    EARLY = auto()
     WEAPON = auto()
     ARMOR = auto()
     TALISMAN = auto()
     ITEM = auto()
     NPC = auto()
     PHYSICAL_KEY_ITEM = PHYSICAL | KEY_ITEM
+    EARLY_WEAPON = EARLY | WEAPON
+    EARLY_ARMOR = EARLY | ARMOR
     WEAPON_OR_ARMOR = WEAPON | ARMOR
     PHYSICAL_ITEM = PHYSICAL | ITEM
 
@@ -860,9 +863,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.WEAPON,
+        category = Category.EARLY_WEAPON,
         description = "Beretta Pistol",
-        vanilla = Entity(Category.WEAPON, "Beretta Pistol", 0x6C983, [
+        vanilla = Entity(Category.EARLY_WEAPON, "Beretta Pistol", 0x6C983, [
             (Progress.WEAPON___BERETTA_PISTOL, []),
         ]),
         requires = [],
@@ -871,9 +874,9 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ARMOR,
+        category = Category.EARLY_ARMOR,
         description = "Leather Jacket",
-        vanilla = Entity(Category.ARMOR, "Leather Jacket", 0x6BB52, [
+        vanilla = Entity(Category.EARLY_ARMOR, "Leather Jacket", 0x6BB52, [
             (Progress.ARMOR___LEATHER_JACKET, []),
         ]),
         requires = [],
@@ -1852,7 +1855,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Colt L36 Pistol",
-        vanilla = Entity(Category.WEAPON, "Colt L36 Pistol", 0x6C7F4, [
+        vanilla = Entity(Category.EARLY_WEAPON, "Colt L36 Pistol", 0x6C7F4, [
             (Progress.WEAPON___COLT_L36_PISTOL, []),
         ]),
         requires = [],
@@ -1863,7 +1866,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Viper H. Pistol ($4,000)",
-        vanilla = Entity(Category.WEAPON, "Viper H. Pistol ($4,000)", 0x6B181, [
+        vanilla = Entity(Category.EARLY_WEAPON, "Viper H. Pistol ($4,000)", 0x6B181, [
             (Progress.WEAPON___VIPER_H_PISTOL___4000, []),
         ]),
         requires = [],
@@ -1874,7 +1877,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Mesh Jacket ($5,000)",
-        vanilla = Entity(Category.ARMOR, "Mesh Jacket ($5,000)", 0x6B881, [
+        vanilla = Entity(Category.EARLY_ARMOR, "Mesh Jacket ($5,000)", 0x6B881, [
             (Progress.ARMOR___MESH_JACKET___5000, []),
         ]),
         requires = [],
@@ -1896,7 +1899,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Fichetti L. Pistol",
-        vanilla = Entity(Category.WEAPON, "Fichetti L. Pistol", 0x6C324, [
+        vanilla = Entity(Category.EARLY_WEAPON, "Fichetti L. Pistol", 0x6C324, [
             (Progress.WEAPON___FICHETTI_L_PISTOL, []),
         ]),
         requires = [],
@@ -1907,7 +1910,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Warhawk H. Pistol",
-        vanilla = Entity(Category.WEAPON, "Warhawk H. Pistol", 0x6B16C, [
+        vanilla = Entity(Category.EARLY_WEAPON, "Warhawk H. Pistol", 0x6B16C, [
             (Progress.WEAPON___WARHAWK_H_PISTOL, []),
         ]),
         requires = [],
@@ -2999,7 +3002,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Viper H. Pistol ($3,000)",
-        vanilla = Entity(Category.WEAPON, "Viper H. Pistol ($3,000)", 0x6B188, [
+        vanilla = Entity(Category.EARLY_WEAPON, "Viper H. Pistol ($3,000)", 0x6B188, [
             (Progress.WEAPON___VIPER_H_PISTOL___3000, []),
         ]),
         requires = [],
@@ -3043,7 +3046,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.WEAPON_OR_ARMOR,
         description = "Bulletproof Vest",
-        vanilla = Entity(Category.ARMOR, "Bulletproof Vest", 0x6C8D4, [
+        vanilla = Entity(Category.EARLY_ARMOR, "Bulletproof Vest", 0x6C8D4, [
             (Progress.ARMOR___BULLETPROOF_VEST, []),
         ]),
         requires = [],
@@ -3170,7 +3173,7 @@ thisRegion.locations.extend([
         region = thisRegion,
         category = Category.ARMOR,
         description = "Mesh Jacket (free)",
-        vanilla = Entity(Category.ARMOR, "Mesh Jacket (free)", 0x6B88F, [
+        vanilla = Entity(Category.EARLY_ARMOR, "Mesh Jacket (free)", 0x6B88F, [
             (Progress.ARMOR___MESH_JACKET___FREE, []),
         ]),
         requires = [],
@@ -4926,6 +4929,18 @@ while True:
         else:
             remainingEntities[Category.ITEM].append(poppedEntity)
 
+    # Early weapons
+    rng.shuffle(remainingLocations[Category.EARLY_WEAPON])
+    rng.shuffle(remainingEntities[Category.EARLY_WEAPON])
+    while remainingLocations[Category.EARLY_WEAPON] and remainingEntities[Category.EARLY_WEAPON]:
+        poppedLocation = remainingLocations[Category.EARLY_WEAPON].pop()
+        poppedEntity = remainingEntities[Category.EARLY_WEAPON].pop()
+        poppedLocation.current = poppedEntity
+    remainingLocations[Category.WEAPON].extend(remainingLocations[Category.EARLY_WEAPON])
+    remainingLocations[Category.EARLY_WEAPON].clear()
+    remainingEntities[Category.WEAPON].extend(remainingEntities[Category.EARLY_WEAPON])
+    remainingEntities[Category.EARLY_WEAPON].clear()
+
     # Weapons
     rng.shuffle(remainingLocations[Category.WEAPON])
     rng.shuffle(remainingEntities[Category.WEAPON])
@@ -4937,6 +4952,18 @@ while True:
     remainingLocations[Category.WEAPON].clear()
     remainingEntities[Category.WEAPON_OR_ARMOR].extend(remainingEntities[Category.WEAPON])
     remainingEntities[Category.WEAPON].clear()
+
+    # Early armor
+    rng.shuffle(remainingLocations[Category.EARLY_ARMOR])
+    rng.shuffle(remainingEntities[Category.EARLY_ARMOR])
+    while remainingLocations[Category.EARLY_ARMOR] and remainingEntities[Category.EARLY_ARMOR]:
+        poppedLocation = remainingLocations[Category.EARLY_ARMOR].pop()
+        poppedEntity = remainingEntities[Category.EARLY_ARMOR].pop()
+        poppedLocation.current = poppedEntity
+    remainingLocations[Category.ARMOR].extend(remainingLocations[Category.EARLY_ARMOR])
+    remainingLocations[Category.EARLY_ARMOR].clear()
+    remainingEntities[Category.ARMOR].extend(remainingEntities[Category.EARLY_ARMOR])
+    remainingEntities[Category.EARLY_ARMOR].clear()
 
     # Armor
     rng.shuffle(remainingLocations[Category.ARMOR])
@@ -5874,19 +5901,6 @@ expandedOffset = scriptHelper(
 struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xD3), 0xE054)
 
 # ------------------------------------------------------------------------
-# Helper script for selling weapons and armor
-# ------------------------------------------------------------------------
-# When an item is sold, instead of setting the owner to 0x0BAD
-# (vanilla owner-object for all items sold by the player), set
-# the owner to 0xFFFF (no owner). This change makes sold items
-# reappear at their original locations, so they won't be lost
-# forever. It also serves as a source of money, since you can
-# collect and sell weapons and armor repeatedly.
-writeHelper(romBytes, 0xE7AA6, bytes.fromhex(' '.join([
-    "14 FF FF", # 0227: Push short 0xFFFF
-])))
-
-# ------------------------------------------------------------------------
 # Common code for glass cases
 # ------------------------------------------------------------------------
 # In vanilla, the flags for items in glass cases work like this:
@@ -5930,15 +5944,14 @@ expandedOffset = scriptHelper(
         "BE",       # 0015: Convert to boolean
         "44 2C 00", # 0016: If false, jump to FLAG_01_CLEAR
         # If the glass case's 0x01 flag is set, check if the item inside
-        # the case is owned by 0xFFFF (no owner). This is a change from
-        # vanilla, which would check if the item was owned by 0x0BAD
-        # (vanilla owner-object for all items sold by the player).
+        # the case is owned by 0x0BAD (vanilla owner-object for all items
+        # sold by the player).
         "16 05",    # 0019: Push short from $13+05 <-- Object-id of item inside the case
         "58 CC",    # 001B: Push object's owner
-        "14 FF FF", # 001D: Push short 0xFFFF
+        "14 AD 0B", # 001D: Push short 0x0BAD
         "AA",       # 0020: Check if equal
         "44 36 00", # 0021: If not equal, jump to OUT_OF_STOCK
-        # If the item inside the case is owned by 0xFFFF (i.e. the player
+        # If the item inside the case is owned by 0x0BAD (i.e. the player
         # sold that item to someone), clear the glass case's 0x01 flag
         # and jump to the "item in stock" case.
         "0A FE",    # 0024: Push signed byte 0xFE
