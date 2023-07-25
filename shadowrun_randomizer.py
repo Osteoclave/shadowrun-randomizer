@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-06-17"
+randomizerVersion = "2023-07-24"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -216,7 +216,7 @@ Progress = Enum(
         "ITEM___GREEN_BOTTLE",
         "ITEM___ICED_TEA",
         "ITEM___IRON_KEY",
-        "ITEM___JESTER_SPIRIT",
+        "ITEM___JESTER_SPIRIT_INSIGNIA",
         "ITEM___KEYWORD___BREMERTON",
         "ITEM___KEYWORD___DOG",
         "ITEM___KEYWORD___JESTER_SPIRIT",
@@ -2315,7 +2315,7 @@ thisRegion.locations.extend([
     ),
     # Jetboy's location is intentionally constant. This way, it's
     # easier to collect the $2,000 that he finds if you defeat the
-    # Rust Stiletto leader with him in your party.
+    # Rust Stiletto gang leader with him in your party.
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
@@ -3688,7 +3688,7 @@ thisRegion.locations.extend([
             # In vanilla, the following progression order is enforced:
             # - Progress.EVENT___JESTER_SPIRIT_DEFEATED
             # - Progress.KEYWORD___VOLCANO
-            # - Progress.ITEM___JESTER_SPIRIT
+            # - Progress.ITEM___JESTER_SPIRIT_INSIGNIA
             # - Progress.EVENT___JESTER_SPIRIT_PORTAL_OPEN
         ]),
         requires = [],
@@ -3709,9 +3709,9 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.PHYSICAL_KEY_ITEM,
-        description = "Jester Spirit (insignia)",
-        vanilla = Entity(Category.KEY_ITEM, "Jester Spirit (insignia)", 0x6BBC9, [
-            (Progress.ITEM___JESTER_SPIRIT, []),
+        description = "Jester Spirit Insignia",
+        vanilla = Entity(Category.KEY_ITEM, "Jester Spirit Insignia", 0x6BBC9, [
+            (Progress.ITEM___JESTER_SPIRIT_INSIGNIA, []),
         ]),
         requires = [Progress.EVENT___JESTER_SPIRIT_DEFEATED],
         address = 0xCAE23,
@@ -4522,7 +4522,7 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "Drake",
         vanilla = Entity(Category.CONSTANT, "Drake", 0x6C4A5, [
-            (Progress.EVENT___DRAKE_DEFEATED, [Progress.ITEM___JESTER_SPIRIT]),
+            (Progress.EVENT___DRAKE_DEFEATED, [Progress.ITEM___JESTER_SPIRIT_INSIGNIA]),
         ]),
         requires = [],
         address = 0xD03C9,
@@ -8609,7 +8609,7 @@ expandedOffset = scriptHelper(
         "00 80",    # 01BD: Push unsigned byte 0x80
         "02 04",    # 01BF: Push unsigned byte from $13+04 <-- Item drop's spawn index
         "58 33",    # 01C1: Set bits of object's flags
-        # Jester Spirit (insignia)
+        # Jester Spirit Insignia
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xCAE23+0]:02X} {romBytes[0xCAE23+1]:02X}",
                     # 01C3: Push short 0x####   <-- Item drop's object-id
@@ -8650,7 +8650,7 @@ expandedOffset = scriptHelper(
     ],
 )
 
-# Jester Spirit (insignia)
+# Jester Spirit Insignia
 expandedOffset = scriptHelper(
     scriptNumber = 0x1F6,
     argsLen      = 0x02, # Script 0x1F6 now takes 2 bytes (= 1 stack item) as arguments
@@ -8966,7 +8966,7 @@ expandedOffset = scriptHelper(
         "50",       # 01E4: Return
     ],
 )
-# Increase the Jester Spirit insignia's sprite priority
+# Increase the Jester Spirit Insignia's sprite priority
 romBytes[0x6BBC9] |= 0x40
 
 # Jester Spirit portal
@@ -9616,7 +9616,7 @@ struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x13D), 0x4700)
 # Make a new version of the Jester Spirit boss room at 0x114800.
 # This version has two randomized objects:
 # - Item shuffled to the new "Keyword: Volcano" location
-# - Item shuffled to the existing "Jester Spirit (insignia)" location
+# - Item shuffled to the existing "Jester Spirit Insignia" location
 romBytes[0x114800]          = romBytes[0xCAE08]            # Vanilla drawing data
 romBytes[0x114801]          = romBytes[0xCAE09]            # Vanilla music
 romBytes[0x114802:0x114804] = struct.pack("<H", 0xC946)    # Vanilla camera pointer, adjusted for the new room data location
