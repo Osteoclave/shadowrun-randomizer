@@ -19,7 +19,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-07-24"
+randomizerVersion = "2023-09-30"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -104,7 +104,7 @@ if not args.dry_run:
     # In the ROM, this data is LZ77-compressed and located at 0x5FC42.
     # The decompressed data is 3,515 bytes long (703 entries * 5 bytes),
     # and is located in WRAM at 7E2E00.
-    with open("initial_item_state.hex", "rb") as iisFile:
+    with open("initial_item_state.bin", "rb") as iisFile:
         initialItemState = bytearray(iisFile.read())
 
 
@@ -6470,8 +6470,15 @@ romBytes[0xC848C] = 0x01
 # Torn Paper: Slab
 # Skip the text popup for the vanilla Torn Paper
 # Reveal the new item shuffled to this location
-writeHelper(romBytes, 0x1EF66, bytes.fromhex(' '.join([
-    "C0",       # 011B: Push zero
+writeHelper(romBytes, 0x1EF5F, bytes.fromhex(' '.join([
+    "C0",       # 0114: Push zero
+    "BE",       # 0115: Convert to boolean
+    "BE",       # 0116: Convert to boolean
+    "BE",       # 0117: Convert to boolean
+    "BE",       # 0118: Convert to boolean
+    "BE",       # 0119: Convert to boolean
+    "BE",       # 011A: Convert to boolean
+    "BE",       # 011B: Convert to boolean
     "BE",       # 011C: Convert to boolean
     "BE",       # 011D: Convert to boolean
     "BE",       # 011E: Convert to boolean
@@ -7130,8 +7137,27 @@ writeHelper(romBytes, 0xC86D5, bytes.fromhex(' '.join([
 romBytes[0x1FFF5:0x1FFF5+2] = romBytes[0xC86D9:0xC86D9+2]
 
 # The King
-# Start with the King paid off, so you can leave the caryards freely
-initialItemState[0x24F] |= 0x01
+# Make the King behave as if he's been paid off, so players can leave
+# the caryards freely. Previously, we did this by setting the King's
+# "paid off" flag in "initialItemState", but it turns out that flag
+# also prevents you from fighting the King in the arena.
+# ("The King doesn't want to fight you...")
+writeHelper(romBytes, 0xE75CD, bytes.fromhex(' '.join([
+    "BC",       # 001C: Pop
+    "C0",       # 001D: Push zero
+    "BC",       # 001E: Pop
+])))
+
+# Arena owner
+# Skip the "defeated all ten fighters and the King" case.
+# In vanilla, defeating everyone replaces the arena owner conversation
+# with a text popup ("Buddy, nobody left to fight here!!"), which also
+# locks you out of buying the Negotiation skill.
+writeHelper(romBytes, 0xFB6C5, bytes.fromhex(' '.join([
+    "C0",       # 0053: Push zero
+    "BC",       # 0054: Pop
+    "48 7B 00", # 0055: Jump to 007B
+])))
 
 # Potion Bottles
 expandedOffset = scriptHelper(
