@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shadowrun Randomizer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container p-3" style="max-width: 36rem;">
+      <div class="card border-primary">
+        <h5 class="card-header text-bg-primary">Shadowrun Randomizer</h5>
+        <div class="card-body position-relative">
+          <div id="loading" class="position-absolute top-50 start-50 translate-middle">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+          <div id="application" class="invisible">
+            <div class="mb-3">
+              <label for="fileButton" class="form-label">Shadowrun (USA) ROM</label>
+              <div class="d-flex">
+                <input id="fileName" type="file" accept=".sfc" hidden>
+                <button id="fileButton" type="button" class="btn flex-grow-1 me-2"></button>
+                <button id="clearFileName" type="button" class="btn btn-primary">Clear</button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="seed" class="form-label">Seed</label>
+              <div class="d-flex">
+                <input id="seed" type="text" inputmode="numeric" class="form-control me-2">
+                <button id="newSeed" type="button" class="btn btn-primary">New</button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-switch">
+                <input id="spoilerLog" type="checkbox" class="form-check-input" role="switch">
+                <label for="spoilerLog" class="form-check-label">Include spoiler log</label>
+              </div>
+            </div>
+            <div>
+              <div class="d-flex justify-content-between">
+                <button id="generate" type="button" class="btn btn-primary" disabled>
+                  <span id="generateSpinner" class="d-none me-2">
+                    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                  </span>
+                  <span id="generateText" role="status">Generate</span>
+                </button>
+                <a href="https://github.com/Osteoclave/shadowrun-randomizer" target="_blank" class="btn btn-secondary">GitHub</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer border-primary">
+          <div class="d-inline-flex">
+            <div id="statusIcon" class="me-2" aria-hidden="true"></div>
+            <div id="statusMessage" role="status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="web_interface.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  </body>
+</html>

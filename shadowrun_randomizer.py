@@ -5,6 +5,7 @@
 # 2021-05-03
 
 import argparse
+import pathlib
 import random
 import struct
 import sys
@@ -19,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-09-30"
+randomizerVersion = "2023-12-01"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -35,7 +36,7 @@ parser.add_argument(
     help = "specify the RNG seed value",
 )
 parser.add_argument(
-    "-v", "--verbose",
+    "-l", "--spoiler-log",
     action = "count",
     help = "print spoiler log",
 )
@@ -79,10 +80,12 @@ seed %= 2**32
 rng.seed(seed)
 print(f"RNG seed: {seed}")
 
-# If we're not in dry-run mode, read the input and initial-item-state
-# files. We don't need either of these right away, but if something is
-# wrong (e.g. file not found), we want to fail quickly.
-if not args.dry_run:
+# If we have an input file (required for normal runs but optional for
+# dry runs), then read the input and initial-item-state files.
+# We don't need either of those right away, but if something is wrong
+# (e.g. file not found), we want to fail quickly.
+# Similarly, exit early if the output file name is already in use.
+if args.input_file is not None:
     # Read the input file.
     inFileName = args.input_file
     with open(inFileName, "rb") as inFile:
@@ -106,6 +109,22 @@ if not args.dry_run:
     # and is located in WRAM at 7E2E00.
     with open("initial_item_state.bin", "rb") as iisFile:
         initialItemState = bytearray(iisFile.read())
+
+    # Determine the output file name.
+    outFileName = args.output_file
+    if outFileName is None:
+        suffix = f"_{seed}"
+        basename, dot, extension = inFileName.rpartition(".")
+        if basename and extension:
+            basename += suffix
+        else:
+            extension += suffix
+        outFileName = basename + dot + extension
+
+    # If a file already exists with that name, exit.
+    outFilePath = pathlib.Path(outFileName)
+    if outFilePath.is_symlink() or outFilePath.exists():
+        raise FileExistsError(f"Output file '{outFileName}' already exists")
 
 
 
@@ -4890,6 +4909,7 @@ def sphereSearch():
 #for category, entityList in debugEntities.items():
 #    print(f"DEBUG ---- {category} = {len(entityList)}")
 
+# Generate a winnable seed.
 print("Generating...")
 attemptNumber = 1
 while True:
@@ -5048,22 +5068,23 @@ while True:
     # winnable only if 100% completion is possible.
     spheres, inventory = sphereSearch()
     if all(p in inventory for p in Progress):
-        print(f"Generated winnable seed on attempt #{attemptNumber}")
+        print(f"Generated a winnable seed on attempt #{attemptNumber}")
         print()
         break
 
     attemptNumber += 1
 
-# If we're in verbose mode, print the spoiler log.
-if args.verbose:
+# Optional: Print the spoiler log.
+if args.spoiler_log:
     for i, sphere in enumerate(spheres):
         print(f"Sphere {i}")
         for location, prize in sphere:
             print(f"{location.region.name:<60}   {location.description:<30} --> {prize.name}")
         print()
 
-# If we're in dry-run mode, there's nothing left to do at this point.
-if args.dry_run:
+# If there's no input file (only possible in dry-run mode), exit.
+# There's nothing more we can do.
+if args.input_file is None:
     sys.exit()
 
 
@@ -6662,6 +6683,9 @@ writeHelper(romBytes, 0xDF7A3, bytes.fromhex(' '.join([
 writeHelper(romBytes, 0xDF523, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
 ])))
+# Inventory list item-hiding
+# Don't hide the Memo after leaving Tenth Street
+romBytes[0x6B8DC] |= 0x3F
 
 # Door Key
 writeHelper(romBytes, 0xDF415, bytes.fromhex(' '.join([
@@ -7721,6 +7745,9 @@ writeHelper(romBytes, 0xF4320, bytes.fromhex(' '.join([
 ])))
 # Increase the Crowbar's sprite priority
 romBytes[0x6C6B9] |= 0x40
+# Inventory list item-hiding
+# Don't hide the Crowbar after taking the helicopter to Drake Volcano
+romBytes[0x6C6B9] |= 0x3F
 
 # Crowbar: Ferocious Orc
 # Reveal the new item shuffled to this location
@@ -7737,6 +7764,9 @@ writeHelper(romBytes, 0xF4909, bytes.fromhex(' '.join([
 ])))
 # Use facing direction 05's sprite for direction 00
 romBytes[0x66864] = 0x08
+# Inventory list item-hiding
+# Don't hide the Password (Drake) after taking the helicopter to Drake Volcano
+romBytes[0x6B79A] |= 0x3F
 
 # Password (Drake): Gang Leader
 # Skip the automatic conversation after defeating the Gang Leader
@@ -7783,6 +7813,9 @@ struct.pack_into("<H", romBytes, 0x6BB81, 0x01F1)
 # TODO: Leaves <-- Not currently subject to randomization
 
 # TODO: Strobe <-- Not currently subject to randomization
+# Inventory list item-hiding
+# Don't hide the Strobe after taking the helicopter to Drake Volcano
+romBytes[0x6B2DF] |= 0x3F
 
 # Explosives
 writeHelper(romBytes, 0xCA609, bytes.fromhex(' '.join([
@@ -7794,6 +7827,9 @@ writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     "48 25 00", # 000C: Jump to 0025
 ])))
+# Inventory list item-hiding
+# Don't hide the Explosives after taking the helicopter to Drake Volcano
+romBytes[0x6C3D3] |= 0x3F
 # Make the Explosives not inherently subject to gravity
 romBytes[0x675BA] &= ~0x20
 
@@ -8002,6 +8038,9 @@ writeHelper(romBytes, 0xF4524, bytes.fromhex(' '.join([
 ])))
 # Use facing direction 05's sprite for direction 00
 romBytes[0x65EFC] = 0x08
+# Inventory list item-hiding
+# Don't hide the Bronze Key after taking the helicopter to Drake Volcano
+romBytes[0x6C921] |= 0x3F
 
 # Mesh Jacket (free)
 # Change the behaviour script for the free Mesh Jacket from 0x388
@@ -9612,7 +9651,7 @@ romBytes[0x23DE] = 0xA2
 romBytes[0x114600]          = romBytes[0xD0636]            # Vanilla drawing data
 romBytes[0x114601]          = romBytes[0xD0637]            # Vanilla music
 romBytes[0x114602:0x114604] = struct.pack("<H", 0xC6AE)    # Vanilla camera pointer, adjusted for the new room data location
-romBytes[0x114604]          = 0x08                         # +2 to the number of objects
+romBytes[0x114604]          = romBytes[0xD063A] + 2        # +2 to the number of objects
 romBytes[0x114605:0x114629] = romBytes[0xD063B:0xD065F]    # Vanilla objects
 romBytes[0x114629:0x11462D] = bytes.fromhex("88 01 C8 19") # Randomized object's coordinates (near the Rat Shaman)
 romBytes[0x11462D:0x11462F] = romBytes[0xD29A7:0xD29A9]    # Randomized object's object-id
@@ -9629,7 +9668,7 @@ struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x12C), 0x4600)
 romBytes[0x114700]          = romBytes[0xD0F4A]            # Vanilla drawing data
 romBytes[0x114701]          = romBytes[0xD0F4B]            # Vanilla music
 romBytes[0x114702:0x114704] = struct.pack("<H", 0xC796)    # Vanilla camera pointer, adjusted for the new room data location
-romBytes[0x114704]          = 0x07                         # +2 to the number of objects
+romBytes[0x114704]          = romBytes[0xD0F4E] + 2        # +2 to the number of objects
 romBytes[0x114705:0x114723] = romBytes[0xD0F4F:0xD0F6D]    # Vanilla objects
 romBytes[0x114723:0x114727] = bytes.fromhex("C8 01 80 11") # Randomized object's coordinates (near the entrance stairs)
 romBytes[0x114727:0x114729] = romBytes[0xD29CB:0xD29CD]    # Randomized object's object-id
@@ -9646,7 +9685,7 @@ struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x13D), 0x4700)
 romBytes[0x114800]          = romBytes[0xCAE08]            # Vanilla drawing data
 romBytes[0x114801]          = romBytes[0xCAE09]            # Vanilla music
 romBytes[0x114802:0x114804] = struct.pack("<H", 0xC946)    # Vanilla camera pointer, adjusted for the new room data location
-romBytes[0x114804]          = 0x06                         # +1 to the number of objects
+romBytes[0x114804]          = romBytes[0xCAE0C] + 1        # +1 to the number of objects
 romBytes[0x114805:0x114817] = romBytes[0xCAE0D:0xCAE1F]    # Vanilla objects
 romBytes[0x114817:0x11481B] = bytes.fromhex("B0 01 3D 12") # Randomized object's coordinates (near the exit portal)
 romBytes[0x11481B:0x11481D] = romBytes[0xD299B:0xD299D]    # Randomized object's object-id
@@ -9659,15 +9698,6 @@ struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x4B), 0x4800)
 
 
 
-outFileName = args.output_file
-if outFileName is None:
-    suffix = f"_{seed}"
-    basename, dot, extension = inFileName.rpartition(".")
-    if basename and extension:
-        basename += suffix
-    else:
-        extension += suffix
-    outFileName = basename + dot + extension
-
-with open(outFileName, "xb") as outFile:
-    outFile.write(romBytes)
+if not args.dry_run:
+    with open(outFileName, "xb") as outFile:
+        outFile.write(romBytes)

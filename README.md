@@ -1,7 +1,12 @@
 # shadowrun-randomizer
 Randomizer for Shadowrun (SNES)
 
-## Getting Started
+## Quick Start
+* To generate a seed without downloading or installing anything, use the web interface:
+  [osteoclave.github.io/shadowrun-randomizer](https://osteoclave.github.io/shadowrun-randomizer)
+* If you want to download the randomizer and generate seeds locally, read on.
+
+## Local Setup
 1. Check if you have Python installed.
    * Open a command prompt and try the following commands:
       * `py --version`
@@ -44,9 +49,9 @@ Randomizer for Shadowrun (SNES)
      Generating...
      Generated winnable seed on attempt #282
      ```
-* To view the spoiler log for the resulting ROM, use `-v`
+* To view the spoiler log for the resulting ROM, use `-l`
 * To perform a dry-run (do all the randomization, but don't generate a new ROM), use `-n`
-   * This can be useful with `-s` and `-v` to preview the outcome for a given seed.
+   * This can be useful with `-s` and `-l` to preview the outcome for a given seed.
    * In dry-run mode, the ROM file name is optional and can be omitted.
 * To specify the generated ROM's file name, use `-o OUTPUT_FILE_NAME`
 
