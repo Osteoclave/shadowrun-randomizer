@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2023-12-01"
+randomizerVersion = "2024-01-26"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -78,7 +78,10 @@ if seed is None:
     seed = random.SystemRandom().getrandbits(32)
 seed %= 2**32
 rng.seed(seed)
+
+print(f"Version: {randomizerVersion}")
 print(f"RNG seed: {seed}")
+print()
 
 # If we have an input file (required for normal runs but optional for
 # dry runs), then read the input and initial-item-state files.
@@ -7805,10 +7808,10 @@ writeHelper(romBytes, 0xCB797, bytes.fromhex(' '.join([
     "3E 01",    # Move the spawn point to waypoint 0x04 on the nightclub map
     "9A 11",    # Waypoint 0x04 coordinates: (318, 410, 64)
 ])))
-# Change the behaviour script for Kitsune from 0xE (Kitsune on
-# stage) to 0x1F1 (Kitsune off stage).
-# With this change, script 0xE should now be entirely unused.
-struct.pack_into("<H", romBytes, 0x6BB81, 0x01F1)
+# Skip over the code for Kitsune's on-stage behaviour
+writeHelper(romBytes, 0xF6317, bytes.fromhex(' '.join([
+    "48 80 01", # 0002: Jump to 0180
+])))
 
 # TODO: Leaves <-- Not currently subject to randomization
 
@@ -9097,6 +9100,176 @@ writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
 # To restore the vanilla behaviour, write 0x00 to the Vampire's flags as
 # part of the portal's behaviour script.
 
+# Elevator Doors helper script
+# - Show the correct floor on the floor indicator in the "game won" case
+writeHelper(romBytes, 0xF76E7, bytes.fromhex(' '.join([
+    "00 20",    # 001A: Push unsigned byte 0x20
+    "C2",       # 001C: Push $13
+    "58 33",    # 001D: Set bits of object's flags
+    "48 24 00", # 001F: Jump to 0024
+])))
+# - Remove the arrival delay from the Drake Towers / Aneki Building elevators
+writeHelper(romBytes, 0xF771D, bytes.fromhex(' '.join([
+    # SET_INDICATOR_FLOOR_NUMBER
+    "16 07",    # 0050: Push short from $13+07         <-- Elevator Doors floor number
+    "02 01",    # 0052: Push unsigned byte from $13+01 <-- "Event short" index for indicator's floor number
+    "58 12",    # 0054: Write short to 7E3BBB+n        <-- Set indicator's floor number
+    # SET_INDICATOR_DIRECTION
+    "02 03",    # 0056: Push unsigned byte from $13+03 <-- 0x01 ascending, 0x00 descending
+    "02 02",    # 0058: Push unsigned byte from $13+02 <-- "Event short" index for indicator's direction
+    "58 12",    # 005A: Write short to 7E3BBB+n        <-- Set indicator's direction
+    # CHECK_IF_DOORS_ALREADY_OPEN
+    "16 05",    # 005C: Push short from $13+05         <-- Object-id of "elevator state object"
+    "58 BA",    # 005E: Push object's flags
+    "02 09",    # 0060: Push unsigned byte from $13+09 <-- 0x01 ascending, 0x02 descending
+    "7E",       # 0062: Bitwise AND
+    "C0",       # 0063: Push zero
+    "9A",       # 0064: Check if greater than
+    "C2",       # 0065: Push $13
+    "58 02",    # 0066: Push object's flags
+    "00 20",    # 0068: Push unsigned byte 0x20
+    "7E",       # 006A: Bitwise AND
+    "BE",       # 006B: Convert to boolean
+    "80",       # 006C: Bitwise OR
+    "44 78 00", # 006D: If false, jump to CHANGE_SPRITE
+    # Previously, the conditional above was "If true, jump to 00DE".
+    # (00DE contains the code for the "doors already open" case.)
+    # However, 00DE doesn't set the 0x20 flag on the Elevator Doors.
+    # This flag is what KEEPS the doors unlocked, since the "elevator
+    # state object" flags get cleared when you change floors.
+    # So the previous code created a bug in the Aneki Building:
+    # - Hack an Aneki computer to unlock the elevator
+    # - Successful hacking sets an "elevator state object" flag
+    # - This flag unlocks the elevator (temporarily)
+    # - Ascend to the next floor (which clears the flag)
+    # - Return to the previous floor
+    # - The elevator to the next floor is locked again
+    # Solution: Set the 0x20 flag here before jumping to 00DE.
+    "00 20",    # 0070: Push unsigned byte 0x20
+    "C2",       # 0072: Push $13
+    "58 33",    # 0073: Set bits of object's flags
+    "48 DE 00", # 0075: Jump to 00DE
+    # CHANGE_SPRITE
+    "00 02",    # 0078: Push unsigned byte 0x02
+    "C2",       # 007A: Push $13
+    "58 D0",    # 007B: Change displayed sprite?
+    # TOP_OF_LOOP
+    "00 06",    # 007D: Push unsigned byte 0x06
+    "00 01",    # 007F: Push unsigned byte 0x01
+    "58 9E",    # 0081: Register menu options / time delay
+    "BC",       # 0083: Pop
+    "16 05",    # 0084: Push short from $13+05         <-- Object-id of "elevator state object"
+    "58 BA",    # 0086: Push object's flags
+    "02 09",    # 0088: Push unsigned byte from $13+09 <-- 0x01 ascending, 0x02 descending
+    "7E",       # 008A: Bitwise AND
+    "C0",       # 008B: Push zero
+    "9A",       # 008C: Check if greater than
+    "C2",       # 008D: Push $13
+    "58 02",    # 008E: Push object's flags
+    "00 20",    # 0090: Push unsigned byte 0x20
+    "7E",       # 0092: Bitwise AND
+    "BE",       # 0093: Convert to boolean
+    "80",       # 0094: Bitwise OR
+    "44 7D 00", # 0095: If false, jump to TOP_OF_LOOP
+    # OPEN_DOORS
+    "48 A6 00", # 0098: Jump to 00A6
+])))
+
+# Elevator Doors that never open
+# Show the correct floor on the floor indicator
+expandedOffset = scriptHelper(
+    scriptNumber = 0xB8,
+    argsLen      = 0x02, # Script 0xB8 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0xB8 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 byte of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        # CHECK_IF_DRAKE_TOWERS_1F_DESCENDING_ELEVATOR
+        "C2",       # 0002: Push $13
+        "58 CB",    # 0003: Push object-id
+        "14 0B 14", # 0005: Push short 0x140B
+        "AA",       # 0008: Check if equal
+        "44 15 00", # 0009: If not equal, jump to CHECK_IF_ANEKI_BUILDING_1F_DESCENDING_ELEVATOR
+        # DRAKE_TOWERS_1F_DESCENDING_ELEVATOR
+        "00 01",    # 000C: Push unsigned byte 0x01
+        "00 22",    # 000E: Push unsigned byte 0x22
+        "58 12",    # 0010: Write short to 7E3BBB+n
+        "48 38 00", # 0012: Jump to DISPLAY_SPRITE
+        # CHECK_IF_ANEKI_BUILDING_1F_DESCENDING_ELEVATOR
+        "C2",       # 0015: Push $13
+        "58 CB",    # 0016: Push object-id
+        "14 CC 13", # 0018: Push short 0x13CC
+        "AA",       # 001B: Check if equal
+        "44 28 00", # 001C: If not equal, jump to CHECK_IF_ANEKI_BUILDING_5F_ASCENDING_ELEVATOR
+        # ANEKI_BUILDING_1F_DESCENDING_ELEVATOR
+        "00 02",    # 001F: Push unsigned byte 0x02
+        "00 22",    # 0021: Push unsigned byte 0x22
+        "58 12",    # 0023: Write short to 7E3BBB+n
+        "48 38 00", # 0025: Jump to DISPLAY_SPRITE
+        # CHECK_IF_ANEKI_BUILDING_5F_ASCENDING_ELEVATOR
+        "C2",       # 0028: Push $13
+        "58 CB",    # 0029: Push object-id
+        "14 2E 14", # 002B: Push short 0x142E
+        "AA",       # 002E: Check if equal
+        "44 38 00", # 002F: If not equal, jump to DISPLAY_SPRITE
+        # ANEKI_BUILDING_5F_ASCENDING_ELEVATOR
+        "00 06",    # 0032: Push unsigned byte 0x06
+        "00 20",    # 0034: Push unsigned byte 0x20
+        "58 12",    # 0036: Write short to 7E3BBB+n
+        # DISPLAY_SPRITE
+        "00 05",    # 0038: Push unsigned byte 0x05
+        "00 02",    # 003A: Push unsigned byte 0x02
+        "C2",       # 003C: Push $13
+        "58 D1",    # 003D: Display sprite
+        "14 00 01", # 003F: Push short 0x0100
+        "C2",       # 0042: Push $13
+        "58 CE",    # 0043: Set bits of 7E1474+n
+        "C2",       # 0045: Push $13
+        "58 5B",    # 0046: ???
+        "56",       # 0048: End
+    ],
+)
+
+# Floor indicator helper script
+expandedOffset = scriptHelper(
+    scriptNumber = 0xA,
+    argsLen      = 0x0A, # Script 0xA now takes 10 bytes (= 5 stack items) as arguments
+    returnLen    = 0x00, # Script 0xA now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x06, # Header byte: Script uses 0x06 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00  <-- Spawn index
+        "2C 01",    # 0002: Pop byte to $13+01  <-- 0x20 ascending, 0x22 descending ("Event short" index for indicator's floor number)
+        "2C 02",    # 0004: Pop byte to $13+02  <-- 0x24 ascending, 0x26 descending ("Event short" index for indicator's direction)
+        "2C 03",    # 0006: Pop byte to $13+03  <-- 0x40 ascending, 0x80 descending
+        "34 04",    # 0008: Pop short to $13+04 <-- 0x175A for Drake Towers, 0x16C0 for Aneki Building ("Elevator state object" object-ids)
+        # CLEAR_FLAGS
+        "02 03",    # 000A: Push unsigned byte from $13+03 <-- 0x40 ascending, 0x80 descending
+        "84",       # 000C: Bitwise NOT
+        "16 04",    # 000D: Push short from $13+04         <-- Object-id of "elevator state object"
+        "58 4B",    # 000F: Clear bits of object's flags
+        # WAIT_FOR_NEW_FLOOR_NUMBER
+        "00 02",    # 0011: Push unsigned byte 0x02
+        "00 01",    # 0013: Push unsigned byte 0x01
+        "58 9E",    # 0015: Register menu options / time delay
+        "BC",       # 0017: Pop
+        # UPDATE_FLOOR_INDICATOR
+        "C0",       # 0018: Push zero
+        "02 01",    # 0019: Push unsigned byte from $13+01 <-- "Event short" index for indicator's floor number
+        "58 57",    # 001B: Read short from 7E3BBB+n
+        "88",       # 001D: Decrement
+        "C2",       # 001E: Push $13
+        "58 D1",    # 001F: Display sprite
+        # DONE
+        "C2",       # 0021: Push $13
+        "58 5B",    # 0022: ???
+        "56",       # 0024: End
+    ],
+)
+
 # Helicopter Pilot <-- Drake Towers
 # - Stock the $13,000 case at the Dark Blade Gun Shop (vanilla: Concealed Jacket)
 writeHelper(romBytes, 0x177C0, bytes.fromhex(' '.join([
@@ -9475,13 +9648,21 @@ romBytes[0x1CE3] = 0xBD
 ## Start with 1 defense (Leather Jacket equivalent) instead of 0
 #romBytes[0x172E] = 0x01 # defense power: 1
 
-## Start out ridiculously overpowered
+## Start with extremely high attack and defense power
 #romBytes[0x172E] = 0x14 # defense power: 20 <-- vanilla best: 6, or 8 w/ Dermal Plating
 #romBytes[0x172F] = 0x00 # 0x0000 = object-id for Zip Gun
 #romBytes[0x1730] = 0x00
 #romBytes[0x1731] = 0x01 # weapon type: auto
 #romBytes[0x1732] = 0x1E # attack power: 30 <-- vanilla best: 20
 #romBytes[0x1733] = 0x09 # accuracy: 9      <-- vanilla best: 6
+
+## Start with 20 Body and 200 max HP
+## TODO: this does not update starting HP, which is still 30
+#romBytes[0x18A3] = 0x14 # body: 20
+#romBytes[0x18B3] = 0xC8 # max HP: 200
+
+## Start with a 6 in both Firearms and Computer
+#romBytes[0x18F3] = 0x06
 
 # ------------------------------------------------------------------------
 
