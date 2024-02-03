@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-01-26"
+randomizerVersion = "2024-02-02"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -7683,6 +7683,472 @@ romBytes[0xE5F83:0xE5F83+2] = romBytes[0xC966D:0xC966D+2]
 # Warhawk H. Pistol: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F95:0xE5F95+2] = romBytes[0xC9673:0xC9673+2]
+
+# Mono-Rail Car (Tenth Street to Oldtown) waypoints
+writeHelper(romBytes, 0xCA0DF, bytes.fromhex(' '.join([
+    "2E 02",    # Change waypoint #4 (sliding doors) Y coordinate from 559 to 558
+])))
+
+# Mono-Rail Car (Tenth Street to Oldtown) driver car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x186,
+    argsLen      = 0x02, # Script 0x186 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x186 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 03",    # 0002: Push unsigned byte 0x03
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 02",    # 000C: Push unsigned byte 0x02
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Tenth Street to Oldtown) passenger car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0xC1,
+    argsLen      = 0x02, # Script 0xC1 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0xC1 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 05",    # 0002: Push unsigned byte 0x05
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 06",    # 000C: Push unsigned byte 0x06
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Tenth Street to Oldtown) sliding doors
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x288,
+    argsLen      = 0x02, # Script 0x288 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x288 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 04",    # 0002: Push unsigned byte 0x04
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7E",    # 0007: Push unsigned byte 0x7E
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 03",    # 000C: Push unsigned byte 0x03
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "00 02",    # 0012: Push unsigned byte 0x02
+        "C2",       # 0014: Push $13
+        "58 D0",    # 0015: Change displayed sprite?
+        "00 14",    # 0017: Push unsigned byte 0x14
+        "00 01",    # 0019: Push unsigned byte 0x01
+        "58 9E",    # 001B: Register menu options / time delay
+        "BC",       # 001D: Pop
+        "00 04",    # 001E: Push unsigned byte 0x04
+        "C2",       # 0020: Push $13
+        "58 D0",    # 0021: Change displayed sprite?
+        "C0",       # 0023: Push zero
+        "00 08",    # 0024: Push unsigned byte 0x08
+        "58 9E",    # 0026: Register menu options / time delay
+        "BC",       # 0028: Pop
+        "00 01",    # 0029: Push unsigned byte 0x01
+        "C2",       # 002B: Push $13
+        "58 33",    # 002C: Set bits of object's flags
+        "C0",       # 002E: Push zero
+        "C2",       # 002F: Push $13
+        "58 D0",    # 0030: Change displayed sprite?
+        "C2",       # 0032: Push $13
+        "58 5B",    # 0033: ???
+        "56",       # 0035: End
+    ],
+)
+
+# Mono-Rail Car (Tenth Street to Oldtown) destination coordinates
+writeHelper(romBytes, 0x692AF + (9 * 0x95) + 3, bytes.fromhex(' '.join([
+    "65 01",    # Update the destination coordinates
+    "F5 01",    # Old coordinates: (364, 518, 112)
+    "70 00",    # New coordinates: (357, 501, 112)
+])))
+
+# Mono-Rail Car (Oldtown to Tenth Street) waypoints
+writeHelper(romBytes, 0xCA2A3, bytes.fromhex(' '.join([
+    "2E 02",    # Change waypoint #4 (sliding doors) Y coordinate from 559 to 558
+])))
+
+# Mono-Rail Car (Oldtown to Tenth Street) driver car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x187,
+    argsLen      = 0x02, # Script 0x187 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x187 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 03",    # 0002: Push unsigned byte 0x03
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 02",    # 000C: Push unsigned byte 0x02
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Oldtown to Tenth Street) passenger car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0xC2,
+    argsLen      = 0x02, # Script 0xC2 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0xC2 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 05",    # 0002: Push unsigned byte 0x05
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 06",    # 000C: Push unsigned byte 0x06
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Oldtown to Tenth Street) sliding doors
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x289,
+    argsLen      = 0x02, # Script 0x289 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x289 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 04",    # 0002: Push unsigned byte 0x04
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7E",    # 0007: Push unsigned byte 0x7E
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 03",    # 000C: Push unsigned byte 0x03
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "00 02",    # 0012: Push unsigned byte 0x02
+        "C2",       # 0014: Push $13
+        "58 D0",    # 0015: Change displayed sprite?
+        "00 14",    # 0017: Push unsigned byte 0x14
+        "00 01",    # 0019: Push unsigned byte 0x01
+        "58 9E",    # 001B: Register menu options / time delay
+        "BC",       # 001D: Pop
+        "00 04",    # 001E: Push unsigned byte 0x04
+        "C2",       # 0020: Push $13
+        "58 D0",    # 0021: Change displayed sprite?
+        "C0",       # 0023: Push zero
+        "00 08",    # 0024: Push unsigned byte 0x08
+        "58 9E",    # 0026: Register menu options / time delay
+        "BC",       # 0028: Pop
+        "00 01",    # 0029: Push unsigned byte 0x01
+        "C2",       # 002B: Push $13
+        "58 33",    # 002C: Set bits of object's flags
+        "C0",       # 002E: Push zero
+        "C2",       # 002F: Push $13
+        "58 D0",    # 0030: Change displayed sprite?
+        "C2",       # 0032: Push $13
+        "58 5B",    # 0033: ???
+        "56",       # 0035: End
+    ],
+)
+
+# Mono-Rail Car (Oldtown to Tenth Street) destination coordinates
+writeHelper(romBytes, 0x692AF + (9 * 0x8B) + 3, bytes.fromhex(' '.join([
+    "65 01",    # Update the destination coordinates
+    "F5 01",    # Old coordinates: (370, 512, 112)
+    "70 00",    # New coordinates: (357, 501, 112)
+])))
+
+# Mono-Rail Car (Oldtown to Downtown) waypoints
+writeHelper(romBytes, 0xD1C57, bytes.fromhex(' '.join([
+    "BD 01",    # Change waypoint #3 (driver car) Y coordinate from 435 to 445
+])))
+writeHelper(romBytes, 0xD1C5D, bytes.fromhex(' '.join([
+    "9A 01",    # Change waypoint #4 (passenger car) Y coordinate from 400 to 410
+])))
+writeHelper(romBytes, 0xD1C61, bytes.fromhex(' '.join([
+    "04 02",    # Change waypoint #5 (sliding doors) X coordinate from 517 to 516
+    "A6 01",    # Change waypoint #5 (sliding doors) Y coordinate from 412 to 422
+])))
+
+# Mono-Rail Car (Oldtown to Downtown) driver car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x191,
+    argsLen      = 0x02, # Script 0x191 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x191 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 03",    # 0002: Push unsigned byte 0x03
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 00",    # 000C: Push unsigned byte 0x00
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Oldtown to Downtown) passenger car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0xCB,
+    argsLen      = 0x02, # Script 0xCB now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0xCB now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 04",    # 0002: Push unsigned byte 0x04
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 04",    # 000C: Push unsigned byte 0x04
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Oldtown to Downtown) sliding doors
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x28F,
+    argsLen      = 0x02, # Script 0x28F now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x28F now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 05",    # 0002: Push unsigned byte 0x05
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7E",    # 0007: Push unsigned byte 0x7E
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 07",    # 000C: Push unsigned byte 0x07
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "00 02",    # 0012: Push unsigned byte 0x02
+        "C2",       # 0014: Push $13
+        "58 D0",    # 0015: Change displayed sprite?
+        "00 14",    # 0017: Push unsigned byte 0x14
+        "00 01",    # 0019: Push unsigned byte 0x01
+        "58 9E",    # 001B: Register menu options / time delay
+        "BC",       # 001D: Pop
+        "00 04",    # 001E: Push unsigned byte 0x04
+        "C2",       # 0020: Push $13
+        "58 D0",    # 0021: Change displayed sprite?
+        "C0",       # 0023: Push zero
+        "00 08",    # 0024: Push unsigned byte 0x08
+        "58 9E",    # 0026: Register menu options / time delay
+        "BC",       # 0028: Pop
+        "00 01",    # 0029: Push unsigned byte 0x01
+        "C2",       # 002B: Push $13
+        "58 33",    # 002C: Set bits of object's flags
+        "C0",       # 002E: Push zero
+        "C2",       # 002F: Push $13
+        "58 D0",    # 0030: Change displayed sprite?
+        "C2",       # 0032: Push $13
+        "58 5B",    # 0033: ???
+        "56",       # 0035: End
+    ],
+)
+
+# Mono-Rail Car (Oldtown to Downtown) destination coordinates
+writeHelper(romBytes, 0x692AF + (9 * 0x20) + 3, bytes.fromhex(' '.join([
+    "B8 01",    # Update the destination coordinates
+    "B8 01",    # Old coordinates: (448, 432,  64)
+    "40 00",    # New coordinates: (440, 440,  64)
+])))
+
+# Mono-Rail Car (Downtown to Oldtown) waypoints
+writeHelper(romBytes, 0xCA789, bytes.fromhex(' '.join([
+    "EF 01",    # Change waypoint #3 (driver car) Y coordinate from 485 to 495
+])))
+writeHelper(romBytes, 0xCA78F, bytes.fromhex(' '.join([
+    "CC 01",    # Change waypoint #4 (passenger car) Y coordinate from 450 to 460
+])))
+writeHelper(romBytes, 0xCA793, bytes.fromhex(' '.join([
+    "16 02",    # Change waypoint #5 (sliding doors) X coordinate from 535 to 534
+    "D8 01",    # Change waypoint #5 (sliding doors) Y coordinate from 462 to 472
+])))
+
+# Mono-Rail Car (Downtown to Oldtown) driver car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x192,
+    argsLen      = 0x02, # Script 0x192 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x192 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 03",    # 0002: Push unsigned byte 0x03
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 00",    # 000C: Push unsigned byte 0x00
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Downtown to Oldtown) passenger car
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0xCC,
+    argsLen      = 0x02, # Script 0xCC now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0xCC now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 04",    # 0002: Push unsigned byte 0x04
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7F",    # 0007: Push unsigned byte 0x7F
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 04",    # 000C: Push unsigned byte 0x04
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "C2",       # 0012: Push $13
+        "58 5B",    # 0013: ???
+        "56",       # 0015: End
+    ],
+)
+
+# Mono-Rail Car (Downtown to Oldtown) sliding doors
+# Remove the arrival delay
+expandedOffset = scriptHelper(
+    scriptNumber = 0x290,
+    argsLen      = 0x02, # Script 0x290 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x290 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 05",    # 0002: Push unsigned byte 0x05
+        "C2",       # 0004: Push $13
+        "58 B5",    # 0005: Move object instantly to waypoint?
+        "00 7E",    # 0007: Push unsigned byte 0x7E
+        "C2",       # 0009: Push $13
+        "58 7A",    # 000A: Clear bits of object's flags
+        "00 07",    # 000C: Push unsigned byte 0x07
+        "C0",       # 000E: Push zero
+        "C2",       # 000F: Push $13
+        "58 D1",    # 0010: Display sprite
+        "00 02",    # 0012: Push unsigned byte 0x02
+        "C2",       # 0014: Push $13
+        "58 D0",    # 0015: Change displayed sprite?
+        "00 14",    # 0017: Push unsigned byte 0x14
+        "00 01",    # 0019: Push unsigned byte 0x01
+        "58 9E",    # 001B: Register menu options / time delay
+        "BC",       # 001D: Pop
+        "00 04",    # 001E: Push unsigned byte 0x04
+        "C2",       # 0020: Push $13
+        "58 D0",    # 0021: Change displayed sprite?
+        "C0",       # 0023: Push zero
+        "00 08",    # 0024: Push unsigned byte 0x08
+        "58 9E",    # 0026: Register menu options / time delay
+        "BC",       # 0028: Pop
+        "00 01",    # 0029: Push unsigned byte 0x01
+        "C2",       # 002B: Push $13
+        "58 33",    # 002C: Set bits of object's flags
+        "C0",       # 002E: Push zero
+        "C2",       # 002F: Push $13
+        "58 D0",    # 0030: Change displayed sprite?
+        "C2",       # 0032: Push $13
+        "58 5B",    # 0033: ???
+        "56",       # 0035: End
+    ],
+)
+
+# Mono-Rail Car (Downtown to Oldtown) destination coordinates
+writeHelper(romBytes, 0x692AF + (9 * 0x18D) + 3, bytes.fromhex(' '.join([
+    "C1 01",    # Update the destination coordinates
+    "91 01",    # Old coordinates: (462, 396, 104)
+    "68 00",    # New coordinates: (449, 401, 104)
+])))
 
 # Iron Key
 writeHelper(romBytes, 0xCA7B5, bytes.fromhex(' '.join([
