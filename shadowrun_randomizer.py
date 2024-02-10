@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-02-02"
+randomizerVersion = "2024-02-10"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -6640,6 +6640,17 @@ writeHelper(romBytes, 0xDF077, bytes.fromhex(' '.join([
 # Reveal the new item shuffled to this location
 romBytes[0x1F2DE:0x1F2DE+2] = romBytes[0xC849B:0xC849B+2]
 
+# Wooden Door <-- In morgue main room, leading to morgue hallway
+# Change the behaviour script for the Wooden Door from 0xAD
+# (closed door) to 0xE2 (open door).
+struct.pack_into("<H", romBytes, 0x6B147, 0x00E2)
+# Resize the "fourth walls" flanking the door
+romBytes[0xC84BC] = 0x29 # <-- Was 0x2B ("fourth wall" above the door)
+romBytes[0xC84DA] = 0x39 # <-- Was 0x37 ("fourth wall" below the door)
+# Enlarge the doorway warp zone to make it easier to traverse
+romBytes[0xC84E8] = 0x29 # <-- Was 0x2A
+romBytes[0xC84EE] = 0x39 # <-- Was 0x38
+
 # Dog Collar
 writeHelper(romBytes, 0xDF1BE, bytes.fromhex(' '.join([
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
@@ -6655,22 +6666,22 @@ romBytes[0xDCA5F:0xDCA5F+2] = romBytes[0xC817B:0xC817B+2]
 # Glass Door <-- Left door to Tenth Street monorail station
 # Open up the monorail early
 # Change the behaviour script for the left Glass Door from 0x37D
-# (left Glass Door helper) to 0xAD (left Glass Door unlocked).
+# (left Glass Door helper) to 0xE2 (open door).
 # In vanilla, script 0x37D would check if Glutman had hidden you
 # in the caryards and then execute either script 0x6 (locked) or
-# script 0xAD (unlocked), as appropriate.
+# script 0xAD (closed door) as appropriate.
 # With this change, script 0x37D should now be entirely unused.
-struct.pack_into("<H", romBytes, 0x6C0B3, 0x00AD)
+struct.pack_into("<H", romBytes, 0x6C0B3, 0x00E2)
 
 # Glass Door <-- Right door to Tenth Street monorail station
 # Open up the monorail early
 # Change the behaviour script for the right Glass Door from 0x1A6
-# (right Glass Door helper) to 0x2B4 (right Glass Door unlocked).
+# (right Glass Door helper) to 0x2E6 (open door).
 # In vanilla, script 0x1A6 would check if Glutman had hidden you
 # in the caryards and then execute either script 0x1DC (locked) or
-# script 0x2B4 (unlocked), as appropriate.
+# script 0x2B4 (closed door) as appropriate.
 # With this change, script 0x1A6 should now be entirely unused.
-struct.pack_into("<H", romBytes, 0x6C0AC, 0x02B4)
+struct.pack_into("<H", romBytes, 0x6C0AC, 0x02E6)
 
 # Bulletin Board <-- Outside Tenth Street monorail station
 # We've opened up the monorail early, so let's update the bulletin
@@ -7684,6 +7695,20 @@ romBytes[0xE5F83:0xE5F83+2] = romBytes[0xC966D:0xC966D+2]
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F95:0xE5F95+2] = romBytes[0xC9673:0xC9673+2]
 
+# Glass doors <-- Left door at Oldtown monorail station
+# Change the behaviour script for the left glass door from 0x2B4
+# (closed door) to 0x37B (do nothing).
+# With this change, the glass door will no longer appear.
+# We do this to make the doorway easier to traverse.
+struct.pack_into("<H", romBytes, 0x6C0A5, 0x037B)
+
+# Glass doors <-- Right door at Oldtown monorail station
+# Change the behaviour script for the right glass door from 0xAD
+# (closed door) to 0x37B (do nothing).
+# With this change, the glass door will no longer appear.
+# We do this to make the doorway easier to traverse.
+struct.pack_into("<H", romBytes, 0x6C09E, 0x037B)
+
 # Mono-Rail Car (Tenth Street to Oldtown) waypoints
 writeHelper(romBytes, 0xCA0DF, bytes.fromhex(' '.join([
     "2E 02",    # Change waypoint #4 (sliding doors) Y coordinate from 559 to 558
@@ -8181,6 +8206,10 @@ writeHelper(romBytes, 0xF905F, bytes.fromhex(' '.join([
 # Hide the Doggie to skip its automatic conversation
 struct.pack_into("<H", initialItemState, 0x43B, 0x1538)
 
+# Doorway from Maplethorpe Plaza into Maplethorpe's waiting room
+# Enlarge the doorway warp zone to make it easier to traverse
+romBytes[0xCB2F0] = 0x16 # <-- Was 0x17
+
 # Club Manager <-- Bartender at Wastelands
 # Change conversation when you know the "Bremerton" keyword.
 # In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
@@ -8444,6 +8473,10 @@ writeHelper(romBytes, 0xF4F3E, bytes.fromhex(' '.join([
     "BC",       # 006E: Pop
     "BC",       # 006F: Pop
 ])))
+
+# Doorway from Dark Blade courtyard into Dark Blade mansion interior
+# Enlarge the doorway warp zone to make it easier to traverse
+romBytes[0xD105C] = 0x26 # <-- Was 0x27
 
 # Viper H. Pistol ($3,000): Gun Case
 # Offer for sale the new item shuffled to this location
@@ -8984,6 +9017,12 @@ expandedOffset = scriptHelper(
         "56",       # 0114: End
     ],
 )
+
+# Doorway from Bremerton West into Bremerton's interior (Crowbar-locked)
+# Resize the doorway warp zone to make it easier to traverse
+romBytes[0xC9D50] = 0x8B # <-- Was 0x90
+romBytes[0xC9D58] = 0xFB # <-- Was 0x01
+romBytes[0xC9D59] = 0x01 # <-- Was 0x02
 
 # TODO:
 # I'm not sure if the doors on the two Safes will successfully conceal every
@@ -10034,6 +10073,13 @@ struct.pack_into(
 
 # ------------------------------------------------------------------------
 
+## Disable randomly-spawning enemies
+#writeHelper(romBytes, 0xF9B05, bytes.fromhex(' '.join([
+#    "00 00",    # 001C: Push unsigned byte 0x00
+#])))
+
+# ------------------------------------------------------------------------
+
 # Update the glass cases containing weapons and armor so that their
 # cost matches the new randomized contents.
 # This causes power growth to be more money-driven.
@@ -10122,10 +10168,10 @@ romBytes[0x1CE3] = 0xBD
 #romBytes[0x1732] = 0x1E # attack power: 30 <-- vanilla best: 20
 #romBytes[0x1733] = 0x09 # accuracy: 9      <-- vanilla best: 6
 
-## Start with 20 Body and 200 max HP
-## TODO: this does not update starting HP, which is still 30
+## Start with 20 Body and 200 HP
 #romBytes[0x18A3] = 0x14 # body: 20
 #romBytes[0x18B3] = 0xC8 # max HP: 200
+#initialItemState[0x5DE] = 0xC8 # starting HP: 200
 
 ## Start with a 6 in both Firearms and Computer
 #romBytes[0x18F3] = 0x06
@@ -10161,6 +10207,10 @@ romBytes[0x1CE3] = 0xBD
 #romBytes[0xF8990] = 0xC0
 #romBytes[0xF8991] = 0xBC
 #initialItemState[0x3E9] |= 0x80
+
+## Start with the Crowbar
+#initialItemState[0x814] = 0xB2 # 0x08B2 = Object-id for Jake
+#initialItemState[0x815] = 0x08
 
 ## Open the door leading to Bremerton's interior
 #initialItemState[0x32B] |= 0x01
