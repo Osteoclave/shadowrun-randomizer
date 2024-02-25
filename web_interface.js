@@ -205,6 +205,7 @@ function generate(event) {
   const randomizerArgs = new Map();
   randomizerArgs.set("romBytes", romBytes);
   randomizerArgs.set("seedString", seed);
+  randomizerArgs.set("itemDuplication", document.getElementById("itemDuplication").checked);
   randomizerArgs.set("spoilerLog", document.getElementById("spoilerLog").checked);
   worker.postMessage(randomizerArgs, [romBytes.buffer]);
 }
@@ -239,12 +240,26 @@ function downloadSeed(event) {
 
 
 
-function main() {
+async function main() {
   worker = new Worker("web_worker.js");
   worker.addEventListener("message", downloadSeed);
+
+  const fileName = "shadowrun_randomizer.py"
+  const response = await fetch(fileName);
+  if (!response.ok) {
+    throw new Error(`Could not fetch '${fileName}'. HTTP response status code: ${response.status}`);
+  }
+  const fileString = await response.text();
+  const versionRegex = /^randomizerVersion = \"(.*)\"$/m;
+  const versionMatch = versionRegex.exec(fileString);
+  if (versionMatch !== null) {
+    document.getElementById("version").innerText = versionMatch[1];
+  }
+
   updateFileButton();
   document.getElementById("newSeed").click();
   updateStatusMessage();
+
   document.getElementById("loading").classList.add("d-none");
   document.getElementById("application").classList.remove("invisible");
 }

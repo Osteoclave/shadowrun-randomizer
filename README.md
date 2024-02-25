@@ -45,18 +45,22 @@ Randomizer for Shadowrun (SNES)
      ```
      py shadowrun_randomizer.py -s 3816547290 "Shadowrun (USA).sfc"
 
-     RNG seed: 3816547290
+     Version: YYYY-MM-DD
+     Seed: 3816547290
+     Flags: -
+
      Generating...
-     Generated winnable seed on attempt #282
+     Generated winnable seed on attempt #nnnn
      ```
 * To view the spoiler log for the resulting ROM, use `-l`
 * To perform a dry-run (do all the randomization, but don't generate a new ROM), use `-n`
    * This can be useful with `-s` and `-l` to preview the outcome for a given seed.
    * In dry-run mode, the ROM file name is optional and can be omitted.
+* To re-enable the item duplication bug, use `-D`
 * To specify the generated ROM's file name, use `-o OUTPUT_FILE_NAME`
 
 ## Gameplay
-* If everything worked correctly, the title screen will show the randomizer version (date) and seed.
+* If everything worked correctly, the title screen will show the randomizer version, seed, and flags.
 * Items have been shuffled among their vanilla locations, plus the following:
    * The end of the Tenth Street alley (where the "hmmm...." dog is in vanilla)
    * Next to Glutman's booth at The Cage (after you've asked Glutman's secretary about Glutman)

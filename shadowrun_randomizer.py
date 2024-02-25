@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-02-10"
+randomizerVersion = "2024-02-24"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -29,6 +29,16 @@ parser = argparse.ArgumentParser(
         (version: {randomizerVersion})"""
     ),
     formatter_class = argparse.RawTextHelpFormatter,
+)
+parser.add_argument(
+    "-v", "--version",
+    action = "version",
+    version = randomizerVersion,
+)
+parser.add_argument(
+    "-n", "--dry-run",
+    action = "store_true",
+    help = "execute without saving any changes",
 )
 parser.add_argument(
     "-s", "--seed",
@@ -41,9 +51,9 @@ parser.add_argument(
     help = "print spoiler log",
 )
 parser.add_argument(
-    "-n", "--dry-run",
+    "-D", "--allow-item-duplication",
     action = "store_true",
-    help = "execute without saving any changes",
+    help = "allow item duplication and quantity underflow",
 )
 # This option should be named "input-file". It isn't because of a bug with
 # dash-to-underscore replacement for positional arguments:
@@ -69,6 +79,9 @@ if args.input_file is None and not args.dry_run:
 
 randomizerFlags = ""
 
+if args.allow_item_duplication:
+    randomizerFlags += "D"
+
 
 
 # Seed the random number generator.
@@ -80,7 +93,8 @@ seed %= 2**32
 rng.seed(seed)
 
 print(f"Version: {randomizerVersion}")
-print(f"RNG seed: {seed}")
+print(f"Seed: {seed}")
+print(f"Flags: {(randomizerFlags if randomizerFlags else '-')}")
 print()
 
 # If we have an input file (required for normal runs but optional for
@@ -117,6 +131,8 @@ if args.input_file is not None:
     outFileName = args.output_file
     if outFileName is None:
         suffix = f"_{seed}"
+        if randomizerFlags:
+            suffix += f"_{randomizerFlags}"
         basename, dot, extension = inFileName.rpartition(".")
         if basename and extension:
             basename += suffix
@@ -6645,8 +6661,8 @@ romBytes[0x1F2DE:0x1F2DE+2] = romBytes[0xC849B:0xC849B+2]
 # (closed door) to 0xE2 (open door).
 struct.pack_into("<H", romBytes, 0x6B147, 0x00E2)
 # Resize the "fourth walls" flanking the door
-romBytes[0xC84BC] = 0x29 # <-- Was 0x2B ("fourth wall" above the door)
-romBytes[0xC84DA] = 0x39 # <-- Was 0x37 ("fourth wall" below the door)
+romBytes[0xC84BC] = 0x29 # <-- Was 0x2B ("fourth wall" below the door)
+romBytes[0xC84DA] = 0x39 # <-- Was 0x37 ("fourth wall" above the door)
 # Enlarge the doorway warp zone to make it easier to traverse
 romBytes[0xC84E8] = 0x29 # <-- Was 0x2A
 romBytes[0xC84EE] = 0x39 # <-- Was 0x38
@@ -10080,6 +10096,62 @@ struct.pack_into(
 
 # ------------------------------------------------------------------------
 
+# Forbid item duplication (unless explicitly permitted)
+#
+# In vanilla, after selecting Use/Give/Throw on an item, there is a
+# one-frame delay before target selection begins. During that frame,
+# it's possible to re-enter the menu and select Use/Give/Throw on
+# the same item a second time.
+#
+# This makes the "item duplication" glitch possible:
+# - Stand next to a merchant NPC
+# - Select "Give" twice on an equippable item (weapon or armor)
+# - Use the first "Give" to sell the item to the merchant
+# - Use the second "Give" to give the item back to yourself
+#
+# You can also use this behaviour to underflow item quantities:
+# - Have exactly one Slap Patch in your inventory
+# - Select "Use" twice on the Slap Patch
+# - Slap Patch quantity: 1 --> 0 --> 255 (integer underflow)
+# - This also works for Grenades
+#
+# The one-frame delay appears to be caused by the Use/Give/Throw
+# textbox helper scripts, which wait a frame between erasing all
+# open text windows and opening their own brand new text window
+# ("Use on", "Give to", "Throw at").
+# So, let's remove that delay and see what happens.
+
+if not args.allow_item_duplication:
+    # Behaviour script F9: "Use on" textbox helper script
+    writeHelper(romBytes, 0xDED54, bytes.fromhex(' '.join([
+        "C0",       # 000A: Push zero
+        "BE",       # 000B: Convert to boolean
+        "BE",       # 000C: Convert to boolean
+        "BE",       # 000D: Convert to boolean
+        "BE",       # 000E: Convert to boolean
+        "BC",       # 000F: Pop
+    ])))
+    # Behaviour script 23F: "Give to" textbox helper script
+    writeHelper(romBytes, 0xDED76, bytes.fromhex(' '.join([
+        "C0",       # 000A: Push zero
+        "BE",       # 000B: Convert to boolean
+        "BE",       # 000C: Convert to boolean
+        "BE",       # 000D: Convert to boolean
+        "BE",       # 000E: Convert to boolean
+        "BC",       # 000F: Pop
+    ])))
+    # Behaviour script 1FB: "Throw at" textbox helper script
+    writeHelper(romBytes, 0xDED98, bytes.fromhex(' '.join([
+        "C0",       # 000A: Push zero
+        "BE",       # 000B: Convert to boolean
+        "BE",       # 000C: Convert to boolean
+        "BE",       # 000D: Convert to boolean
+        "BE",       # 000E: Convert to boolean
+        "BC",       # 000F: Pop
+    ])))
+
+# ------------------------------------------------------------------------
+
 # Update the glass cases containing weapons and armor so that their
 # cost matches the new randomized contents.
 # This causes power growth to be more money-driven.
@@ -10317,7 +10389,7 @@ struct.pack_into("<H", romBytes, 0xE2F7, 0x0450)
 # Construct the new info lines
 newInfoLines = (
     f" {'Randomizer':>13.13}    {str(seed):<13.13} "
-    f" {randomizerVersion:>13.13}    -{randomizerFlags:<12.12} "
+    f" {randomizerVersion:>13.13}    {(randomizerFlags if randomizerFlags else '-'):<13.13} "
 ).encode("ascii") + b"\x00"
 
 # New printing subroutine

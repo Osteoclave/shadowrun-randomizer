@@ -28,6 +28,7 @@ async function runRandomizer(event) {
   const randomizerArgs = event.data;
   const romBytes = randomizerArgs.get("romBytes");
   const seedString = randomizerArgs.get("seedString");
+  const itemDuplication = randomizerArgs.get("itemDuplication");
   const spoilerLog = randomizerArgs.get("spoilerLog");
 
   const romFileName = "shadowrun.sfc";
@@ -37,6 +38,9 @@ async function runRandomizer(event) {
   if (seedString) {
     mockArgv.push("--seed");
     mockArgv.push(seedString);
+  }
+  if (itemDuplication) {
+    mockArgv.push("--allow-item-duplication");
   }
   if (spoilerLog) {
     mockArgv.push("--spoiler-log");

@@ -9,7 +9,12 @@
   <body>
     <div class="container p-3" style="max-width: 36rem;">
       <div class="card border-primary">
-        <h5 class="card-header text-bg-primary">Shadowrun Randomizer</h5>
+        <div class="card-header text-bg-primary">
+          <div class="d-flex justify-content-between">
+            <h5 class="mb-0">Shadowrun Randomizer</h5>
+            <h5 id="version" class="mb-0"></h5>
+          </div>
+        </div>
         <div class="card-body position-relative">
           <div id="loading" class="position-absolute top-50 start-50 translate-middle">
             <div class="spinner-border" role="status">
@@ -30,6 +35,12 @@
               <div class="d-flex">
                 <input id="seed" type="text" inputmode="numeric" class="form-control me-2">
                 <button id="newSeed" type="button" class="btn btn-primary">New</button>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-switch">
+                <input id="itemDuplication" type="checkbox" class="form-check-input" role="switch">
+                <label for="itemDuplication" class="form-check-label">Allow item duplication</label>
               </div>
             </div>
             <div class="mb-3">
