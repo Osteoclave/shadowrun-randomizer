@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-02-24"
+randomizerVersion = "2024-03-11"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -6975,8 +6975,15 @@ romBytes[0x6C172] |= 0x40
 romBytes[0x674F4] &= ~0x20
 
 # Ghoul Bone: Scary Ghoul
+# Increase the Scary Ghoul's item-drop chance from 50% to 100%
 # Reveal the new item shuffled to this location
-writeHelper(romBytes, 0x1FEE6, bytes.fromhex(' '.join([
+writeHelper(romBytes, 0x1FEDD, bytes.fromhex(' '.join([
+    "0A FF",    # 00E5: Push signed byte 0xFF
+    "BE",       # 00E7: Convert to boolean
+    "BE",       # 00E8: Convert to boolean
+    "BE",       # 00E9: Convert to boolean
+    "7E",       # 00EA: Bitwise AND
+    "44 5C 01", # 00EB: If false, jump to 015C
     f"14 {romBytes[0xC85D1+0]:02X} {romBytes[0xC85D1+1]:02X}",
                 # 00EE: Push short 0x####   <-- Item drop's object-id
     "BA",       # 00F1: Duplicate
@@ -10149,6 +10156,117 @@ if not args.allow_item_duplication:
         "BE",       # 000E: Convert to boolean
         "BC",       # 000F: Pop
     ])))
+
+# ------------------------------------------------------------------------
+
+# Shorten the Matrix entry sequences
+#
+# Matrix entry text uses the following control codes:
+#    [00] = End
+#    [01] = Text style: Dark green
+#    [02] = Text style: Bright green
+#    [03] = Text style: Blink
+#    [04] = Newline
+# [05 XX] = Pause for XX frames
+#    [06] = Backspace
+
+# Matrix entry text - Datajack malfunction
+writeHelper(romBytes, 0xC4F6, b"".join([
+    bytes.fromhex("04 04 02"),
+    b"ERROR!",
+    bytes.fromhex("04 04"),
+    b"- DATAJACK MALFUNCTION -",
+    bytes.fromhex("04 04 05 96 00"),
+]))
+
+# Matrix entry text - Generic (e.g. Glutman's office)
+writeHelper(romBytes, 0xC6E8, b"".join([
+    bytes.fromhex("04 04 02"),
+    b"NAUCAS-SEA-2309",
+    bytes.fromhex("04"),
+    b"Central Alpha",
+    bytes.fromhex("04 04 05 3C 00"),
+]))
+
+# Matrix entry text - Drake Towers
+writeHelper(romBytes, 0xC820, b"".join([
+    bytes.fromhex("04 04 02"),
+    b"NAUCAS-SEA-5437-DRAKEHQ",
+    bytes.fromhex("04"),
+    b"Drake Towers",
+    bytes.fromhex("04 04 05 3C 00"),
+]))
+
+# Matrix entry text - Drake Volcano
+writeHelper(romBytes, 0xC916, b"".join([
+    bytes.fromhex("04 04 02"),
+    b"NAUCAS-SEA-8194-DRAKEVOLC",
+    bytes.fromhex("04"),
+    b"Drake Volcano",
+    bytes.fromhex("04 04 05 3C 00"),
+]))
+
+# Matrix entry text - Aneki
+writeHelper(romBytes, 0xCB1D, b"".join([
+    bytes.fromhex("04 04 02"),
+    b"NAUCAS-SEA-3458-ANEKIHQ",
+    bytes.fromhex("04"),
+    b"Aneki Corporation",
+    bytes.fromhex("04 04 05 3C 00"),
+]))
+
+# Matrix entry text - Matrix Systems
+writeHelper(romBytes, 0xCBF0, b"".join([
+    bytes.fromhex("04 04 02"),
+    b"Unlisted",
+    bytes.fromhex("04"),
+    b"Matrix Systems Inc.",
+    bytes.fromhex("04 04 05 3C 00"),
+]))
+
+# While testing the changes above, I noticed that sometimes the music
+# would become glitchy after exiting a computer. So, let's fix that.
+# The currently-playing music's track number is stored at $1CFA.
+# During some events that interrupt the music (e.g. battle), the game
+# backs up the track number to $1FE6, and restores it later.
+# Entering a computer doesn't back up the currently-playing music,
+# but exiting a computer restores the backed-up value.
+# Most of the time, there's a stale backed-up value (e.g. written by
+# a recent battle), so this mismatch goes unnoticed - but if you load
+# a save and enter a computer without any battles in between, $1FE6
+# will be undefined and the music will become glitchy.
+# To test this for yourself:
+# - Save the game at Jake's apartment, then load the save
+# - Walk through Tenth Street Center to Glutman's office
+# - Enter and exit Glutman's computer
+# Reset if you get into a battle along the way.
+#
+# So, let's back up the current music when entering a computer.
+# The code behind [58 7D] ("Enter the Matrix" in behaviour script)
+# gets the pointer to the decker's 7E2E00 data in an inefficient and
+# possibly buggy way, so let's optimize that to free up some space.
+
+writeHelper(romBytes, 0x6327, bytes.fromhex(' '.join([
+    "AD FA 1C",    # 00/E327: LDA $1CFA     ; $1CFA = Current music
+    "8D E6 1F",    # 00/E32A: STA $1FE6     ; $1FE6 = Backup of current music
+    "A5 08",       # 00/E32D: LDA $08       ; $08 = Object-id of decker
+    "AA",          # 00/E32F: TAX
+    "BF 32 B0 8D", # 00/E330: LDA $8DB032,X ; A = Pointer to decker's 7E2E00 data
+    "F0 15",       # 00/E334: BEQ $E34B
+    "AA",          # 00/E336: TAX
+    "E2 20",       # 00/E337: SEP #$20
+    "BF 02 00 7E", # 00/E339: LDA $7E0002,X
+    "8D A7 1D",    # 00/E33D: STA $1DA7     ; $1DA7 = Decker's current HP
+    "C2 20",       # 00/E340: REP #$20
+    "8E AF 1D",    # 00/E342: STX $1DAF     ; $1DAF = Pointer to decker's 7E2E00 data
+    "60",          # 00/E345: RTS
+    "60",          # 00/E346: RTS
+    "60",          # 00/E347: RTS
+    "60",          # 00/E348: RTS
+    "60",          # 00/E349: RTS
+    "60",          # 00/E34A: RTS
+    "60",          # 00/E34B: RTS           ; Vanilla RTS
+])))
 
 # ------------------------------------------------------------------------
 
