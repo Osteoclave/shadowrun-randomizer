@@ -75,6 +75,12 @@ Randomizer for Shadowrun (SNES)
    * Dropped by the Rat Shaman (both items)
    * Dropped by the Vampire (both items)
    * Dropped by the Jester Spirit (both items)
+* Five keywords are known by default at the beginning of the game:
+   * HitMen
+   * Firearms
+   * Heal
+   * Shadowrunners
+   * Hiring
 * Five keywords are now learned by picking up "keyword-items", shuffled among item locations:
    * Dog
    * Jester Spirit
@@ -112,6 +118,5 @@ Randomizer for Shadowrun (SNES)
 * The Tenth Street monorail is open for business when the game begins.
 * The King starts out paid off, so you can enter and leave the caryards freely.
 * You don't have to defeat the Rust Stilettos to enter Jagged Nails.
-* The "Jester Spirit" keyword is no longer required to defeat the Vampire.
 * As in vanilla, you must defeat Drake to get the Aneki Password.
 * Remember that you can hire shadowrunners to help you out.

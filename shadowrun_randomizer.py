@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-03-11"
+randomizerVersion = "2024-05-13"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -420,6 +420,21 @@ thisRegion.locations.extend([
     Location(
         region = thisRegion,
         category = Category.CONSTANT,
+        description = "Default Keywords",
+        vanilla = Entity(Category.CONSTANT, "Default Keywords", None, [
+            (Progress.KEYWORD___HITMEN,        []),
+            (Progress.KEYWORD___FIREARMS,      []),
+            (Progress.KEYWORD___HEAL,          []),
+            (Progress.KEYWORD___SHADOWRUNNERS, []),
+            (Progress.KEYWORD___HIRING,        []),
+        ]),
+        requires = [],
+        address = None,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
         description = "Matchbox",
         vanilla = Entity(Category.CONSTANT, "Matchbox", 0x6B8FF, [
             (Progress.ITEM___MATCHBOX, []),
@@ -551,6 +566,30 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Mortician (Larry)",
+        vanilla = Entity(Category.CONSTANT, "Mortician (Larry)", 0x6B82D, [
+            (Progress.EVENT___MORGUE_CABINETS_UNLOCKED, [
+                Progress.ITEM___SHADES,
+                Progress.ITEM___LONESTAR_BADGE,
+                Progress.KEYWORD___GRINDER,
+            ]),
+        ]),
+        requires = [],
+        address = 0xC846B,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Mortician (Sam)",
+        vanilla = Entity(Category.CONSTANT, "Mortician (Sam)", 0x6B81F, []),
+        requires = [],
+        address = 0xC8471,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
         category = Category.PHYSICAL_ITEM,
         description = "Torn Paper",
         vanilla = Entity(Category.ITEM, "Torn Paper", 0x6B25A, [
@@ -581,30 +620,6 @@ thisRegion.locations.extend([
         ]),
         requires = [],
         address = 0xC8495,
-        hidden = False,
-    ),
-    Location(
-        region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Mortician",
-        vanilla = Entity(Category.CONSTANT, "Mortician", 0x6B81F, []),
-        requires = [],
-        address = 0xC8471,
-        hidden = False,
-    ),
-    Location(
-        region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Mortician",
-        vanilla = Entity(Category.CONSTANT, "Mortician", 0x6B82D, [
-            (Progress.EVENT___MORGUE_CABINETS_UNLOCKED, [
-                Progress.ITEM___SHADES,
-                Progress.ITEM___LONESTAR_BADGE,
-                Progress.KEYWORD___GRINDER,
-            ]),
-        ]),
-        requires = [],
-        address = 0xC846B,
         hidden = False,
     ),
     Location(
@@ -652,17 +667,19 @@ regions[regionName] = thisRegion
 regionName = "Tenth Street - Center"
 thisRegion = Region(regionName)
 thisRegion.locations.extend([
-    Location(
-        region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Decker",
-        vanilla = Entity(Category.CONSTANT, "Decker", 0x6C618, [
-            (Progress.KEYWORD___HITMEN, []),
-        ]),
-        requires = [],
-        address = 0xC816F,
-        hidden = False,
-    ),
+    ## In vanilla, this is the "You can't be alive!" guy, who does
+    ## not appear in the randomizer.
+    #Location(
+    #    region = thisRegion,
+    #    category = Category.CONSTANT,
+    #    description = "Decker",
+    #    vanilla = Entity(Category.CONSTANT, "Decker", 0x6C618, [
+    #        (Progress.KEYWORD___HITMEN, []),
+    #    ]),
+    #    requires = [],
+    #    address = 0xC816F,
+    #    hidden = False,
+    #),
     Location(
         region = thisRegion,
         category = Category.PHYSICAL_ITEM,
@@ -2081,15 +2098,17 @@ thisRegion.locations.extend([
         address = 0xCA7B9,
         hidden = True,
     ),
-    Location(
-        region = thisRegion,
-        category = Category.CONSTANT,
-        description = "Doggie",
-        vanilla = Entity(Category.CONSTANT, "Doggie", 0x6C554, []),
-        requires = [],
-        address = 0xCA7D1,
-        hidden = False,
-    ),
+    ## In vanilla, this is the dog at Daley Station, who does not
+    ## appear in the randomizer.
+    #Location(
+    #    region = thisRegion,
+    #    category = Category.CONSTANT,
+    #    description = "Doggie",
+    #    vanilla = Entity(Category.CONSTANT, "Doggie", 0x6C554, []),
+    #    requires = [],
+    #    address = 0xCA7D1,
+    #    hidden = False,
+    #),
 ])
 thisRegion.doors.extend([
     Door("Downtown - Monorail Platform to Oldtown", []),
@@ -6497,17 +6516,110 @@ writeHelper(romBytes, 0xF8917, bytes.fromhex(' '.join([
 # ("Action" examples: "The key won't fit", "It won't budge.")
 # When width is odd, the sum should be 0x21
 
-# TODO: Matchbox <-- Not currently subject to randomization
+# Mortician (Larry)
+# Skip most of the vanilla new-game cutscene
+expandedOffset = scriptHelper(
+    scriptNumber = 0x278,
+    argsLen      = 0x02, # Script 0x278 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x278 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x0B, # Header byte: Script uses 0x0B bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-01CD from the original script
+        romBytes[0x1E926:0x1EAF4].hex(' '),
+        # Spawn Larry at his vanilla "end of new-game cutscene" position
+        "00 05",    # 01CE: Push unsigned byte 0x05
+        "C2",       # 01D0: Push $13
+        "58 B5",    # 01D1: Move object instantly to waypoint?
+        "00 01",    # 01D3: Push unsigned byte 0x01
+        "C0",       # 01D5: Push zero
+        "C2",       # 01D6: Push $13
+        "58 D1",    # 01D7: Display sprite
+        # Set Larry's "new-game cutscene completed" (0x01) flag
+        "00 01",    # 01D9: Push unsigned byte 0x01
+        "C2",       # 01DB: Push $13
+        "58 33",    # 01DC: Set bits of object's flags
+        # WAIT_FOR_SCARE
+        "00 05",    # 01DE: Push unsigned byte 0x05
+        "00 01",    # 01E0: Push unsigned byte 0x01
+        "58 9E",    # 01E2: Register menu options / time delay
+        "BC",       # 01E4: Pop
+        "C2",       # 01E5: Push $13
+        "58 02",    # 01E6: Push object's flags
+        "00 02",    # 01E8: Push unsigned byte 0x02
+        "7E",       # 01EA: Bitwise AND
+        "BE",       # 01EB: Convert to boolean
+        "44 DE 01", # 01EC: If false, jump to WAIT_FOR_SCARE
+        # Copy 02B8-02F4 from the original script
+        romBytes[0x1EBDE:0x1EC1B].hex(' '),
+    ],
+)
 
-# Torn Paper
-writeHelper(romBytes, 0xDEF22, bytes.fromhex(' '.join([
-    "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
-    "48 15 00", # 000C: Jump to 0015
+# Mortician (Sam)
+# Skip most of the vanilla new-game cutscene
+expandedOffset = scriptHelper(
+    scriptNumber = 0x336,
+    argsLen      = 0x02, # Script 0x336 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x336 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-007D from the original script
+        romBytes[0x1EC1D:0x1EC9B].hex(' '),
+        # Replace the jump-to-the-end at 007E with in-place "end" codes
+        "56",       # 007E: End
+        "56",       # 007F: End
+        "56",       # 0080: End
+        # Spawn Sam at his vanilla "end of new-game cutscene" position
+        "00 04",    # 0081: Push unsigned byte 0x04
+        "C2",       # 0083: Push $13
+        "58 B5",    # 0084: Move object instantly to waypoint?
+        "00 06",    # 0086: Push unsigned byte 0x06
+        "C0",       # 0088: Push zero
+        "C2",       # 0089: Push $13
+        "58 D1",    # 008A: Display sprite
+        # Set Sam's "new-game cutscene completed" (0x01) flag
+        "00 01",    # 008C: Push unsigned byte 0x01
+        "C2",       # 008E: Push $13
+        "58 33",    # 008F: Set bits of object's flags
+        # WAIT_FOR_SCARE
+        "00 05",    # 0091: Push unsigned byte 0x05
+        "00 01",    # 0093: Push unsigned byte 0x01
+        "58 9E",    # 0095: Register menu options / time delay
+        "BC",       # 0097: Pop
+        "C2",       # 0098: Push $13
+        "58 0A",    # 0099: Push distance between Jake and object?
+        "00 64",    # 009B: Push unsigned byte 0x64
+        "8A",       # 009D: Check if less than
+        "C2",       # 009E: Push $13
+        "58 02",    # 009F: Push object's flags
+        "00 02",    # 00A1: Push unsigned byte 0x02
+        "7E",       # 00A3: Bitwise AND
+        "BE",       # 00A4: Convert to boolean
+        "7E",       # 00A5: Bitwise AND
+        "44 91 00", # 00A6: If false, jump to WAIT_FOR_SCARE
+        # Copy 013E-01A5 from the original script
+        romBytes[0x1ED5B:0x1EDC3].hex(' '),
+    ],
+)
+
+# Wooden Door <-- Between the halves of the morgue main room
+# Skip some code used by the vanilla new-game cutscene
+writeHelper(romBytes, 0x1F129, bytes.fromhex(' '.join([
+    "48 82 00", # 0025: Jump to 0082
 ])))
-# Move the spawn point to the floor
-romBytes[0xC848C] = 0x01
 
-# Torn Paper: Slab
+# Slab
+# Skip some code used by the vanilla new-game cutscene
+writeHelper(romBytes, 0x1EE69, bytes.fromhex(' '.join([
+    "C0",       # 001E: Push zero
+    "00 08",    # 001F: Push unsigned byte 0x08
+    "C2",       # 0021: Push $13
+    "58 D1",    # 0022: Display sprite
+    "48 93 00", # 0024: Jump to 0093
+])))
 # Skip the text popup for the vanilla Torn Paper
 # Reveal the new item shuffled to this location
 writeHelper(romBytes, 0x1EF5F, bytes.fromhex(' '.join([
@@ -6540,6 +6652,157 @@ writeHelper(romBytes, 0x1EF5F, bytes.fromhex(' '.join([
                 # 012E: Push short 0x#### <-- Object-id of new item in "Torn Paper" location
     "58 0D",    # 0131: Set bits of object's flags
 ])))
+
+# JAKE (morgue script 1)
+# Shorten the delay before Jake opens the Slab from inside
+writeHelper(romBytes, 0x1F040, bytes.fromhex(' '.join([
+    "00 2D",    # 0027: Push unsigned byte 0x2D <-- Was 0xB4
+])))
+
+# JAKE (morgue script 2)
+expandedOffset = scriptHelper(
+    scriptNumber = 0x1B3,
+    argsLen      = 0x02, # Script 0x1B3 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x1B3 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-005F from the original script
+        romBytes[0x1F3D0:0x1F430].hex(' '),
+        # Activate the "custom new-game actions" script
+        "00 80",    # 0060: Push unsigned byte 0x80
+        "14 15 0E", # 0062: Push short 0x0E15 <-- Object-id of "new-game mortician dialogue" object
+        "58 0D",    # 0065: Set bits of object's flags
+        # Start Jake's rolling-off-the-slab animation
+        "C0",       # 0067: Push zero
+        "C0",       # 0068: Push zero
+        "C2",       # 0069: Push $13
+        "58 D1",    # 006A: Display sprite
+        # Wait for Jake to be standing up
+        "00 40",    # 006C: Push unsigned byte 0x40
+        "00 01",    # 006E: Push unsigned byte 0x01
+        "58 9E",    # 0070: Register menu options / time delay
+        "BC",       # 0072: Pop
+        # Print text
+        "00 F0",    # 0073: Push unsigned byte 0xF0
+        "00 42",    # 0075: Push unsigned byte 0x42
+        "14 00 08", # 0077: Push short 0x0800
+        "00 03",    # 007A: Push unsigned byte 0x03
+        "00 12",    # 007C: Push unsigned byte 0x12
+        "00 15",    # 007E: Push unsigned byte 0x15 <-- Was 0x17
+        "00 07",    # 0080: Push unsigned byte 0x07 <-- Was 0x06
+        "58 C7",    # 0082: Print text ("Where am I? Who am I?")
+        # Wait for Jake's animation to complete
+        "C0",       # 0084: Push zero
+        "00 08",    # 0085: Push unsigned byte 0x08
+        "58 9E",    # 0087: Register menu options / time delay
+        "BC",       # 0089: Pop
+        # Spawn the player-controllable Jake
+        "00 32",    # 008A: Push unsigned byte 0x32
+        "14 B2 08", # 008C: Push short 0x08B2 <-- Object-id for Jake
+        "00 06",    # 008F: Push unsigned byte 0x06
+        "00 40",    # 0091: Push unsigned byte 0x40
+        "14 F5 01", # 0093: Push short 0x01F5
+        "14 66 01", # 0096: Push short 0x0166
+        "00 0B",    # 0099: Push unsigned byte 0x0B
+        "58 78",    # 009B: Spawn hired shadowrunner?
+        # Wait one frame
+        "00 01",    # 009D: Push unsigned byte 0x01
+        "BA",       # 009F: Duplicate
+        "58 9E",    # 00A0: Register menu options / time delay
+        "BC",       # 00A2: Pop
+        # Despawn
+        "C2",       # 00A3: Push $13
+        "58 B8",    # 00A4: Despawn object
+        "56",       # 00A6: End
+    ],
+)
+# Shorten Jake's rolling-off-the-slab animation
+romBytes[0x61B5F] = 0x16 # <-- Was 0x19
+
+# New-game mortician dialogue
+# Replace the mortician dialogue with custom new-game actions
+expandedOffset = scriptHelper(
+    scriptNumber = 0x2CF,
+    argsLen      = 0x02, # Script 0x1B3 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x1B3 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "C2",       # 0002: Push $13
+        "58 02",    # 0003: Push object's flags
+        "00 01",    # 0005: Push unsigned byte 0x01
+        "7E",       # 0007: Bitwise AND
+        "BE",       # 0008: Convert to boolean
+        "46 3A 00", # 0009: If true, jump to DONE
+        # WAIT_FOR_ACTIVATION
+        "00 01",    # 000C: Push unsigned byte 0x01
+        "BA",       # 000E: Duplicate
+        "58 9E",    # 000F: Register menu options / time delay
+        "BC",       # 0011: Pop
+        "C2",       # 0012: Push $13
+        "58 02",    # 0013: Push object's flags
+        "00 80",    # 0015: Push unsigned byte 0x80
+        "7E",       # 0017: Bitwise AND
+        "BE",       # 0018: Convert to boolean
+        "44 0C 00", # 0019: If false, jump to WAIT_FOR_ACTIVATION
+        # CUSTOM_NEW_GAME_ACTIONS
+        "00 7F",    # 001C: Push unsigned byte 0x7F
+        "C2",       # 001E: Push $13
+        "58 7A",    # 001F: Clear bits of object's flags
+        # Learn default keywords
+        # - HitMen
+        "00 17",    # 0021: Push unsigned byte 0x17 <-- Keyword-id for "HitMen"
+        "58 71",    # 0023: Learn keyword
+        # - Firearms
+        "00 10",    # 0025: Push unsigned byte 0x10 <-- Keyword-id for "Firearms"
+        "58 71",    # 0027: Learn keyword
+        # - Heal
+        "00 15",    # 0029: Push unsigned byte 0x15 <-- Keyword-id for "Heal"
+        "58 71",    # 002B: Learn keyword
+        # - Shadowrunners (required to learn "Hiring" in vanilla)
+        "00 2A",    # 002D: Push unsigned byte 0x2A <-- Keyword-id for "Shadowrunners"
+        "58 71",    # 002F: Learn keyword
+        # - Hiring
+        "00 16",    # 0031: Push unsigned byte 0x16 <-- Keyword-id for "Hiring"
+        "58 71",    # 0033: Learn keyword
+        ## - Decker (required to learn "Datajack" in vanilla)
+        #"00 0B",    # ____: Push unsigned byte 0x0B <-- Keyword-id for "Decker"
+        #"58 71",    # ____: Learn keyword
+        ## - Datajack
+        #"00 0A",    # ____: Push unsigned byte 0x0A <-- Keyword-id for "Datajack"
+        #"58 71",    # ____: Learn keyword
+        ## - Docks
+        #"00 0C",    # ____: Push unsigned byte 0x0C <-- Keyword-id for "Docks"
+        #"58 71",    # ____: Learn keyword
+        # Set the "custom new-game actions completed" (0x01) flag
+        "00 01",    # 0035: Push unsigned byte 0x01
+        "C2",       # 0037: Push $13
+        "58 33",    # 0038: Set bits of object's flags
+        # DONE
+        "C2",       # 003A: Push $13
+        "58 B8",    # 003B: Despawn object
+        "56",       # 003D: End
+    ],
+)
+
+# TODO: Matchbox <-- Not currently subject to randomization
+
+# Torn Paper
+writeHelper(romBytes, 0xC848B, bytes.fromhex(' '.join([
+    "7F 01",    # Move the spawn point to the floor
+    "F3 11",    # New coordinates: (383, 499, 64)
+])))
+writeHelper(romBytes, 0xDEF22, bytes.fromhex(' '.join([
+    "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
+    "48 15 00", # 000C: Jump to 0015
+])))
+
+# Torn Paper: Slab
+# For these changes, see the modified "Slab" script above.
 
 # Scalpel
 writeHelper(romBytes, 0xDEE85, bytes.fromhex(' '.join([
@@ -6666,6 +6929,22 @@ romBytes[0xC84DA] = 0x39 # <-- Was 0x37 ("fourth wall" above the door)
 # Enlarge the doorway warp zone to make it easier to traverse
 romBytes[0xC84E8] = 0x29 # <-- Was 0x2A
 romBytes[0xC84EE] = 0x39 # <-- Was 0x38
+
+# Decker <-- "You can't be alive!" guy
+# Tenth Street - Center
+# Change the behaviour script for the Decker from 0x2C1 ("You can't be
+# alive!" guy in Tenth Street Center) to 0x37B (do nothing).
+# With this change, the Decker will no longer appear.
+# We do this to skip the Decker's automatic conversation.
+# Additionally, script 0x2C1 should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6C61D, 0x037B)
+# Tenth Street - West
+# Change the behaviour script for the Decker from 0x2C5 ("You can't be
+# alive!" guy in Tenth Street West) to 0x37B (do nothing).
+# With this change, the Decker will no longer appear.
+# We do this for consistency with the previous change.
+# Additionally, script 0x2C5 should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6C60F, 0x037B)
 
 # Dog Collar
 writeHelper(romBytes, 0xDF1BE, bytes.fromhex(' '.join([
@@ -8226,8 +8505,12 @@ writeHelper(romBytes, 0xF905F, bytes.fromhex(' '.join([
 ])))
 
 # Doggie <-- Daley Station
-# Hide the Doggie to skip its automatic conversation
-struct.pack_into("<H", initialItemState, 0x43B, 0x1538)
+# Change the behaviour script for the Doggie from 0x1F8 (Doggie at
+# Daley Station) to 0x37B (do nothing).
+# With this change, the Doggie will no longer appear.
+# We do this to skip the Doggie's automatic conversation.
+# Additionally, script 0x1F8 should now be entirely unused.
+struct.pack_into("<H", romBytes, 0x6C559, 0x037B)
 
 # Doorway from Maplethorpe Plaza into Maplethorpe's waiting room
 # Enlarge the doorway warp zone to make it easier to traverse
