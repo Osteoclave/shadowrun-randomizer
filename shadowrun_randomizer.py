@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-05-13"
+randomizerVersion = "2024-05-17"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -6706,7 +6706,7 @@ expandedOffset = scriptHelper(
         "14 F5 01", # 0093: Push short 0x01F5
         "14 66 01", # 0096: Push short 0x0166
         "00 0B",    # 0099: Push unsigned byte 0x0B
-        "58 78",    # 009B: Spawn hired shadowrunner?
+        "58 78",    # 009B: Spawn hired shadowrunner
         # Wait one frame
         "00 01",    # 009D: Push unsigned byte 0x01
         "BA",       # 009F: Duplicate
@@ -6923,12 +6923,19 @@ romBytes[0x1F2DE:0x1F2DE+2] = romBytes[0xC849B:0xC849B+2]
 # Change the behaviour script for the Wooden Door from 0xAD
 # (closed door) to 0xE2 (open door).
 struct.pack_into("<H", romBytes, 0x6B147, 0x00E2)
-# Resize the "fourth walls" flanking the door
-romBytes[0xC84BC] = 0x29 # <-- Was 0x2B ("fourth wall" below the door)
-romBytes[0xC84DA] = 0x39 # <-- Was 0x37 ("fourth wall" above the door)
-# Enlarge the doorway warp zone to make it easier to traverse
-romBytes[0xC84E8] = 0x29 # <-- Was 0x2A
-romBytes[0xC84EE] = 0x39 # <-- Was 0x38
+# When the player-controllable Jake object is created at the beginning
+# of a new game, some code in [58 78] (Spawn hired shadowrunner) sets
+# the 0x0001 and 0x0002 bits of the Jake object's 7E1474+n entry.
+# I'm not sure what this was intended to do. The bits are cleared upon
+# map transition (i.e. as soon as you leave the morgue main room), and
+# they appear to remain cleared afterwards.
+# With doubled walking speed, however, these bits create an unexpected
+# bug: the door to the morgue hallway becomes unpredictably difficult
+# to traverse. Getting through might happen on your first attempt, or
+# only after retreating and approaching the door half a dozen times.
+# Very annoying, to say the least.
+# So, let's avoid setting those bits in the first place.
+romBytes[0x21F2] = 0x80 # <-- Was 0xD0
 
 # Decker <-- "You can't be alive!" guy
 # Tenth Street - Center
@@ -10827,7 +10834,9 @@ romBytes[0x114629:0x11462D] = bytes.fromhex("88 01 C8 19") # Randomized object's
 romBytes[0x11462D:0x11462F] = romBytes[0xD29A7:0xD29A9]    # Randomized object's object-id
 romBytes[0x11462F:0x114633] = bytes.fromhex("70 01 E0 19") # Randomized object's coordinates (near the Rat Shaman)
 romBytes[0x114633:0x114635] = romBytes[0xD2965:0xD2967]    # Randomized object's object-id
-romBytes[0x114635:0x1146B0] = romBytes[0xD065F:0xD06DA]    # Vanilla remainder of room data
+romBytes[0x114635:0x11465C] = romBytes[0xD065F:0xD0686]    # Vanilla remainder of room data, part 1
+romBytes[0x11465C:0x11465E] = bytes.fromhex("60 02")       # Enlarge the entrance's warp zone to make it easier to traverse
+romBytes[0x11465E:0x1146B0] = romBytes[0xD0688:0xD06DA]    # Vanilla remainder of room data, part 2
 # Update the door destinations to lead to the new Rat Shaman boss room
 struct.pack_into("<H", romBytes, 0x692AF + (9 * 0x12C), 0x4600)
 
