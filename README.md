@@ -61,6 +61,9 @@ Randomizer for Shadowrun (SNES)
 
 ## Gameplay
 * If everything worked correctly, the title screen will show the randomizer version, seed, and flags.
+* To win the game, complete the following tasks in any order:
+   * Rescue Professor Pushkin from Drake Volcano
+   * Destroy the AI Computer in the Aneki Building
 * Items have been shuffled among their vanilla locations, plus the following:
    * The end of the Tenth Street alley (where the "hmmm...." dog is in vanilla)
    * Next to Glutman's booth at The Cage (after you've asked Glutman's secretary about Glutman)
@@ -118,5 +121,5 @@ Randomizer for Shadowrun (SNES)
 * The Tenth Street monorail is open for business when the game begins.
 * The King starts out paid off, so you can enter and leave the caryards freely.
 * You don't have to defeat the Rust Stilettos to enter Jagged Nails.
-* As in vanilla, you must defeat Drake to get the Aneki Password.
+* The Aneki Password is no longer required to enter the Aneki Building.
 * Remember that you can hire shadowrunners to help you out.

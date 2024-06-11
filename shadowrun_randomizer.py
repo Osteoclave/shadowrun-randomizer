@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-05-17"
+randomizerVersion = "2024-06-10"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -271,7 +271,6 @@ Progress = Enum(
         "ITEM___NUYEN___RAT_SHAMAN",
         "ITEM___NUYEN___VAMPIRE",
         "ITEM___PAPERWEIGHT",
-        "ITEM___PASSWORD___ANEKI",
         "ITEM___PASSWORD___DRAKE",
         "ITEM___POTION_BOTTLES",
         "ITEM___RIPPED_NOTE",
@@ -346,6 +345,7 @@ Progress = Enum(
         "EVENT___ANEKI_BUILDING_3F_UNLOCKED",
         "EVENT___ANEKI_BUILDING_4F_UNLOCKED",
         "EVENT___ANEKI_BUILDING_5F_UNLOCKED",
+        "EVENT___AI_COMPUTER_DESTROYED",
         "EVENT___GAME_COMPLETED",
         # NPCs
         "NPC___HAMFIST",
@@ -550,6 +550,20 @@ thisRegion.locations.extend([
             Progress.ITEM___DF_DR_4_4,
         ],
         address = 0xCB935,
+        hidden = False,
+    ),
+    Location(
+        region = thisRegion,
+        category = Category.CONSTANT,
+        description = "Game Completed",
+        vanilla = Entity(Category.CONSTANT, "Game Completed", None, [
+            (Progress.EVENT___GAME_COMPLETED, [
+                Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED,
+                Progress.EVENT___AI_COMPUTER_DESTROYED,
+            ]),
+        ]),
+        requires = [],
+        address = None,
         hidden = False,
     ),
 ])
@@ -4606,8 +4620,9 @@ thisRegion.locations.extend([
             # In vanilla, Professor Pushkin doesn't teach the
             # "Head Computer" keyword. We're teaching it here
             # automatically to avoid a possible softlock.
+            # In vanilla, Professor Pushkin gives you the
+            # Aneki Password here.
             (Progress.KEYWORD___HEAD_COMPUTER,           []),
-            (Progress.ITEM___PASSWORD___ANEKI,           [Progress.KEYWORD___HEAD_COMPUTER]),
             (Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED, [Progress.KEYWORD___HEAD_COMPUTER]),
         ]),
         requires = [],
@@ -4632,10 +4647,11 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "Computer",
         vanilla = Entity(Category.CONSTANT, "Computer", 0x6C706, [
+            # In vanilla, you need the Aneki Password to get
+            # into this computer.
             (Progress.EVENT___ANEKI_BUILDING_2F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
-                Progress.ITEM___PASSWORD___ANEKI,
             ]),
         ]),
         requires = [],
@@ -4872,7 +4888,7 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "AI Computer",
         vanilla = Entity(Category.CONSTANT, "AI Computer", 0x6CBAC, [
-            (Progress.EVENT___GAME_COMPLETED, [
+            (Progress.EVENT___AI_COMPUTER_DESTROYED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
             ]),
@@ -10274,43 +10290,185 @@ expandedOffset = scriptHelper(
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 14",    # 0002: Push unsigned byte 0x14 <-- Keyword-id for "Head Computer"
         "58 71",    # 0004: Learn keyword
-        "C0",       # 0006: Push zero
-        "C2",       # 0007: Push $13
-        "58 D0",    # 0008: Change displayed sprite?
-        "00 40",    # 000A: Push unsigned byte 0x40
-        "C2",       # 000C: Push $13
-        "58 B4",    # 000D: Register conversation?
+        "00 04",    # 0006: Push unsigned byte 0x04
+        "C0",       # 0008: Push zero
+        "C2",       # 0009: Push $13
+        "58 D1",    # 000A: Display sprite
+        "00 40",    # 000C: Push unsigned byte 0x40
+        "C2",       # 000E: Push $13
+        "58 B4",    # 000F: Register conversation
         # TOP_OF_LOOP
-        "C2",       # 000F: Push $13
-        "58 6C",    # 0010: ???
-        "00 05",    # 0012: Push unsigned byte 0x05
-        "00 03",    # 0014: Push unsigned byte 0x03
-        "58 9E",    # 0016: Register menu options / time delay
-        "BC",       # 0018: Pop
-        "C2",       # 0019: Push $13
-        "58 02",    # 001A: Push object's flags
-        "00 80",    # 001C: Push unsigned byte 0x80
-        "7E",       # 001E: Bitwise AND
-        "BE",       # 001F: Convert to boolean
-        "44 0F 00", # 0020: If false, jump to TOP_OF_LOOP
-        # GIVE_ANEKI_PASSWORD
-        "14 B2 08", # 0023: Push short 0x08B2 <-- Object-id for Jake
-        "14 62 07", # 0026: Push short 0x0762 <-- Object-id for Password (Aneki)
-        "58 74",    # 0029: Set object's owner
+        "C2",       # 0011: Push $13
+        "58 6C",    # 0012: Face towards Jake
+        "00 05",    # 0014: Push unsigned byte 0x05
+        "00 03",    # 0016: Push unsigned byte 0x03
+        "58 9E",    # 0018: Register menu options / time delay
+        "BC",       # 001A: Pop
+        "C2",       # 001B: Push $13
+        "58 02",    # 001C: Push object's flags
+        "00 80",    # 001E: Push unsigned byte 0x80
+        "7E",       # 0020: Bitwise AND
+        "BE",       # 0021: Convert to boolean
+        "44 11 00", # 0022: If false, jump to TOP_OF_LOOP
         # STOCK_DARK_BLADE_CASES
-        "0A FD",    # 002B: Push signed byte 0xFD
-        "14 F1 0F", # 002D: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
-        "58 4B",    # 0030: Clear bits of object's flags
-        "0A FD",    # 0032: Push signed byte 0xFD
-        "14 14 10", # 0034: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
-        "58 4B",    # 0037: Clear bits of object's flags
-        # EXIT_VOLCANO
-        "14 AA 01", # 0039: Push short 0x01AA
-        "C0",       # 003C: Push zero
-        "00 02",    # 003D: Push unsigned byte 0x02
-        "58 54",    # 003F: Teleport to door destination, with extra arguments?
+        "0A FD",    # 0025: Push signed byte 0xFD
+        "14 F1 0F", # 0027: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
+        "58 4B",    # 002A: Clear bits of object's flags
+        "0A FD",    # 002C: Push signed byte 0xFD
+        "14 14 10", # 002E: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
+        "58 4B",    # 0031: Clear bits of object's flags
+        # CHECK_IF_AI_COMPUTER_DESTROYED
+        "14 7B 1B", # 0033: Push short 0x1B7B <-- Object-id of AI Computer
+        "58 BA",    # 0036: Push object's flags
+        "00 40",    # 0038: Push unsigned byte 0x40
+        "7E",       # 003A: Bitwise AND
+        "BE",       # 003B: Convert to boolean
+        "46 4D 00", # 003C: If true, jump to AI_COMPUTER_DESTROYED
+        # AI_COMPUTER_NOT_DESTROYED
+        "14 AA 01", # 003F: Push short 0x01AA
+        "58 56",    # 0042: Teleport to door destination
+        "00 01",    # 0044: Push unsigned byte 0x01
+        "BA",       # 0046: Duplicate
+        "58 9E",    # 0047: Register menu options / time delay
+        "BC",       # 0049: Pop
+        "48 60 00", # 004A: Jump to DONE
+        # AI_COMPUTER_DESTROYED
+        "00 03",    # 004D: Push unsigned byte 0x03
+        "00 2C",    # 004F: Push unsigned byte 0x2C
+        "58 12",    # 0051: Write short to 7E3BBB+n
+        "00 F2",    # 0053: Push unsigned byte 0xF2
+        "C0",       # 0055: Push zero
+        "00 14",    # 0056: Push unsigned byte 0x14
+        "58 54",    # 0058: Teleport to door destination with vehicle cutscene
+        "00 01",    # 005A: Push unsigned byte 0x01
+        "BA",       # 005C: Duplicate
+        "58 9E",    # 005D: Register menu options / time delay
+        "BC",       # 005F: Pop
         # DONE
-        "56",       # 0041: End
+        "C2",       # 0060: Push $13
+        "58 B8",    # 0061: Despawn object
+        "56",       # 0063: End
+    ],
+)
+
+# Computer <-- Aneki Building lobby
+# Remove the check for the Aneki Password
+writeHelper(romBytes, 0xFDE62, bytes.fromhex(' '.join([
+    "BC",       # 0040: Pop
+    "C0",       # 0041: Push zero
+    "BC",       # 0042: Pop
+])))
+
+# AI Computer
+expandedOffset = scriptHelper(
+    scriptNumber = 0x105,
+    argsLen      = 0x02, # Script 0x105 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x105 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "C0",       # 0002: Push zero
+        "C0",       # 0003: Push zero
+        "C2",       # 0004: Push $13
+        "58 D1",    # 0005: Display sprite
+        "00 80",    # 0007: Push unsigned byte 0x80
+        "C2",       # 0009: Push $13
+        "58 CE",    # 000A: Set bits of 7E1474+n <-- Makes the AI Computer object invisible
+        # CHECK_IF_AI_COMPUTER_ALREADY_DESTROYED
+        "C2",       # 000C: Push $13
+        "58 02",    # 000D: Push object's flags
+        "00 40",    # 000F: Push unsigned byte 0x40
+        "7E",       # 0011: Bitwise AND
+        "BE",       # 0012: Convert to boolean
+        "46 90 00", # 0013: If true, jump to DONE
+        # CHECK_IF_JUST_FINISHED_DECKING
+        "C2",       # 0016: Push $13
+        "58 02",    # 0017: Push object's flags
+        "00 01",    # 0019: Push unsigned byte 0x01
+        "7E",       # 001B: Bitwise AND
+        "BE",       # 001C: Convert to boolean
+        "44 7C 00", # 001D: If false, jump to WAIT_FOR_CYBERDECK
+        # JUST_FINISHED_DECKING
+        "00 01",    # 0020: Push unsigned byte 0x01
+        "BA",       # 0022: Duplicate
+        "58 9E",    # 0023: Register menu options / time delay
+        "BC",       # 0025: Pop
+        "14 7E FF", # 0026: Push short 0xFF7E
+        "C2",       # 0029: Push $13
+        "58 7A",    # 002A: Clear bits of object's flags <-- Clear the AI Computer's 0x80 and 0x01 flags
+        # CHECK_IF_JUST_FINISHED_DESTROYING_THE_AI_COMPUTER
+        "04 AE 1D", # 002C: Push unsigned byte from $7E1DAE <-- Bit flags for interacted-with Matrix objects
+        "00 80",    # 002F: Push unsigned byte 0x80
+        "7E",       # 0031: Bitwise AND
+        "BE",       # 0032: Convert to boolean
+        "44 7C 00", # 0033: If false, jump to WAIT_FOR_CYBERDECK
+        # JUST_FINISHED_DESTROYING_THE_AI_COMPUTER
+        "00 01",    # 0036: Push unsigned byte 0x01
+        "14 5A 02", # 0038: Push short 0x025A
+        "C0",       # 003B: Push zero
+        "00 03",    # 003C: Push unsigned byte 0x03
+        "00 10",    # 003E: Push unsigned byte 0x10
+        "00 02",    # 0040: Push unsigned byte 0x02
+        "00 08",    # 0042: Push unsigned byte 0x08
+        "58 C7",    # 0044: Print text ("PROGRAM DOWNLOADED")
+        "58 A2",    # 0046: Wait for player input
+        "00 40",    # 0048: Push unsigned byte 0x40
+        "C2",       # 004A: Push $13
+        "58 33",    # 004B: Set bits of object's flags
+        ## STOCK_DARK_BLADE_CASES
+        #"0A FD",    # ____: Push signed byte 0xFD
+        #"14 F1 0F", # ____: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
+        #"58 4B",    # ____: Clear bits of object's flags
+        #"0A FD",    # ____: Push signed byte 0xFD
+        #"14 14 10", # ____: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
+        #"58 4B",    # ____: Clear bits of object's flags
+        # CHECK_IF_PROFESSOR_PUSHKIN_RESCUED
+        "14 B4 04", # 004D: Push short 0x04B4 <-- Object-id of Professor Pushkin
+        "58 BA",    # 0050: Push object's flags
+        "00 80",    # 0052: Push unsigned byte 0x80
+        "7E",       # 0054: Bitwise AND
+        "BE",       # 0055: Convert to boolean
+        "46 66 00", # 0056: If true, jump to PROFESSOR_PUSHKIN_RESCUED
+        # PROFESSOR_PUSHKIN_NOT_RESCUED
+        "00 A0",    # 0059: Push unsigned byte 0xA0
+        "58 56",    # 005B: Teleport to door destination <-- Reload the AI Computer room
+        "00 01",    # 005D: Push unsigned byte 0x01
+        "BA",       # 005F: Duplicate
+        "58 9E",    # 0060: Register menu options / time delay
+        "BC",       # 0062: Pop
+        "48 90 00", # 0063: Jump to DONE
+        # PROFESSOR_PUSHKIN_RESCUED
+        "00 03",    # 0066: Push unsigned byte 0x03
+        "00 2C",    # 0068: Push unsigned byte 0x2C
+        "58 12",    # 006A: Write short to 7E3BBB+n
+        "00 F2",    # 006C: Push unsigned byte 0xF2
+        "C0",       # 006E: Push zero
+        "00 14",    # 006F: Push unsigned byte 0x14
+        "58 54",    # 0071: Teleport to door destination with vehicle cutscene
+        "00 01",    # 0073: Push unsigned byte 0x01
+        "BA",       # 0075: Duplicate
+        "58 9E",    # 0076: Register menu options / time delay
+        "BC",       # 0078: Pop
+        "48 90 00", # 0079: Jump to DONE
+        # WAIT_FOR_CYBERDECK
+        # Using a Cyberdeck on the AI Computer will set the latter's 0x80 flag.
+        "C2",       # 007C: Push $13
+        "52 01 01", # 007D: Execute behaviour script 0x101 = Wait for object's 0x80 flag to be set
+        "00 01",    # 0080: Push unsigned byte 0x01
+        "C2",       # 0082: Push $13
+        "58 33",    # 0083: Set bits of object's flags
+        "00 03",    # 0085: Push unsigned byte 0x03
+        "C0",       # 0087: Push zero
+        "00 A0",    # 0088: Push unsigned byte 0xA0
+        "00 10",    # 008A: Push unsigned byte 0x10
+        "C2",       # 008C: Push $13
+        "52 E7 02", # 008D: Execute behaviour script 0x2E7 = Computer helper script
+        # DONE
+        "C2",       # 0090: Push $13
+        "58 B8",    # 0091: Despawn object
+        "56",       # 0093: End
     ],
 )
 
@@ -10720,11 +10878,19 @@ romBytes[0x1CE3] = 0xBD
 #romBytes[0xC84F4] = 0x9F # 0x009F = Door-id to enter Gold Naga boss room from lower left
 #romBytes[0xC84F5] = 0x00
 
+## Warp to Professor Pushkin's room when exiting the morgue's main room
+#romBytes[0xC84F4] = 0xA2 # 0x00A2 = Door-id to enter Professor Pushkin's room
+#romBytes[0xC84F5] = 0x00
+
 ## Start with the Aneki Password
 ## The computer on the first floor of the Aneki Building requires you to
 ## have the Aneki Password in your inventory in order to proceed.
 #initialItemState[0x666] = 0xB2 # 0x08B2 = Object-id for Jake
 #initialItemState[0x667] = 0x08
+
+## Warp to the AI Computer room when exiting the morgue's main room
+#romBytes[0xC84F4] = 0x76 # 0x0176 = Door-id to enter AI Computer room
+#romBytes[0xC84F5] = 0x01
 
 # ------------------------------------------------------------------------
 # TODO:
