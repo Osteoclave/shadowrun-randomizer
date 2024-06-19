@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-06-10"
+randomizerVersion = "2024-06-19"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -3501,7 +3501,7 @@ thisRegion.locations.extend([
         ]),
         requires = [Progress.ITEM___SAFE_KEY],
         address = 0xD230F,
-        hidden = False,
+        hidden = True,
     ),
     Location(
         region = thisRegion,
@@ -3512,7 +3512,7 @@ thisRegion.locations.extend([
         ]),
         requires = [Progress.ITEM___SAFE_KEY],
         address = 0xD2321,
-        hidden = False,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
@@ -3618,7 +3618,7 @@ thisRegion.locations.extend([
         ]),
         requires = [Progress.ITEM___TIME_BOMB],
         address = 0xD24E9,
-        hidden = False,
+        hidden = True,
     ),
 ])
 thisRegion.doors.extend([
@@ -9353,14 +9353,69 @@ romBytes[0xC9D50] = 0x8B # <-- Was 0x90
 romBytes[0xC9D58] = 0xFB # <-- Was 0x01
 romBytes[0xC9D59] = 0x01 # <-- Was 0x02
 
-# TODO:
-# I'm not sure if the doors on the two Safes will successfully conceal every
-# item shuffled into the Detonator, Broken Bottle and Green Bottle slots.
-# Might have to make those locations hidden, then update script 0x329 (Safe)
-# so it makes the new items in those locations visible.
-# We don't want the items in those three slots to be like the Slap Patch in
-# the morgue, which can be picked up through a closed fridge door with some
-# careful cursor placement.
+# Safes I and II (unlocked with Safe Key and Time Bomb respectively)
+expandedOffset = scriptHelper(
+    scriptNumber = 0x329,
+    argsLen      = 0x02, # Script 0x329 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x329 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x07, # Header byte: Script uses 0x07 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-00BC from the original script.
+        romBytes[0xF5815:0xF58D2].hex(' '),
+        # New code.
+        # CHECK_IF_SAFE_I_IS_UNLOCKED
+        "C2",       # 00BD: Push $13
+        "58 CB",    # 00BE: Push object-id
+        "14 35 06", # 00C0: Push short 0x0635 <-- Object-id of Safe I (unlocked with Safe Key)
+        "AA",       # 00C3: Check if equal
+        "44 D8 00", # 00C4: If not equal, jump to CHECK_IF_SAFE_II_IS_UNLOCKED
+        # SAFE_I_IS_UNLOCKED
+        # Safe I: Detonator
+        # Reveal the new item shuffled to this location
+        "00 80",    # 00C7: Push unsigned byte 0x80
+        f"14 {romBytes[0xD230F+0]:02X} {romBytes[0xD230F+1]:02X}",
+                    # 00C9: Push short 0x#### <-- Object-id of new item in "Detonator" location
+        "58 0D",    # 00CC: Set bits of object's flags
+        # Safe I: Broken Bottle
+        # Reveal the new item shuffled to this location
+        "00 80",    # 00CE: Push unsigned byte 0x80
+        f"14 {romBytes[0xD2321+0]:02X} {romBytes[0xD2321+1]:02X}",
+                    # 00D0: Push short 0x#### <-- Object-id of new item in "Broken Bottle" location
+        "58 0D",    # 00D3: Set bits of object's flags
+        "48 E9 00", # 00D5: Jump to SAFE_UNLOCKED
+        # CHECK_IF_SAFE_II_IS_UNLOCKED
+        "C2",       # 00D8: Push $13
+        "58 CB",    # 00D9: Push object-id
+        "14 3C 06", # 00DB: Push short 0x063C <-- Object-id of Safe II (unlocked with Time Bomb)
+        "AA",       # 00DE: Check if equal
+        "44 E9 00", # 00DF: If not equal, jump to SAFE_UNLOCKED
+        # SAFE_II_IS_UNLOCKED
+        # Safe II: Green Bottle
+        # Reveal the new item shuffled to this location
+        "00 80",    # 00E2: Push unsigned byte 0x80
+        f"14 {romBytes[0xD24E9+0]:02X} {romBytes[0xD24E9+1]:02X}",
+                    # 00E4: Push short 0x#### <-- Object-id of new item in "Detonator" location
+        "58 0D",    # 00E7: Set bits of object's flags
+        # SAFE_UNLOCKED
+        "00 2E",    # 00E9: Push unsigned byte 0x2E
+        "00 02",    # 00EB: Push unsigned byte 0x02
+        "00 06",    # 00ED: Push unsigned byte 0x06
+        "C0",       # 00EF: Push zero
+        "C2",       # 00F0: Push $13
+        "52 74 00", # 00F1: Execute behaviour script 0x74 = Open door helper script
+        "00 2E",    # 00F4: Push unsigned byte 0x2E
+        "00 2C",    # 00F6: Push unsigned byte 0x2C
+        "C0",       # 00F8: Push zero
+        "00 04",    # 00F9: Push unsigned byte 0x04
+        "00 02",    # 00FB: Push unsigned byte 0x02
+        "C2",       # 00FD: Push $13
+        "52 A2 02", # 00FE: Execute behaviour script 0x2A2 = Closed door helper script
+        "48 E9 00", # 0101: Jump to SAFE_UNLOCKED
+        "56",       # 0104: End
+    ],
+)
 
 # Safe Key
 writeHelper(romBytes, 0xF4618, bytes.fromhex(' '.join([
@@ -9375,6 +9430,10 @@ romBytes[0x66850] = 0x08
 romBytes[0xF580E:0xF580E+2] = romBytes[0xD2315:0xD2315+2]
 
 # Detonator
+writeHelper(romBytes, 0xD230B, bytes.fromhex(' '.join([
+    "44 02",    # Move the spawn point to the floor outside the safe
+    "96 11",    # New coordinates: (580, 406, 64)
+])))
 writeHelper(romBytes, 0xF40C2, bytes.fromhex(' '.join([
     "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
     "C2",       # 0002: Push $13
@@ -9393,6 +9452,10 @@ writeHelper(romBytes, 0xF410F, bytes.fromhex(' '.join([
 ])))
 
 # Broken Bottle
+writeHelper(romBytes, 0xD231D, bytes.fromhex(' '.join([
+    "46 02",    # Move the spawn point to the floor outside the safe
+    "B4 11",    # New coordinates: (582, 436, 64)
+])))
 writeHelper(romBytes, 0xF4118, bytes.fromhex(' '.join([
     "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
     "C2",       # 0002: Push $13
@@ -9411,6 +9474,10 @@ writeHelper(romBytes, 0xF4162, bytes.fromhex(' '.join([
 ])))
 
 # Green Bottle
+writeHelper(romBytes, 0xD24E5, bytes.fromhex(' '.join([
+    "45 02",    # Move the spawn point to the floor outside the safe
+    "97 11",    # New coordinates: (581, 407, 64)
+])))
 writeHelper(romBytes, 0xF428E, bytes.fromhex(' '.join([
     "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
     "C2",       # 0002: Push $13
@@ -10852,6 +10919,32 @@ romBytes[0x1CE3] = 0xBD
 
 ## Open the door leading to Bremerton's interior
 #initialItemState[0x32B] |= 0x01
+
+## Warp to Safe I's room when exiting the morgue's main room
+#romBytes[0xC84F4] = 0x4C # 0x014C = Door-id to enter Safe I's room
+#romBytes[0xC84F5] = 0x01
+
+## Start with the Safe Key
+#initialItemState[0xC47] = 0xB2 # 0x08B2 = Object-id for Jake
+#initialItemState[0xC48] = 0x08
+
+## Warp to Safe II's room when exiting the morgue's main room
+#romBytes[0xC84F4] = 0x56 # 0x0156 = Door-id to enter Safe II's room
+#romBytes[0xC84F5] = 0x01
+
+## Start with the Time Bomb
+#initialItemState[0x66B] = 0xB2 # 0x08B2 = Object-id for Jake
+#initialItemState[0x66C] = 0x08
+
+## Start with Safe II's guards defeated
+#initialItemState[0xCA6] = 0x38
+#initialItemState[0xCA7] = 0x15
+#initialItemState[0xCAB] = 0x38
+#initialItemState[0xCAC] = 0x15
+#initialItemState[0xCB0] = 0x38
+#initialItemState[0xCB1] = 0x15
+#initialItemState[0xCB5] = 0x38
+#initialItemState[0xCB6] = 0x15
 
 ## Warp to the Jester Spirit boss room when exiting the morgue's main room
 #romBytes[0xC84F4] = 0x4B # 0x004B = Door-id to enter Jester Spirit boss room
