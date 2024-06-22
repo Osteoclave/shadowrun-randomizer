@@ -5369,7 +5369,7 @@ expandedOffset = scriptHelper(
         "7E",       # 0017: Bitwise AND
         "BE",       # 0018: Convert to boolean
         "44 0C 00", # 0019: If false, jump to 000C
-        # Display sprite
+        # Display sprite with facing direction 00
         # Based on behaviour script 0x244
         "C0",       # 001C: Push zero
         "C0",       # 001D: Push zero
@@ -6139,7 +6139,7 @@ expandedOffset = scriptHelper(
         # Add one to quantity
         "00 01",    # 00DA: Push unsigned byte 0x01
         "16 05",    # 00DC: Push short from $13+05 <-- Object-id of item inside the case
-        "58 26",    # 00DE: Add amount to object's quantity
+        "58 26",    # 00DE: Add amount to object's quantity (stackables)
         "48 E8 00", # 00E0: Jump to CHANGE_OWNERSHIP
         # NOT_STACKABLE
         # Set 0x01 bit of glass case to mark as purchased
@@ -6843,7 +6843,7 @@ expandedOffset = scriptHelper(
         "46 5B 00", # 0007: If nonzero, jump to DONE
         # NO_SLAP_PATCHES_IN_INVENTORY
         "C2",       # 000A: Push $13
-        "52 44 02", # 000B: Execute behaviour script 0x244 = Display sprite
+        "52 44 02", # 000B: Execute behaviour script 0x244 = Display sprite with facing direction 00
         # TOP_OF_LOOP
         "C0",       # 000E: Push zero
         "C0",       # 000F: Push zero
@@ -6883,7 +6883,7 @@ expandedOffset = scriptHelper(
         # PICKUP_OK
         "00 01",    # 0049: Push unsigned byte 0x01
         "14 95 03", # 004B: Push short 0x0395 <-- Object-id of "Slap Patch" (stackable inventory item)
-        "58 26",    # 004E: Add amount to object's quantity
+        "58 26",    # 004E: Add amount to object's quantity (stackables)
         "14 B2 08", # 0050: Push short 0x08B2 <-- Object-id for Jake
         "14 95 03", # 0053: Push short 0x0395 <-- Object-id of "Slap Patch" (stackable inventory item)
         "58 74",    # 0056: Set object's owner
@@ -7710,7 +7710,7 @@ expandedOffset = scriptHelper(
         "48 3B 01", # 0133: Jump to BOTTOM_OF_LOOP
         # NOT_USING_IT_ON_THAT
         "16 04",    # 0136: Push short from $13+04 <-- Object-id that the Potion Bottles are being used on
-        "52 85 00", # 0138: Execute behaviour script 0x85 = "I'm not using it on..." helper script
+        "52 85 00", # 0138: Execute behaviour script 0x85 = "I'm not using it on..." helper script (generic)
         # BOTTOM_OF_LOOP
         "0C 01",    # 013B: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 013D: If no, jump to TOP_OF_LOOP
@@ -7837,7 +7837,7 @@ expandedOffset = scriptHelper(
         "48 B0 00", # 00A8: Jump to BOTTOM_OF_LOOP
         # NOT_USING_IT_ON_THAT
         "16 04",    # 00AB: Push short from $13+04 <-- Object-id that the Black Bottle is being used on
-        "52 85 00", # 00AD: Execute behaviour script 0x85 = "I'm not using it on..." helper script
+        "52 85 00", # 00AD: Execute behaviour script 0x85 = "I'm not using it on..." helper script (generic)
         # BOTTOM_OF_LOOP
         "0C 01",    # 00B0: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 00B2: If no, jump to TOP_OF_LOOP
@@ -7979,7 +7979,7 @@ expandedOffset = scriptHelper(
         "48 CE 00", # 00C6: Jump to BOTTOM_OF_LOOP
         # NOT_USING_IT_ON_THAT
         "16 04",    # 00C9: Push short from $13+04 <-- Object-id that the Stake is being used on
-        "52 85 00", # 00CB: Execute behaviour script 0x85 = "I'm not using it on..." helper script
+        "52 85 00", # 00CB: Execute behaviour script 0x85 = "I'm not using it on..." helper script (generic)
         # BOTTOM_OF_LOOP
         "0C 01",    # 00CE: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 00D0: If no, jump to TOP_OF_LOOP
@@ -10531,7 +10531,7 @@ expandedOffset = scriptHelper(
         "00 A0",    # 0088: Push unsigned byte 0xA0
         "00 10",    # 008A: Push unsigned byte 0x10
         "C2",       # 008C: Push $13
-        "52 E7 02", # 008D: Execute behaviour script 0x2E7 = Computer helper script
+        "52 E7 02", # 008D: Execute behaviour script 0x2E7 = Matrix login helper script
         # DONE
         "C2",       # 0090: Push $13
         "58 B8",    # 0091: Despawn object
