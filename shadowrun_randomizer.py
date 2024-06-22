@@ -5374,7 +5374,7 @@ expandedOffset = scriptHelper(
         "C0",       # 001C: Push zero
         "C0",       # 001D: Push zero
         "C2",       # 001E: Push $13
-        "58 D1",    # 001F: Display sprite
+        "58 D1",    # 001F: Display sprite with facing direction
         # End
         "56",       # 0021: End
     ],
@@ -6009,7 +6009,7 @@ expandedOffset = scriptHelper(
         "C0",       # 000A: Push zero
         "C0",       # 000B: Push zero
         "C2",       # 000C: Push $13
-        "58 D1",    # 000D: Display sprite
+        "58 D1",    # 000D: Display sprite with facing direction
         # TOP_OF_LOOP
         # Check the glass case's 0x01 flag.
         "C2",       # 000F: Push $13
@@ -6551,7 +6551,7 @@ expandedOffset = scriptHelper(
         "00 01",    # 01D3: Push unsigned byte 0x01
         "C0",       # 01D5: Push zero
         "C2",       # 01D6: Push $13
-        "58 D1",    # 01D7: Display sprite
+        "58 D1",    # 01D7: Display sprite with facing direction
         # Set Larry's "new-game cutscene completed" (0x01) flag
         "00 01",    # 01D9: Push unsigned byte 0x01
         "C2",       # 01DB: Push $13
@@ -6595,7 +6595,7 @@ expandedOffset = scriptHelper(
         "00 06",    # 0086: Push unsigned byte 0x06
         "C0",       # 0088: Push zero
         "C2",       # 0089: Push $13
-        "58 D1",    # 008A: Display sprite
+        "58 D1",    # 008A: Display sprite with facing direction
         # Set Sam's "new-game cutscene completed" (0x01) flag
         "00 01",    # 008C: Push unsigned byte 0x01
         "C2",       # 008E: Push $13
@@ -6633,7 +6633,7 @@ writeHelper(romBytes, 0x1EE69, bytes.fromhex(' '.join([
     "C0",       # 001E: Push zero
     "00 08",    # 001F: Push unsigned byte 0x08
     "C2",       # 0021: Push $13
-    "58 D1",    # 0022: Display sprite
+    "58 D1",    # 0022: Display sprite with facing direction
     "48 93 00", # 0024: Jump to 0093
 ])))
 # Skip the text popup for the vanilla Torn Paper
@@ -6694,7 +6694,7 @@ expandedOffset = scriptHelper(
         "C0",       # 0067: Push zero
         "C0",       # 0068: Push zero
         "C2",       # 0069: Push $13
-        "58 D1",    # 006A: Display sprite
+        "58 D1",    # 006A: Display sprite with facing direction
         # Wait for Jake to be standing up
         "00 40",    # 006C: Push unsigned byte 0x40
         "00 01",    # 006E: Push unsigned byte 0x01
@@ -7434,7 +7434,7 @@ expandedOffset = scriptHelper(
         "00 05",    # 0067: Push unsigned byte 0x05
         "00 07",    # 0069: Push unsigned byte 0x07
         "C2",       # 006B: Push $13
-        "58 D1",    # 006C: Display sprite
+        "58 D1",    # 006C: Display sprite with facing direction
         "00 78",    # 006E: Push unsigned byte 0x78
         "00 16",    # 0070: Push unsigned byte 0x16
         "14 00 04", # 0072: Push short 0x0400
@@ -8059,7 +8059,7 @@ expandedOffset = scriptHelper(
         "00 02",    # 000C: Push unsigned byte 0x02
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8086,7 +8086,7 @@ expandedOffset = scriptHelper(
         "00 06",    # 000C: Push unsigned byte 0x06
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8113,7 +8113,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 000C: Push unsigned byte 0x03
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
         "58 D0",    # 0015: Change displayed sprite?
@@ -8172,7 +8172,7 @@ expandedOffset = scriptHelper(
         "00 02",    # 000C: Push unsigned byte 0x02
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8199,7 +8199,7 @@ expandedOffset = scriptHelper(
         "00 06",    # 000C: Push unsigned byte 0x06
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8226,7 +8226,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 000C: Push unsigned byte 0x03
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
         "58 D0",    # 0015: Change displayed sprite?
@@ -8292,7 +8292,7 @@ expandedOffset = scriptHelper(
         "00 00",    # 000C: Push unsigned byte 0x00
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8319,7 +8319,7 @@ expandedOffset = scriptHelper(
         "00 04",    # 000C: Push unsigned byte 0x04
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8346,7 +8346,7 @@ expandedOffset = scriptHelper(
         "00 07",    # 000C: Push unsigned byte 0x07
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
         "58 D0",    # 0015: Change displayed sprite?
@@ -8412,7 +8412,7 @@ expandedOffset = scriptHelper(
         "00 00",    # 000C: Push unsigned byte 0x00
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8439,7 +8439,7 @@ expandedOffset = scriptHelper(
         "00 04",    # 000C: Push unsigned byte 0x04
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "C2",       # 0012: Push $13
         "58 5B",    # 0013: ???
         "56",       # 0015: End
@@ -8466,7 +8466,7 @@ expandedOffset = scriptHelper(
         "00 07",    # 000C: Push unsigned byte 0x07
         "C0",       # 000E: Push zero
         "C2",       # 000F: Push $13
-        "58 D1",    # 0010: Display sprite
+        "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
         "58 D0",    # 0015: Change displayed sprite?
@@ -8935,7 +8935,7 @@ expandedOffset = scriptHelper(
         "C0",       # 0024: Push zero
         "00 04",    # 0025: Push unsigned byte 0x04
         "C2",       # 0027: Push $13
-        "58 D1",    # 0028: Display sprite
+        "58 D1",    # 0028: Display sprite with facing direction
         "C2",       # 002A: Push $13
         "58 AB",    # 002B: ???
         # TOP_OF_LOOP
@@ -9718,7 +9718,7 @@ expandedOffset = scriptHelper(
         "C0",       # 0094: Push zero
         "C0",       # 0095: Push zero
         "C2",       # 0096: Push $13
-        "58 D1",    # 0097: Display sprite
+        "58 D1",    # 0097: Display sprite with facing direction
         "00 01",    # 0099: Push unsigned byte 0x01
         "C2",       # 009B: Push $13
         "58 B5",    # 009C: Move object instantly to waypoint?
@@ -10123,7 +10123,7 @@ expandedOffset = scriptHelper(
         "00 05",    # 0038: Push unsigned byte 0x05
         "00 02",    # 003A: Push unsigned byte 0x02
         "C2",       # 003C: Push $13
-        "58 D1",    # 003D: Display sprite
+        "58 D1",    # 003D: Display sprite with facing direction
         "14 00 01", # 003F: Push short 0x0100
         "C2",       # 0042: Push $13
         "58 CE",    # 0043: Set bits of 7E1474+n
@@ -10163,7 +10163,7 @@ expandedOffset = scriptHelper(
         "58 57",    # 001B: Read short from 7E3BBB+n
         "88",       # 001D: Decrement
         "C2",       # 001E: Push $13
-        "58 D1",    # 001F: Display sprite
+        "58 D1",    # 001F: Display sprite with facing direction
         # DONE
         "C2",       # 0021: Push $13
         "58 5B",    # 0022: ???
@@ -10360,7 +10360,7 @@ expandedOffset = scriptHelper(
         "00 04",    # 0006: Push unsigned byte 0x04
         "C0",       # 0008: Push zero
         "C2",       # 0009: Push $13
-        "58 D1",    # 000A: Display sprite
+        "58 D1",    # 000A: Display sprite with facing direction
         "00 40",    # 000C: Push unsigned byte 0x40
         "C2",       # 000E: Push $13
         "58 B4",    # 000F: Register conversation
@@ -10439,7 +10439,7 @@ expandedOffset = scriptHelper(
         "C0",       # 0002: Push zero
         "C0",       # 0003: Push zero
         "C2",       # 0004: Push $13
-        "58 D1",    # 0005: Display sprite
+        "58 D1",    # 0005: Display sprite with facing direction
         "00 80",    # 0007: Push unsigned byte 0x80
         "C2",       # 0009: Push $13
         "58 CE",    # 000A: Set bits of 7E1474+n <-- Makes the AI Computer object invisible
