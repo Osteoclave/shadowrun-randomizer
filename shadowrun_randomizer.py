@@ -5351,11 +5351,11 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 21 00", # 0005: If yes, jump to 0021
-        "C2",       # 0008: Push $13
-        "C2",       # 0009: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 9C",    # 000A: Write byte to first byte of object's 7E2E00 data <-- Spawn index
         # Wait until object's 0x80 flag is set
         # Based on behaviour script 0x101
@@ -5363,7 +5363,7 @@ expandedOffset = scriptHelper(
         "BA",       # 000E: Duplicate
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0013: Push object's flags
         "00 80",    # 0015: Push unsigned byte 0x80
         "7E",       # 0017: Bitwise AND
@@ -5373,7 +5373,7 @@ expandedOffset = scriptHelper(
         # Based on behaviour script 0x244
         "C0",       # 001C: Push zero
         "C0",       # 001D: Push zero
-        "C2",       # 001E: Push $13
+        "C2",       # 001E: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 001F: Display sprite with facing direction
         # End
         "56",       # 0021: End
@@ -5394,26 +5394,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 00",    # 001E: Push unsigned byte 0x00     0 = Accuracy
         "00 03",    # 0020: Push unsigned byte 0x03     3 = Attack
         "00 06",    # 0022: Push unsigned byte 0x06     6 = Type (light)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5433,26 +5433,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Accuracy
         "00 03",    # 0020: Push unsigned byte 0x03     3 = Attack
         "00 06",    # 0022: Push unsigned byte 0x06     6 = Type (light)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5475,26 +5475,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Accuracy
         "00 03",    # 0020: Push unsigned byte 0x03     3 = Attack
         "00 06",    # 0022: Push unsigned byte 0x06     6 = Type (light)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5512,26 +5512,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Accuracy
         "00 04",    # 0020: Push unsigned byte 0x04     4 = Attack
         "00 06",    # 0022: Push unsigned byte 0x06     6 = Type (light)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5551,26 +5551,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 02",    # 001C: Push unsigned byte 0x02     2 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
         "00 04",    # 0020: Push unsigned byte 0x04     4 = Attack
         "00 00",    # 0022: Push unsigned byte 0x00     0 = Type (heavy)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5588,26 +5588,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 03",    # 001C: Push unsigned byte 0x03     3 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
         "00 06",    # 0020: Push unsigned byte 0x06     6 = Attack
         "00 00",    # 0022: Push unsigned byte 0x00     0 = Type (heavy)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5625,26 +5625,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 04",    # 001C: Push unsigned byte 0x04     4 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
         "00 08",    # 0020: Push unsigned byte 0x08     8 = Attack
         "00 00",    # 0022: Push unsigned byte 0x00     0 = Type (heavy)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5662,26 +5662,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 04",    # 001C: Push unsigned byte 0x04     4 = Strength required
         "00 03",    # 001E: Push unsigned byte 0x03     3 = Accuracy
         "00 08",    # 0020: Push unsigned byte 0x08     8 = Attack
         "00 01",    # 0022: Push unsigned byte 0x01     1 = Type (auto)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5699,26 +5699,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 05",    # 001C: Push unsigned byte 0x05     5 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Accuracy
         "00 0A",    # 0020: Push unsigned byte 0x0A    10 = Attack
         "00 00",    # 0022: Push unsigned byte 0x00     0 = Type (heavy)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5736,26 +5736,26 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 05",    # 001C: Push unsigned byte 0x05     5 = Strength required
         "00 06",    # 001E: Push unsigned byte 0x06     6 = Accuracy
         "00 14",    # 0020: Push unsigned byte 0x14    20 = Attack
         "00 00",    # 0022: Push unsigned byte 0x00     0 = Type (heavy)
-        "C2",       # 0024: Push $13
+        "C2",       # 0024: Push unsigned byte from $13+00 <-- Spawn index
         "52 11 00", # 0025: Execute behaviour script 0x11 = Common code for weapons
         "56",       # 0028: End
     ],
@@ -5779,24 +5779,24 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 01",    # 001C: Push unsigned byte 0x01     1 = Strength required
         "00 01",    # 001E: Push unsigned byte 0x01     1 = Defense
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "52 20 03", # 0021: Execute behaviour script 0x320 = Common code for armor
         "56",       # 0024: End
     ],
@@ -5812,24 +5812,24 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 02",    # 001C: Push unsigned byte 0x02     2 = Strength required
         "00 02",    # 001E: Push unsigned byte 0x02     2 = Defense
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "52 20 03", # 0021: Execute behaviour script 0x320 = Common code for armor
         "56",       # 0024: End
     ],
@@ -5845,24 +5845,24 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 03",    # 001C: Push unsigned byte 0x03     3 = Strength required
         "00 03",    # 001E: Push unsigned byte 0x03     3 = Defense
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "52 20 03", # 0021: Execute behaviour script 0x320 = Common code for armor
         "56",       # 0024: End
     ],
@@ -5880,24 +5880,24 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 04",    # 001C: Push unsigned byte 0x04     4 = Strength required
         "00 04",    # 001E: Push unsigned byte 0x04     4 = Defense
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "52 20 03", # 0021: Execute behaviour script 0x320 = Common code for armor
         "56",       # 0024: End
     ],
@@ -5915,24 +5915,24 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 05",    # 001C: Push unsigned byte 0x05     5 = Strength required
         "00 05",    # 001E: Push unsigned byte 0x05     5 = Defense
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "52 20 03", # 0021: Execute behaviour script 0x320 = Common code for armor
         "56",       # 0024: End
     ],
@@ -5950,24 +5950,24 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 1C 00", # 0005: If yes, jump to 001C
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 000C: Push zero
         "00 10",    # 000D: Push unsigned byte 0x10
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0013: Set object's owner to Jake
         "52 4B 00", # 0015: Execute behaviour script 0x4B = "Got item" sound effect
-        "C2",       # 0018: Push $13
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0019: Despawn object
         "56",       # 001B: End
         "00 06",    # 001C: Push unsigned byte 0x06     6 = Strength required
         "00 06",    # 001E: Push unsigned byte 0x06     6 = Defense
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "52 20 03", # 0021: Execute behaviour script 0x320 = Common code for armor
         "56",       # 0024: End
     ],
@@ -6008,11 +6008,11 @@ expandedOffset = scriptHelper(
         # Display sprite
         "C0",       # 000A: Push zero
         "C0",       # 000B: Push zero
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 000D: Display sprite with facing direction
         # TOP_OF_LOOP
         # Check the glass case's 0x01 flag.
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0010: Push object's flags
         "00 01",    # 0012: Push unsigned byte 0x01
         "7E",       # 0014: Bitwise AND
@@ -6030,13 +6030,13 @@ expandedOffset = scriptHelper(
         # sold that item to someone), clear the glass case's 0x01 flag
         # and jump to the "item in stock" case.
         "0A FE",    # 0024: Push signed byte 0xFE
-        "C2",       # 0026: Push $13
+        "C2",       # 0026: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 0027: Clear bits of object's flags
         "48 60 00", # 0029: Jump to IN_STOCK
         # FLAG_01_CLEAR
         # The glass case's 0x01 flag is clear.
         # Let's check the glass case's 0x02 flag.
-        "C2",       # 002C: Push $13
+        "C2",       # 002C: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 002D: Push object's flags
         "00 02",    # 002F: Push unsigned byte 0x02
         "7E",       # 0031: Bitwise AND
@@ -6044,7 +6044,7 @@ expandedOffset = scriptHelper(
         "44 60 00", # 0033: If false, jump to IN_STOCK
         # OUT_OF_STOCK
         "00 80",    # 0036: Push unsigned byte 0x80
-        "C2",       # 0038: Push $13
+        "C2",       # 0038: Push unsigned byte from $13+00 <-- Spawn index
         "58 CE",    # 0039: Set bits of 7E1474+n <-- Makes the case contents invisible
         "C0",       # 003B: Push zero
         "00 80",    # 003C: Push unsigned byte 0x80
@@ -6144,7 +6144,7 @@ expandedOffset = scriptHelper(
         # NOT_STACKABLE
         # Set 0x01 bit of glass case to mark as purchased
         "00 01",    # 00E3: Push unsigned byte 0x01
-        "C2",       # 00E5: Push $13
+        "C2",       # 00E5: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 00E6: Set bits of object's flags
         # CHANGE_OWNERSHIP
         # This is what puts the item in the player's inventory
@@ -6397,7 +6397,7 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 0003: Push object-id
         "34 01",    # 0005: Pop short to $13+01 <-- Object-id of the keyword-item executing this code
         # CHECK_IF_DOG
@@ -6459,7 +6459,7 @@ expandedOffset = scriptHelper(
         "58 97",    # 006F: Check if keyword known
         "46 AE 00", # 0071: If yes, jump to DONE
         # SPAWN_KEYWORD_ITEM
-        "C2",       # 0074: Push $13
+        "C2",       # 0074: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0075: Execute behaviour script 0x11D = New item-drawing script
         "C0",       # 0078: Push zero
         "00 10",    # 0079: Push unsigned byte 0x10
@@ -6495,7 +6495,7 @@ expandedOffset = scriptHelper(
         "02 06",    # 00AA: Push unsigned byte from $13+06 <-- Text-window-slot number
         "58 53",    # 00AC: Print text to window <-- Repurposed function!
         # DONE
-        "C2",       # 00AE: Push $13
+        "C2",       # 00AE: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 00AF: Despawn object
         "56",       # 00B1: End
     ],
@@ -6546,22 +6546,22 @@ expandedOffset = scriptHelper(
         romBytes[0x1E926:0x1EAF4].hex(' '),
         # Spawn Larry at his vanilla "end of new-game cutscene" position
         "00 05",    # 01CE: Push unsigned byte 0x05
-        "C2",       # 01D0: Push $13
+        "C2",       # 01D0: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 01D1: Move object instantly to waypoint?
         "00 01",    # 01D3: Push unsigned byte 0x01
         "C0",       # 01D5: Push zero
-        "C2",       # 01D6: Push $13
+        "C2",       # 01D6: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 01D7: Display sprite with facing direction
         # Set Larry's "new-game cutscene completed" (0x01) flag
         "00 01",    # 01D9: Push unsigned byte 0x01
-        "C2",       # 01DB: Push $13
+        "C2",       # 01DB: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 01DC: Set bits of object's flags
         # WAIT_FOR_SCARE
         "00 05",    # 01DE: Push unsigned byte 0x05
         "00 01",    # 01E0: Push unsigned byte 0x01
         "58 9E",    # 01E2: Register menu options / time delay
         "BC",       # 01E4: Pop
-        "C2",       # 01E5: Push $13
+        "C2",       # 01E5: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 01E6: Push object's flags
         "00 02",    # 01E8: Push unsigned byte 0x02
         "7E",       # 01EA: Bitwise AND
@@ -6590,26 +6590,26 @@ expandedOffset = scriptHelper(
         "56",       # 0080: End
         # Spawn Sam at his vanilla "end of new-game cutscene" position
         "00 04",    # 0081: Push unsigned byte 0x04
-        "C2",       # 0083: Push $13
+        "C2",       # 0083: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0084: Move object instantly to waypoint?
         "00 06",    # 0086: Push unsigned byte 0x06
         "C0",       # 0088: Push zero
-        "C2",       # 0089: Push $13
+        "C2",       # 0089: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 008A: Display sprite with facing direction
         # Set Sam's "new-game cutscene completed" (0x01) flag
         "00 01",    # 008C: Push unsigned byte 0x01
-        "C2",       # 008E: Push $13
+        "C2",       # 008E: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 008F: Set bits of object's flags
         # WAIT_FOR_SCARE
         "00 05",    # 0091: Push unsigned byte 0x05
         "00 01",    # 0093: Push unsigned byte 0x01
         "58 9E",    # 0095: Register menu options / time delay
         "BC",       # 0097: Pop
-        "C2",       # 0098: Push $13
+        "C2",       # 0098: Push unsigned byte from $13+00 <-- Spawn index
         "58 0A",    # 0099: Push distance between Jake and object?
         "00 64",    # 009B: Push unsigned byte 0x64
         "8A",       # 009D: Check if less than
-        "C2",       # 009E: Push $13
+        "C2",       # 009E: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 009F: Push object's flags
         "00 02",    # 00A1: Push unsigned byte 0x02
         "7E",       # 00A3: Bitwise AND
@@ -6632,7 +6632,7 @@ writeHelper(romBytes, 0x1F129, bytes.fromhex(' '.join([
 writeHelper(romBytes, 0x1EE69, bytes.fromhex(' '.join([
     "C0",       # 001E: Push zero
     "00 08",    # 001F: Push unsigned byte 0x08
-    "C2",       # 0021: Push $13
+    "C2",       # 0021: Push unsigned byte from $13+00 <-- Spawn index
     "58 D1",    # 0022: Display sprite with facing direction
     "48 93 00", # 0024: Jump to 0093
 ])))
@@ -6693,7 +6693,7 @@ expandedOffset = scriptHelper(
         # Start Jake's rolling-off-the-slab animation
         "C0",       # 0067: Push zero
         "C0",       # 0068: Push zero
-        "C2",       # 0069: Push $13
+        "C2",       # 0069: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 006A: Display sprite with facing direction
         # Wait for Jake to be standing up
         "00 40",    # 006C: Push unsigned byte 0x40
@@ -6729,7 +6729,7 @@ expandedOffset = scriptHelper(
         "58 9E",    # 00A0: Register menu options / time delay
         "BC",       # 00A2: Pop
         # Despawn
-        "C2",       # 00A3: Push $13
+        "C2",       # 00A3: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 00A4: Despawn object
         "56",       # 00A6: End
     ],
@@ -6748,7 +6748,7 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0003: Push object's flags
         "00 01",    # 0005: Push unsigned byte 0x01
         "7E",       # 0007: Bitwise AND
@@ -6759,7 +6759,7 @@ expandedOffset = scriptHelper(
         "BA",       # 000E: Duplicate
         "58 9E",    # 000F: Register menu options / time delay
         "BC",       # 0011: Pop
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0013: Push object's flags
         "00 80",    # 0015: Push unsigned byte 0x80
         "7E",       # 0017: Bitwise AND
@@ -6767,7 +6767,7 @@ expandedOffset = scriptHelper(
         "44 0C 00", # 0019: If false, jump to WAIT_FOR_ACTIVATION
         # CUSTOM_NEW_GAME_ACTIONS
         "00 7F",    # 001C: Push unsigned byte 0x7F
-        "C2",       # 001E: Push $13
+        "C2",       # 001E: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 001F: Clear bits of object's flags
         # Learn default keywords
         # - HitMen
@@ -6796,10 +6796,10 @@ expandedOffset = scriptHelper(
         #"58 71",    # ____: Learn keyword
         # Set the "custom new-game actions completed" (0x01) flag
         "00 01",    # 0035: Push unsigned byte 0x01
-        "C2",       # 0037: Push $13
+        "C2",       # 0037: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 0038: Set bits of object's flags
         # DONE
-        "C2",       # 003A: Push $13
+        "C2",       # 003A: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 003B: Despawn object
         "56",       # 003D: End
     ],
@@ -6842,7 +6842,7 @@ expandedOffset = scriptHelper(
         "58 C6",    # 0005: Push object's quantity
         "46 5B 00", # 0007: If nonzero, jump to DONE
         # NO_SLAP_PATCHES_IN_INVENTORY
-        "C2",       # 000A: Push $13
+        "C2",       # 000A: Push unsigned byte from $13+00 <-- Spawn index
         "52 44 02", # 000B: Execute behaviour script 0x244 = Display sprite with facing direction 00
         # TOP_OF_LOOP
         "C0",       # 000E: Push zero
@@ -6889,7 +6889,7 @@ expandedOffset = scriptHelper(
         "58 74",    # 0056: Set object's owner
         "52 4B 00", # 0058: Execute behaviour script 0x4B = "Got item" sound effect
         # DONE
-        "C2",       # 005B: Push $13
+        "C2",       # 005B: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 005C: Despawn object
         "56",       # 005E: End
     ],
@@ -7048,7 +7048,7 @@ writeHelper(romBytes, 0xDD209, bytes.fromhex(' '.join([
     "BE",       # 0054: Convert to boolean
     "BC",       # 0055: Pop
     "00 01",    # 0056: Push unsigned byte 0x01
-    "C2",       # 0058: Push $13
+    "C2",       # 0058: Push unsigned byte from $13+00 <-- Spawn index
     "58 33",    # 0059: Set bits of object's flags
     "00 80",    # 005B: Push unsigned byte 0x80
     f"14 {romBytes[0xC93F3+0]:02X} {romBytes[0xC93F3+1]:02X}",
@@ -7108,17 +7108,17 @@ writeHelper(romBytes, 0xDD15A, bytes.fromhex(' '.join([
                 # 00C9: Push short 0x####   <-- Item drop's object-id
     "58 C2",    # 00CC: Push object's RAM_1 <-- Item drop's spawn index
     "2C 01",    # 00CE: Pop byte to $13+01  <-- Item drop's spawn index
-    "C2",       # 00D0: Push $13
+    "C2",       # 00D0: Push unsigned byte from $13+00 <-- Spawn index
     "58 51",    # 00D1: Push object's Z coordinate / 4
     "00 02",    # 00D3: Push unsigned byte 0x02
     "7A",       # 00D5: Left shift
-    "C2",       # 00D6: Push $13
+    "C2",       # 00D6: Push unsigned byte from $13+00 <-- Spawn index
     "58 50",    # 00D7: Push object's Y coordinate / 4
     "00 02",    # 00D9: Push unsigned byte 0x02
     "7A",       # 00DB: Left shift
     "00 02",    # 00DC: Push unsigned byte 0x02
     "5E",       # 00DE: Subtraction
-    "C2",       # 00DF: Push $13
+    "C2",       # 00DF: Push unsigned byte from $13+00 <-- Spawn index
     "58 4F",    # 00E0: Push object's X coordinate / 4
     "00 02",    # 00E2: Push unsigned byte 0x02
     "7A",       # 00E4: Left shift
@@ -7157,7 +7157,7 @@ writeHelper(romBytes, 0xC8855, bytes.fromhex(' '.join([
 
 # Paperweight
 writeHelper(romBytes, 0xDF5F4, bytes.fromhex(' '.join([
-    "C2",       # 0038: Push $13
+    "C2",       # 0038: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0039: Execute behaviour script 0x11D = New item-drawing script
     "00 00",    # 003C: Push unsigned byte 0x00
 ])))
@@ -7211,16 +7211,16 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 11 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "00 08",    # 000C: Push unsigned byte 0x08
-        "C2",       # 000E: Push $13
+        "C2",       # 000E: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 000F: Display sprite <-- We do this to fix the "spinning Ghoul Bone" bug
         # TOP_OF_LOOP
-        "C2",       # 0011: Push $13
+        "C2",       # 0011: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0012: Check if object has an owner
         "2C 01",    # 0014: Pop byte to $13+01 <-- Whether object has an owner
         "C0",       # 0016: Push zero
@@ -7237,7 +7237,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 0025: Push unsigned byte 0x03
         "00 FF",    # 0027: Push unsigned byte 0xFF
         "00 32",    # 0029: Push unsigned byte 0x32
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 002C: Play sound effect
         "00 F0",    # 002E: Push unsigned byte 0xF0 <-- Was 0x78
         "00 99",    # 0030: Push unsigned byte 0x99
@@ -7255,7 +7255,7 @@ expandedOffset = scriptHelper(
         "44 54 00", # 0047: If not equal, jump to BOTTOM_OF_LOOP
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 004A: Push $13
+        "C2",       # 004A: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 004B: Set object's owner to Jake
         "52 4B 00", # 004D: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 0050: Push signed byte 0xFF
@@ -7264,7 +7264,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 0054: Push signed byte from $13+01 <-- Whether object has an owner
         "44 11 00", # 0056: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 0059: Push $13
+        "C2",       # 0059: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 005A: Despawn object
         "56",       # 005D: End
     ],
@@ -7296,15 +7296,15 @@ writeHelper(romBytes, 0x1FEDD, bytes.fromhex(' '.join([
     "7E",       # 00FA: Bitwise AND
     "BE",       # 00FB: Convert to boolean
     "46 5C 01", # 00FC: If true, jump to 015C
-    "C2",       # 00FF: Push $13
+    "C2",       # 00FF: Push unsigned byte from $13+00 <-- Spawn index
     "58 51",    # 0100: Push object's Z coordinate / 4
     "00 02",    # 0102: Push unsigned byte 0x02
     "7A",       # 0104: Left shift
-    "C2",       # 0105: Push $13
+    "C2",       # 0105: Push unsigned byte from $13+00 <-- Spawn index
     "58 50",    # 0106: Push object's Y coordinate / 4
     "00 02",    # 0108: Push unsigned byte 0x02
     "7A",       # 010A: Left shift
-    "C2",       # 010B: Push $13
+    "C2",       # 010B: Push unsigned byte from $13+00 <-- Spawn index
     "58 4F",    # 010C: Push object's X coordinate / 4
     "00 02",    # 010E: Push unsigned byte 0x02
     "7A",       # 0110: Left shift
@@ -7342,13 +7342,13 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 000D: Check if object has an owner
         "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
         "C0",       # 0011: Push zero
@@ -7365,7 +7365,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 0020: Push unsigned byte 0x03
         "00 FF",    # 0022: Push unsigned byte 0xFF
         "00 32",    # 0024: Push unsigned byte 0x32
-        "C2",       # 0026: Push $13
+        "C2",       # 0026: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0027: Play sound effect
         "00 F0",    # 0029: Push unsigned byte 0xF0
         "00 83",    # 002B: Push unsigned byte 0x83
@@ -7389,7 +7389,7 @@ expandedOffset = scriptHelper(
         # Interaction menu option: Pickup
         "00 1E",    # 0045: Push unsigned byte 0x1E <-- Keyword-id for "Magic Fetish"
         "58 71",    # 0047: Learn keyword
-        "C2",       # 0049: Push $13
+        "C2",       # 0049: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 004A: Set object's owner to Jake
         "52 4B 00", # 004C: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 004F: Push signed byte 0xFF
@@ -7402,7 +7402,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 0053: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 0055: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 0058: Push $13
+        "C2",       # 0058: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0059: Despawn object
         "56",       # 005B: End
     ],
@@ -7433,7 +7433,7 @@ expandedOffset = scriptHelper(
         # New code.
         "00 05",    # 0067: Push unsigned byte 0x05
         "00 07",    # 0069: Push unsigned byte 0x07
-        "C2",       # 006B: Push $13
+        "C2",       # 006B: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 006C: Display sprite with facing direction
         "00 78",    # 006E: Push unsigned byte 0x78
         "00 16",    # 0070: Push unsigned byte 0x16
@@ -7444,7 +7444,7 @@ expandedOffset = scriptHelper(
         "00 0D",    # 007B: Push unsigned byte 0x0D
         "58 C7",    # 007D: Print text ("Thanks!")
         "00 02",    # 007F: Push unsigned byte 0x02
-        "C2",       # 0081: Push $13
+        "C2",       # 0081: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0082: Display sprite
         "C0",       # 0084: Push zero
         "00 08",    # 0085: Push unsigned byte 0x08
@@ -7455,25 +7455,25 @@ expandedOffset = scriptHelper(
                     # 008C: Push short 0x#### <-- Object-id of new item in "Magic Fetish" location
         "58 0D",    # 008F: Set bits of object's flags
         "00 03",    # 0091: Push unsigned byte 0x03
-        "C2",       # 0093: Push $13
+        "C2",       # 0093: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0094: Display sprite
         "00 02",    # 0096: Push unsigned byte 0x02
         "C0",       # 0098: Push zero
         "C0",       # 0099: Push zero
-        "C2",       # 009A: Push $13
+        "C2",       # 009A: Push unsigned byte from $13+00 <-- Spawn index
         "58 79",    # 009B: Set object X/Y/Z deltas?
         "00 03",    # 009D: Push unsigned byte 0x03
         "00 FF",    # 009F: Push unsigned byte 0xFF
         "00 66",    # 00A1: Push unsigned byte 0x66
-        "C2",       # 00A3: Push $13
+        "C2",       # 00A3: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 00A4: Play sound effect
         "C0",       # 00A6: Push zero
         "00 08",    # 00A7: Push unsigned byte 0x08
         "58 9E",    # 00A9: Register menu options / time delay
         "BC",       # 00AB: Pop
-        "C2",       # 00AC: Push $13
+        "C2",       # 00AC: Push unsigned byte from $13+00 <-- Spawn index
         "58 C4",    # 00AD: Set object's owner to "Dog Food"
-        "C2",       # 00AF: Push $13
+        "C2",       # 00AF: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 00B0: Despawn object
         "56",       # 00B2: End
     ],
@@ -7532,13 +7532,13 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 000D: Check if object has an owner
         "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
         "14 00 01", # 0011: Push short 0x0100
@@ -7555,10 +7555,10 @@ expandedOffset = scriptHelper(
         "00 03",    # 0022: Push unsigned byte 0x03
         "00 FF",    # 0024: Push unsigned byte 0xFF
         "00 32",    # 0026: Push unsigned byte 0x32
-        "C2",       # 0028: Push $13
+        "C2",       # 0028: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0029: Play sound effect
         # BLUE_BOTTLE_STATUS
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 002C: Push object's flags
         "00 01",    # 002E: Push unsigned byte 0x01
         "7E",       # 0030: Bitwise AND
@@ -7584,7 +7584,7 @@ expandedOffset = scriptHelper(
         "00 07",    # 0058: Push unsigned byte 0x07
         "58 C7",    # 005A: Print text ("The blue bottle is empty.")
         # PURPLE_BOTTLE_STATUS
-        "C2",       # 005C: Push $13
+        "C2",       # 005C: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 005D: Push object's flags
         "00 02",    # 005F: Push unsigned byte 0x02
         "7E",       # 0061: Bitwise AND
@@ -7618,7 +7618,7 @@ expandedOffset = scriptHelper(
         "44 A5 00", # 0095: If not equal, jump to CHECK_IF_USE
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 0098: Push $13
+        "C2",       # 0098: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0099: Set object's owner to Jake
         "52 4B 00", # 009B: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 009E: Push signed byte 0xFF
@@ -7644,7 +7644,7 @@ expandedOffset = scriptHelper(
         "AA",       # 00C1: Check if equal
         "44 F9 00", # 00C2: If not equal, jump to CHECK_IF_TOXIC_WATER
         # WATER_FOUNTAIN
-        "C2",       # 00C5: Push $13
+        "C2",       # 00C5: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 00C6: Push object's flags
         "00 01",    # 00C8: Push unsigned byte 0x01
         "7E",       # 00CA: Bitwise AND
@@ -7669,7 +7669,7 @@ expandedOffset = scriptHelper(
         "16 04",    # 00EA: Push short from $13+04 <-- Object-id that the Potion Bottles are being used on
         "58 0D",    # 00EC: Set bits of object's flags
         "00 01",    # 00EE: Push unsigned byte 0x01
-        "C2",       # 00F0: Push $13
+        "C2",       # 00F0: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 00F1: Set bits of object's flags
         "52 4B 00", # 00F3: Execute behaviour script 0x4B = "Got item" sound effect
         "48 3B 01", # 00F6: Jump to BOTTOM_OF_LOOP
@@ -7679,7 +7679,7 @@ expandedOffset = scriptHelper(
         "AA",       # 00FE: Check if equal
         "44 36 01", # 00FF: If not equal, jump to NOT_USING_IT_ON_THAT
         # TOXIC_WATER
-        "C2",       # 0102: Push $13
+        "C2",       # 0102: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0103: Push object's flags
         "00 02",    # 0105: Push unsigned byte 0x02
         "7E",       # 0107: Bitwise AND
@@ -7704,7 +7704,7 @@ expandedOffset = scriptHelper(
         "16 04",    # 0127: Push short from $13+04 <-- Object-id that the Potion Bottles are being used on
         "58 0D",    # 0129: Set bits of object's flags
         "00 02",    # 012B: Push unsigned byte 0x02
-        "C2",       # 012D: Push $13
+        "C2",       # 012D: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 012E: Set bits of object's flags
         "52 4B 00", # 0130: Execute behaviour script 0x4B = "Got item" sound effect
         "48 3B 01", # 0133: Jump to BOTTOM_OF_LOOP
@@ -7715,7 +7715,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 013B: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 013D: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 0140: Push $13
+        "C2",       # 0140: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0141: Despawn object
         "56",       # 0143: End
     ],
@@ -7737,13 +7737,13 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 000D: Check if object has an owner
         "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
         "14 00 01", # 0011: Push short 0x0100
@@ -7760,10 +7760,10 @@ expandedOffset = scriptHelper(
         "00 03",    # 0022: Push unsigned byte 0x03
         "00 FF",    # 0024: Push unsigned byte 0xFF
         "00 32",    # 0026: Push unsigned byte 0x32
-        "C2",       # 0028: Push $13
+        "C2",       # 0028: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0029: Play sound effect
         # BOTTLE_STATUS
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 002C: Push object's flags
         "00 01",    # 002E: Push unsigned byte 0x01
         "7E",       # 0030: Bitwise AND
@@ -7797,7 +7797,7 @@ expandedOffset = scriptHelper(
         "44 74 00", # 0064: If not equal, jump to CHECK_IF_USE
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 0067: Push $13
+        "C2",       # 0067: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0068: Set object's owner to Jake
         "52 4B 00", # 006A: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 006D: Push signed byte 0xFF
@@ -7831,7 +7831,7 @@ expandedOffset = scriptHelper(
         "16 04",    # 009C: Push short from $13+04 <-- Object-id that the Black Bottle is being used on
         "58 0D",    # 009E: Set bits of object's flags
         "00 01",    # 00A0: Push unsigned byte 0x01
-        "C2",       # 00A2: Push $13
+        "C2",       # 00A2: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 00A3: Set bits of object's flags
         "52 4B 00", # 00A5: Execute behaviour script 0x4B = "Got item" sound effect <-- Absent in vanilla!
         "48 B0 00", # 00A8: Jump to BOTTOM_OF_LOOP
@@ -7842,7 +7842,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 00B0: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 00B2: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 00B5: Push $13
+        "C2",       # 00B5: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 00B6: Despawn object
         "56",       # 00B8: End
     ],
@@ -7864,13 +7864,13 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 000D: Check if object has an owner
         "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
         "14 00 01", # 0011: Push short 0x0100
@@ -7887,7 +7887,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 0022: Push unsigned byte 0x03
         "00 FF",    # 0024: Push unsigned byte 0xFF
         "00 32",    # 0026: Push unsigned byte 0x32
-        "C2",       # 0028: Push $13
+        "C2",       # 0028: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0029: Play sound effect
         "00 F0",    # 002B: Push unsigned byte 0xF0
         "14 0B 01", # 002D: Push short 0x010B
@@ -7905,7 +7905,7 @@ expandedOffset = scriptHelper(
         "44 55 00", # 0045: If not equal, jump to CHECK_IF_USE
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 0048: Push $13
+        "C2",       # 0048: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0049: Set object's owner to Jake
         "52 4B 00", # 004B: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 004E: Push signed byte 0xFF
@@ -7984,7 +7984,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 00CE: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 00D0: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 00D3: Push $13
+        "C2",       # 00D3: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 00D4: Despawn object
         "56",       # 00D6: End
     ],
@@ -8051,16 +8051,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 03",    # 0002: Push unsigned byte 0x03
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 02",    # 000C: Push unsigned byte 0x02
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8078,16 +8078,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 05",    # 0002: Push unsigned byte 0x05
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 06",    # 000C: Push unsigned byte 0x06
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8105,36 +8105,36 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 04",    # 0002: Push unsigned byte 0x04
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7E",    # 0007: Push unsigned byte 0x7E
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 03",    # 000C: Push unsigned byte 0x03
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
-        "C2",       # 0014: Push $13
+        "C2",       # 0014: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
         "BC",       # 0028: Pop
         "00 01",    # 0029: Push unsigned byte 0x01
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
-        "C2",       # 002F: Push $13
+        "C2",       # 002F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0030: Display sprite
-        "C2",       # 0032: Push $13
+        "C2",       # 0032: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0033: ???
         "56",       # 0035: End
     ],
@@ -8164,16 +8164,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 03",    # 0002: Push unsigned byte 0x03
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 02",    # 000C: Push unsigned byte 0x02
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8191,16 +8191,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 05",    # 0002: Push unsigned byte 0x05
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 06",    # 000C: Push unsigned byte 0x06
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8218,36 +8218,36 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 04",    # 0002: Push unsigned byte 0x04
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7E",    # 0007: Push unsigned byte 0x7E
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 03",    # 000C: Push unsigned byte 0x03
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
-        "C2",       # 0014: Push $13
+        "C2",       # 0014: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
         "BC",       # 0028: Pop
         "00 01",    # 0029: Push unsigned byte 0x01
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
-        "C2",       # 002F: Push $13
+        "C2",       # 002F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0030: Display sprite
-        "C2",       # 0032: Push $13
+        "C2",       # 0032: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0033: ???
         "56",       # 0035: End
     ],
@@ -8284,16 +8284,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 03",    # 0002: Push unsigned byte 0x03
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 00",    # 000C: Push unsigned byte 0x00
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8311,16 +8311,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 04",    # 0002: Push unsigned byte 0x04
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 04",    # 000C: Push unsigned byte 0x04
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8338,36 +8338,36 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 05",    # 0002: Push unsigned byte 0x05
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7E",    # 0007: Push unsigned byte 0x7E
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 07",    # 000C: Push unsigned byte 0x07
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
-        "C2",       # 0014: Push $13
+        "C2",       # 0014: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
         "BC",       # 0028: Pop
         "00 01",    # 0029: Push unsigned byte 0x01
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
-        "C2",       # 002F: Push $13
+        "C2",       # 002F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0030: Display sprite
-        "C2",       # 0032: Push $13
+        "C2",       # 0032: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0033: ???
         "56",       # 0035: End
     ],
@@ -8404,16 +8404,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 03",    # 0002: Push unsigned byte 0x03
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 00",    # 000C: Push unsigned byte 0x00
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8431,16 +8431,16 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 04",    # 0002: Push unsigned byte 0x04
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7F",    # 0007: Push unsigned byte 0x7F
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 04",    # 000C: Push unsigned byte 0x04
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
-        "C2",       # 0012: Push $13
+        "C2",       # 0012: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0013: ???
         "56",       # 0015: End
     ],
@@ -8458,36 +8458,36 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "00 05",    # 0002: Push unsigned byte 0x05
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 0005: Move object instantly to waypoint?
         "00 7E",    # 0007: Push unsigned byte 0x7E
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 000A: Clear bits of object's flags
         "00 07",    # 000C: Push unsigned byte 0x07
         "C0",       # 000E: Push zero
-        "C2",       # 000F: Push $13
+        "C2",       # 000F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
-        "C2",       # 0014: Push $13
+        "C2",       # 0014: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
-        "C2",       # 0020: Push $13
+        "C2",       # 0020: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
         "BC",       # 0028: Pop
         "00 01",    # 0029: Push unsigned byte 0x01
-        "C2",       # 002B: Push $13
+        "C2",       # 002B: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
-        "C2",       # 002F: Push $13
+        "C2",       # 002F: Push unsigned byte from $13+00 <-- Spawn index
         "58 D0",    # 0030: Display sprite
-        "C2",       # 0032: Push $13
+        "C2",       # 0032: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0033: ???
         "56",       # 0035: End
     ],
@@ -8650,7 +8650,7 @@ writeHelper(romBytes, 0xCA609, bytes.fromhex(' '.join([
     "F4 19",    # New coordinates: (481, 500, 112)
 ])))
 writeHelper(romBytes, 0xF4173, bytes.fromhex(' '.join([
-    "C2",       # 0008: Push $13
+    "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     "48 25 00", # 000C: Jump to 0025
 ])))
@@ -8682,7 +8682,7 @@ writeHelper(romBytes, 0xFAA53, bytes.fromhex(' '.join([
 
 # Mermaid Scales
 writeHelper(romBytes, 0xF49B1, bytes.fromhex(' '.join([
-    "C2",       # 0008: Push $13
+    "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     "48 20 00", # 000C: Jump to 0020
 ])))
@@ -8862,7 +8862,7 @@ writeHelper(romBytes, 0xF4512, bytes.fromhex(' '.join([
     "48 0E 00", # 0002: Jump to 000E
 ])))
 writeHelper(romBytes, 0xF4524, bytes.fromhex(' '.join([
-    "C2",       # 0014: Push $13
+    "C2",       # 0014: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0015: Execute behaviour script 0x11D = New item-drawing script
     "C0",       # 0018: Push zero
     "BC",       # 0019: Pop
@@ -8927,19 +8927,19 @@ expandedOffset = scriptHelper(
         "58 0D",    # 0018: Set bits of object's flags
         # SPAWN_SAMURAI_WARRIOR
         "00 03",    # 001A: Push unsigned byte 0x03
-        "C2",       # 001C: Push $13
+        "C2",       # 001C: Push unsigned byte from $13+00 <-- Spawn index
         "58 24",    # 001D: ???
         "00 1E",    # 001F: Push unsigned byte 0x1E
-        "C2",       # 0021: Push $13
+        "C2",       # 0021: Push unsigned byte from $13+00 <-- Spawn index
         "58 9F",    # 0022: Set object's quantity <-- Samurai Warrior's hit points
         "C0",       # 0024: Push zero
         "00 04",    # 0025: Push unsigned byte 0x04
-        "C2",       # 0027: Push $13
+        "C2",       # 0027: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0028: Display sprite with facing direction
-        "C2",       # 002A: Push $13
+        "C2",       # 002A: Push unsigned byte from $13+00 <-- Spawn index
         "58 AB",    # 002B: ???
         # TOP_OF_LOOP
-        "C2",       # 002D: Push $13
+        "C2",       # 002D: Push unsigned byte from $13+00 <-- Spawn index
         "58 07",    # 002E: ???
         "BA",       # 0030: Duplicate
         "2C 02",    # 0031: Pop byte to $13+02
@@ -8948,7 +8948,7 @@ expandedOffset = scriptHelper(
         "44 55 00", # 0036: If not equal, jump to SOMETHING_IS_NOT_EQUAL
         # SOMETHING_IS_EQUAL
         "0C 02",    # 0039: Push signed byte from $13+02
-        "C2",       # 003B: Push $13
+        "C2",       # 003B: Push unsigned byte from $13+00 <-- Spawn index
         "58 1B",    # 003C: ???
         "00 0A",    # 003E: Push unsigned byte 0x0A
         "58 63",    # 0040: ???
@@ -8969,7 +8969,7 @@ expandedOffset = scriptHelper(
         "00 01",    # 005B: Push unsigned byte 0x01
         "00 02",    # 005D: Push unsigned byte 0x02
         "0C 02",    # 005F: Push signed byte from $13+02
-        "C2",       # 0061: Push $13
+        "C2",       # 0061: Push unsigned byte from $13+00 <-- Spawn index
         "52 35 02", # 0062: Execute behaviour script 0x235
         "2C 01",    # 0065: Pop byte to $13+01
         # BOTTOM_OF_LOOP
@@ -8978,9 +8978,9 @@ expandedOffset = scriptHelper(
         # SAMURAI_WARRIOR_DEFEATED
         "00 09",    # 006C: Push unsigned byte 0x09
         "58 7B",    # 006E: Increase experience
-        "C2",       # 0070: Push $13
+        "C2",       # 0070: Push unsigned byte from $13+00 <-- Spawn index
         "58 BF",    # 0071: ???
-        "C2",       # 0073: Push $13
+        "C2",       # 0073: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 0074: Push object-id
         "14 B0 05", # 0076: Push short 0x05B0 <-- Object-id of Samurai Warrior that drops "Mesh Jacket (free)"
         "AA",       # 0079: Check if equal
@@ -8991,7 +8991,7 @@ expandedOffset = scriptHelper(
                     # 007F: Push short 0x#### <-- Object-id of new item in "Mesh Jacket (free)" location
         "58 0D",    # 0082: Set bits of object's flags
         # PERISH
-        "C2",       # 0084: Push $13
+        "C2",       # 0084: Push unsigned byte from $13+00 <-- Spawn index
         "52 5C 03", # 0085: Execute behaviour script 0x35C
         "52 BC 01", # 0088: Execute behaviour script 0x1BC
         "BC",       # 008B: Pop
@@ -9016,13 +9016,13 @@ expandedOffset = scriptHelper(
         "00 2C",    # 003B: Push unsigned byte 0x2C
         "58 57",    # 003D: Read short from 7E3BBB+n
         "46 4F 00", # 003F: If nonzero, jump to VAMPIRE_NOT_DEFEATED_YET <-- In-credits Vampire case
-        "C2",       # 0042: Push $13
+        "C2",       # 0042: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0043: Push object's flags
         "00 01",    # 0045: Push unsigned byte 0x01
         "7E",       # 0047: Bitwise AND
         "44 4F 00", # 0048: If zero, jump to VAMPIRE_NOT_DEFEATED_YET
         # VAMPIRE_ALREADY_DEFEATED
-        "C2",       # 004B: Push $13
+        "C2",       # 004B: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 004C: Despawn object
         "56",       # 004E: End
         # VAMPIRE_NOT_DEFEATED_YET
@@ -9033,20 +9033,20 @@ expandedOffset = scriptHelper(
         # - No conversations
         # - Defeated after one use of the Stake
         "00 F0",    # 0122: Push unsigned byte 0xF0
-        "C2",       # 0124: Push $13
+        "C2",       # 0124: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 0125: Push object's Z coordinate / 4
-        "C2",       # 0127: Push $13
+        "C2",       # 0127: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 0128: Push object's Y coordinate / 4
-        "C2",       # 012A: Push $13
+        "C2",       # 012A: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 012B: Push object's X coordinate / 4
         "00 56",    # 012D: Push unsigned byte 0x56
         "58 A8",    # 012F: Spawn object at abs coords?
         "BC",       # 0131: Pop
-        "C2",       # 0132: Push $13
+        "C2",       # 0132: Push unsigned byte from $13+00 <-- Spawn index
         "58 AB",    # 0133: ???
         "00 20",    # 0135: Push unsigned byte 0x20
         "58 7B",    # 0137: Increase experience
-        "C2",       # 0139: Push $13
+        "C2",       # 0139: Push unsigned byte from $13+00 <-- Spawn index
         "58 BF",    # 013A: ???
         "00 01",    # 013C: Push unsigned byte 0x01
         "BA",       # 013E: Duplicate
@@ -9058,17 +9058,17 @@ expandedOffset = scriptHelper(
                     # 0142: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 0145: Push object's RAM_1 <-- Item drop's spawn index
         "2C 07",    # 0147: Pop byte to $13+07  <-- Item drop's spawn index
-        "C2",       # 0149: Push $13
+        "C2",       # 0149: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 014A: Push object's Z coordinate / 4
         "00 02",    # 014C: Push unsigned byte 0x02
         "7A",       # 014E: Left shift
-        "C2",       # 014F: Push $13
+        "C2",       # 014F: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 0150: Push object's Y coordinate / 4
         "00 02",    # 0152: Push unsigned byte 0x02
         "7A",       # 0154: Left shift
         "00 42",    # 0155: Push unsigned byte 0x42
         "5E",       # 0157: Subtraction
-        "C2",       # 0158: Push $13
+        "C2",       # 0158: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 0159: Push object's X coordinate / 4
         "00 02",    # 015B: Push unsigned byte 0x02
         "7A",       # 015D: Left shift
@@ -9085,17 +9085,17 @@ expandedOffset = scriptHelper(
                     # 016B: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 016E: Push object's RAM_1 <-- Item drop's spawn index
         "2C 07",    # 0170: Pop byte to $13+07  <-- Item drop's spawn index
-        "C2",       # 0172: Push $13
+        "C2",       # 0172: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 0173: Push object's Z coordinate / 4
         "00 02",    # 0175: Push unsigned byte 0x02
         "7A",       # 0177: Left shift
-        "C2",       # 0178: Push $13
+        "C2",       # 0178: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 0179: Push object's Y coordinate / 4
         "00 02",    # 017B: Push unsigned byte 0x02
         "7A",       # 017D: Left shift
         "00 02",    # 017E: Push unsigned byte 0x02
         "5E",       # 0180: Subtraction
-        "C2",       # 0181: Push $13
+        "C2",       # 0181: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 0182: Push object's X coordinate / 4
         "00 02",    # 0184: Push unsigned byte 0x02
         "7A",       # 0186: Left shift
@@ -9107,7 +9107,7 @@ expandedOffset = scriptHelper(
         "02 07",    # 0190: Push unsigned byte from $13+07 <-- Item drop's spawn index
         "58 33",    # 0192: Set bits of object's flags
         # Despawn the Vampire and give the 5,000 nuyen reward.
-        "C2",       # 0194: Push $13
+        "C2",       # 0194: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0195: Despawn object
         "00 50",    # 0197: Push unsigned byte 0x50
         "00 01",    # 0199: Push unsigned byte 0x01
@@ -9239,13 +9239,13 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 000D: Check if object has an owner
         "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
         "C0",       # 0011: Push zero
@@ -9262,7 +9262,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 0020: Push unsigned byte 0x03
         "00 FF",    # 0022: Push unsigned byte 0xFF
         "00 32",    # 0024: Push unsigned byte 0x32
-        "C2",       # 0026: Push $13
+        "C2",       # 0026: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0027: Play sound effect
         "00 F0",    # 0029: Push unsigned byte 0xF0
         "14 FD 01", # 002B: Push short 0x01FD
@@ -9280,7 +9280,7 @@ expandedOffset = scriptHelper(
         "44 50 00", # 0043: If not equal, jump to BOTTOM_OF_LOOP
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 0046: Push $13
+        "C2",       # 0046: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0047: Set object's owner to Jake
         "52 4B 00", # 0049: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 004C: Push signed byte 0xFF
@@ -9289,7 +9289,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 0050: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 0052: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 0055: Push $13
+        "C2",       # 0055: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0056: Despawn object
         "56",       # 0058: End
     ],
@@ -9320,15 +9320,15 @@ expandedOffset = scriptHelper(
                     # 00E8: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 00EB: Push object's RAM_1 <-- Item drop's spawn index
         "2C 04",    # 00ED: Pop byte to $13+04  <-- Item drop's spawn index
-        "C2",       # 00EF: Push $13
+        "C2",       # 00EF: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 00F0: Push object's Z coordinate / 4
         "00 02",    # 00F2: Push unsigned byte 0x02
         "7A",       # 00F4: Left shift
-        "C2",       # 00F5: Push $13
+        "C2",       # 00F5: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 00F6: Push object's Y coordinate / 4
         "00 02",    # 00F8: Push unsigned byte 0x02
         "7A",       # 00FA: Left shift
-        "C2",       # 00FB: Push $13
+        "C2",       # 00FB: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 00FC: Push object's X coordinate / 4
         "00 02",    # 00FE: Push unsigned byte 0x02
         "7A",       # 0100: Left shift
@@ -9341,7 +9341,7 @@ expandedOffset = scriptHelper(
         "BA",       # 010D: Duplicate
         "58 9E",    # 010E: Register menu options / time delay
         "BC",       # 0110: Pop
-        "C2",       # 0111: Push $13
+        "C2",       # 0111: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0112: Despawn object
         "56",       # 0114: End
     ],
@@ -9366,7 +9366,7 @@ expandedOffset = scriptHelper(
         romBytes[0xF5815:0xF58D2].hex(' '),
         # New code.
         # CHECK_IF_SAFE_I_IS_UNLOCKED
-        "C2",       # 00BD: Push $13
+        "C2",       # 00BD: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 00BE: Push object-id
         "14 35 06", # 00C0: Push short 0x0635 <-- Object-id of Safe I (unlocked with Safe Key)
         "AA",       # 00C3: Check if equal
@@ -9386,7 +9386,7 @@ expandedOffset = scriptHelper(
         "58 0D",    # 00D3: Set bits of object's flags
         "48 E9 00", # 00D5: Jump to SAFE_UNLOCKED
         # CHECK_IF_SAFE_II_IS_UNLOCKED
-        "C2",       # 00D8: Push $13
+        "C2",       # 00D8: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 00D9: Push object-id
         "14 3C 06", # 00DB: Push short 0x063C <-- Object-id of Safe II (unlocked with Time Bomb)
         "AA",       # 00DE: Check if equal
@@ -9403,14 +9403,14 @@ expandedOffset = scriptHelper(
         "00 02",    # 00EB: Push unsigned byte 0x02
         "00 06",    # 00ED: Push unsigned byte 0x06
         "C0",       # 00EF: Push zero
-        "C2",       # 00F0: Push $13
+        "C2",       # 00F0: Push unsigned byte from $13+00 <-- Spawn index
         "52 74 00", # 00F1: Execute behaviour script 0x74 = Open door helper script
         "00 2E",    # 00F4: Push unsigned byte 0x2E
         "00 2C",    # 00F6: Push unsigned byte 0x2C
         "C0",       # 00F8: Push zero
         "00 04",    # 00F9: Push unsigned byte 0x04
         "00 02",    # 00FB: Push unsigned byte 0x02
-        "C2",       # 00FD: Push $13
+        "C2",       # 00FD: Push unsigned byte from $13+00 <-- Spawn index
         "52 A2 02", # 00FE: Execute behaviour script 0x2A2 = Closed door helper script
         "48 E9 00", # 0101: Jump to SAFE_UNLOCKED
         "56",       # 0104: End
@@ -9436,13 +9436,13 @@ writeHelper(romBytes, 0xD230B, bytes.fromhex(' '.join([
 ])))
 writeHelper(romBytes, 0xF40C2, bytes.fromhex(' '.join([
     "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-    "C2",       # 0002: Push $13
+    "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
     "58 C5",    # 0003: Check if object has an owner
     "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-    "C2",       # 0008: Push $13
+    "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     # TOP_OF_LOOP
-    "C2",       # 000C: Push $13
+    "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
     "58 C5",    # 000D: Check if object has an owner
     "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
     "00 00",    # 0011: Push unsigned byte 0x00
@@ -9458,13 +9458,13 @@ writeHelper(romBytes, 0xD231D, bytes.fromhex(' '.join([
 ])))
 writeHelper(romBytes, 0xF4118, bytes.fromhex(' '.join([
     "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-    "C2",       # 0002: Push $13
+    "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
     "58 C5",    # 0003: Check if object has an owner
     "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-    "C2",       # 0008: Push $13
+    "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     # TOP_OF_LOOP
-    "C2",       # 000C: Push $13
+    "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
     "58 C5",    # 000D: Check if object has an owner
     "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
     "00 00",    # 0011: Push unsigned byte 0x00
@@ -9480,13 +9480,13 @@ writeHelper(romBytes, 0xD24E5, bytes.fromhex(' '.join([
 ])))
 writeHelper(romBytes, 0xF428E, bytes.fromhex(' '.join([
     "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-    "C2",       # 0002: Push $13
+    "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
     "58 C5",    # 0003: Check if object has an owner
     "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-    "C2",       # 0008: Push $13
+    "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
     "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
     # TOP_OF_LOOP
-    "C2",       # 000C: Push $13
+    "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
     "58 C5",    # 000D: Check if object has an owner
     "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
     "14 00 01", # 0011: Push short 0x0100
@@ -9535,14 +9535,14 @@ expandedOffset = scriptHelper(
         # 0181-01ED
         # New code.
         # Make the defeated Jester Spirit disappear in a puff of smoke.
-        "C2",       # 0181: Push $13
+        "C2",       # 0181: Push unsigned byte from $13+00 <-- Spawn index
         "58 4D",    # 0182: Stop object's movement?
         "00 F0",    # 0184: Push unsigned byte 0xF0
-        "C2",       # 0186: Push $13
+        "C2",       # 0186: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 0187: Push object's Z coordinate / 4
-        "C2",       # 0189: Push $13
+        "C2",       # 0189: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 018A: Push object's Y coordinate / 4
-        "C2",       # 018C: Push $13
+        "C2",       # 018C: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 018D: Push object's X coordinate / 4
         "00 56",    # 018F: Push unsigned byte 0x56
         "58 A8",    # 0191: Spawn object at abs coords?
@@ -9557,17 +9557,17 @@ expandedOffset = scriptHelper(
                     # 019A: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 019D: Push object's RAM_1 <-- Item drop's spawn index
         "2C 04",    # 019F: Pop byte to $13+04  <-- Item drop's spawn index
-        "C2",       # 01A1: Push $13
+        "C2",       # 01A1: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 01A2: Push object's Z coordinate / 4
         "00 02",    # 01A4: Push unsigned byte 0x02
         "7A",       # 01A6: Left shift
-        "C2",       # 01A7: Push $13
+        "C2",       # 01A7: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 01A8: Push object's Y coordinate / 4
         "00 02",    # 01AA: Push unsigned byte 0x02
         "7A",       # 01AC: Left shift
         "00 42",    # 01AD: Push unsigned byte 0x42
         "5E",       # 01AF: Subtraction
-        "C2",       # 01B0: Push $13
+        "C2",       # 01B0: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 01B1: Push object's X coordinate / 4
         "00 02",    # 01B3: Push unsigned byte 0x02
         "7A",       # 01B5: Left shift
@@ -9584,17 +9584,17 @@ expandedOffset = scriptHelper(
                     # 01C3: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 01C6: Push object's RAM_1 <-- Item drop's spawn index
         "2C 04",    # 01C8: Pop byte to $13+04  <-- Item drop's spawn index
-        "C2",       # 01CA: Push $13
+        "C2",       # 01CA: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 01CB: Push object's Z coordinate / 4
         "00 02",    # 01CD: Push unsigned byte 0x02
         "7A",       # 01CF: Left shift
-        "C2",       # 01D0: Push $13
+        "C2",       # 01D0: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 01D1: Push object's Y coordinate / 4
         "00 02",    # 01D3: Push unsigned byte 0x02
         "7A",       # 01D5: Left shift
         "00 02",    # 01D6: Push unsigned byte 0x02
         "5E",       # 01D8: Subtraction
-        "C2",       # 01D9: Push $13
+        "C2",       # 01D9: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 01DA: Push object's X coordinate / 4
         "00 02",    # 01DC: Push unsigned byte 0x02
         "7A",       # 01DE: Left shift
@@ -9610,10 +9610,10 @@ expandedOffset = scriptHelper(
         "14 DF 1E", # 01EE: Push short 0x1EDF <-- Object-id of the Jester Spirit portal
         "58 0D",    # 01F1: Set bits of object's flags
         # Mark the Jester Spirit as defeated.
-        "C2",       # 01F3: Push $13
+        "C2",       # 01F3: Push unsigned byte from $13+00 <-- Spawn index
         "58 C4",    # 01F4: Set object's owner to "Dog Food"
         # Despawn the Jester Spirit.
-        "C2",       # 01F6: Push $13
+        "C2",       # 01F6: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 01F7: Despawn object
         "56",       # 01F9: End
     ],
@@ -9629,16 +9629,16 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x10, # Header byte: Maximum stack height of 0x10 bytes (= 8 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 11 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "00 05",    # 000C: Push unsigned byte 0x05
-        "C2",       # 000E: Push $13
+        "C2",       # 000E: Push unsigned byte from $13+00 <-- Spawn index
         "58 6A",    # 000F: Set object's facing direction
         # TOP_OF_LOOP
-        "C2",       # 0011: Push $13
+        "C2",       # 0011: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0012: Check if object has an owner
         "2C 01",    # 0014: Pop byte to $13+01 <-- Whether object has an owner
         "14 00 01", # 0016: Push short 0x0100
@@ -9668,7 +9668,7 @@ expandedOffset = scriptHelper(
         "44 51 00", # 0041: If not equal, jump to CHECK_IF_USE
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 0044: Push $13
+        "C2",       # 0044: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0045: Set object's owner to Jake
         "52 4B 00", # 0047: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 004A: Push signed byte 0xFF
@@ -9681,7 +9681,7 @@ expandedOffset = scriptHelper(
         "44 B2 01", # 0057: If not equal, jump to BOTTOM_OF_LOOP
         # USE
         # Interaction menu option: Use
-        "C2",       # 005A: Push $13
+        "C2",       # 005A: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 005B: Push object's flags
         "00 01",    # 005D: Push unsigned byte 0x01
         "7E",       # 005F: Bitwise AND
@@ -9695,40 +9695,40 @@ expandedOffset = scriptHelper(
         "44 A1 01", # 006C: If not equal, jump to NOT_USING_IT_HERE
         # SPAWN_JESTER_SPIRIT
         "00 01",    # 006F: Push unsigned byte 0x01
-        "C2",       # 0071: Push $13
+        "C2",       # 0071: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 0072: Set bits of object's flags
         "14 01 80", # 0074: Push short 0x8001
-        "C2",       # 0077: Push $13
+        "C2",       # 0077: Push unsigned byte from $13+00 <-- Spawn index
         "58 B2",    # 0078: ???
         "58 7F",    # 007A: ???
         "00 01",    # 007C: Push unsigned byte 0x01
         "BA",       # 007E: Duplicate
         "58 9E",    # 007F: Register menu options / time delay
         "BC",       # 0081: Pop
-        "C2",       # 0082: Push $13
+        "C2",       # 0082: Push unsigned byte from $13+00 <-- Spawn index
         "58 C4",    # 0083: Set object's owner to "Dog Food"
         "00 0F",    # 0085: Push unsigned byte 0x0F
         "00 FF",    # 0087: Push unsigned byte 0xFF
         "00 58",    # 0089: Push unsigned byte 0x58
-        "C2",       # 008B: Push $13
+        "C2",       # 008B: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 008C: Play sound effect
         "00 01",    # 008E: Push unsigned byte 0x01
         "00 14",    # 0090: Push unsigned byte 0x14
         "58 9A",    # 0092: Set bits of 7E3BBB+n
         "C0",       # 0094: Push zero
         "C0",       # 0095: Push zero
-        "C2",       # 0096: Push $13
+        "C2",       # 0096: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0097: Display sprite with facing direction
         "00 01",    # 0099: Push unsigned byte 0x01
-        "C2",       # 009B: Push $13
+        "C2",       # 009B: Push unsigned byte from $13+00 <-- Spawn index
         "58 B5",    # 009C: Move object instantly to waypoint?
         "00 20",    # 009E: Push unsigned byte 0x20
-        "C2",       # 00A0: Push $13
+        "C2",       # 00A0: Push unsigned byte from $13+00 <-- Spawn index
         "58 CE",    # 00A1: Set bits of 7E1474+n <-- Makes the Jester Spirit subject to gravity
         "00 10",    # 00A3: Push unsigned byte 0x10
         "C0",       # 00A5: Push zero
         "C0",       # 00A6: Push zero
-        "C2",       # 00A7: Push $13
+        "C2",       # 00A7: Push unsigned byte from $13+00 <-- Spawn index
         "58 79",    # 00A8: Set object X/Y/Z deltas?
         "C0",       # 00AA: Push zero
         "2C 04",    # 00AB: Pop byte to $13+04 <-- Facing direction (was $13+03 in vanilla)
@@ -9738,7 +9738,7 @@ expandedOffset = scriptHelper(
         "34 07",    # 00B3: Pop short to $13+07 <-- Frames spent per facing (was $13+06 in vanilla)
         # ROTATE
         "02 04",    # 00B5: Push unsigned byte from $13+04 <-- Facing direction
-        "C2",       # 00B7: Push $13
+        "C2",       # 00B7: Push unsigned byte from $13+00 <-- Spawn index
         "58 6A",    # 00B8: Set object's facing direction
         "02 04",    # 00BA: Push unsigned byte from $13+04 <-- Facing direction
         "86",       # 00BC: Increment
@@ -9780,12 +9780,12 @@ expandedOffset = scriptHelper(
         "44 E5 00", # 00F4: If false, jump to WAIT_FOR_DRAKE
         # PREPARE_TO_ASCEND
         "0A DF",    # 00F7: Push signed byte 0xDF
-        "C2",       # 00F9: Push $13
+        "C2",       # 00F9: Push unsigned byte from $13+00 <-- Spawn index
         "58 2C",    # 00FA: Clear bits of 7E1474+n <-- Makes the Jester Spirit no longer subject to gravity
         "00 01",    # 00FC: Push unsigned byte 0x01
         "C0",       # 00FE: Push zero
         "C0",       # 00FF: Push zero
-        "C2",       # 0100: Push $13
+        "C2",       # 0100: Push unsigned byte from $13+00 <-- Spawn index
         "58 79",    # 0101: Set object X/Y/Z deltas?
         "00 0F",    # 0103: Push unsigned byte 0x0F
         "34 05",    # 0105: Pop short to $13+05 <-- Movement countdown
@@ -9803,7 +9803,7 @@ expandedOffset = scriptHelper(
         "AA",       # 0118: Check if equal
         "44 07 01", # 0119: If not equal, jump to ASCEND
         # PREPARE_TO_ATTACK
-        "C2",       # 011C: Push $13
+        "C2",       # 011C: Push unsigned byte from $13+00 <-- Spawn index
         "58 4D",    # 011D: Stop object's movement?
         "00 14",    # 011F: Push unsigned byte 0x14
         "34 05",    # 0121: Pop short to $13+05 <-- Movement countdown
@@ -9823,7 +9823,7 @@ expandedOffset = scriptHelper(
         "00 06",    # 0139: Push unsigned byte 0x06
         "00 60",    # 013B: Push unsigned byte 0x60
         "00 56",    # 013D: Push unsigned byte 0x56
-        "C2",       # 013F: Push $13
+        "C2",       # 013F: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0140: Play sound effect
         # CHECK_IF_DONE_ATTACKING
         "16 05",    # 0142: Push short from $13+05 <-- Movement countdown
@@ -9837,14 +9837,14 @@ expandedOffset = scriptHelper(
         "00 01",    # 014D: Push unsigned byte 0x01
         "C0",       # 014F: Push zero
         "C0",       # 0150: Push zero
-        "C2",       # 0151: Push $13
+        "C2",       # 0151: Push unsigned byte from $13+00 <-- Spawn index
         "58 79",    # 0152: Set object X/Y/Z deltas?
         "00 3C",    # 0154: Push unsigned byte 0x3C
         "34 05",    # 0156: Pop short to $13+05 <-- Movement countdown
         "00 04",    # 0158: Push unsigned byte 0x04
         "00 FF",    # 015A: Push unsigned byte 0xFF
         "00 56",    # 015C: Push unsigned byte 0x56
-        "C2",       # 015E: Push $13
+        "C2",       # 015E: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 015F: Play sound effect
         # DISAPPEAR
         "00 01",    # 0161: Push unsigned byte 0x01
@@ -9852,14 +9852,14 @@ expandedOffset = scriptHelper(
         "58 9E",    # 0164: Register menu options / time delay
         "BC",       # 0166: Pop
         "00 80",    # 0167: Push unsigned byte 0x80
-        "C2",       # 0169: Push $13
+        "C2",       # 0169: Push unsigned byte from $13+00 <-- Spawn index
         "58 CE",    # 016A: Set bits of 7E1474+n <-- Makes the Jester Spirit invisible
         "00 01",    # 016C: Push unsigned byte 0x01
         "BA",       # 016E: Duplicate
         "58 9E",    # 016F: Register menu options / time delay
         "BC",       # 0171: Pop
         "14 7F FF", # 0172: Push short 0xFF7F
-        "C2",       # 0175: Push $13
+        "C2",       # 0175: Push unsigned byte from $13+00 <-- Spawn index
         "58 2C",    # 0176: Clear bits of 7E1474+n <-- Makes the Jester Spirit visible
         "16 05",    # 0178: Push short from $13+05 <-- Movement countdown
         "00 02",    # 017A: Push unsigned byte 0x02
@@ -9871,12 +9871,12 @@ expandedOffset = scriptHelper(
         "BE",       # 0183: Convert to boolean
         "46 91 01", # 0184: If true, jump to CHECK_IF_DONE_DISAPPEARING
         # ROTATE_WHILE_DISAPPEARING
-        "C2",       # 0187: Push $13
+        "C2",       # 0187: Push unsigned byte from $13+00 <-- Spawn index
         "58 5D",    # 0188: Push object's facing direction
         "86",       # 018A: Increment
         "00 07",    # 018B: Push unsigned byte 0x07
         "7E",       # 018D: Bitwise AND
-        "C2",       # 018E: Push $13
+        "C2",       # 018E: Push unsigned byte from $13+00 <-- Spawn index
         "58 6A",    # 018F: Set object's facing direction
         # CHECK_IF_DONE_DISAPPEARING
         "16 05",    # 0191: Push short from $13+05 <-- Movement countdown
@@ -9901,16 +9901,16 @@ expandedOffset = scriptHelper(
         "0C 01",    # 01B2: Push signed byte from $13+01 <-- Whether object has an owner
         "44 11 00", # 01B4: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 01B7: Push $13
+        "C2",       # 01B7: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 01B8: Despawn object
         "56",       # 01BA: End
         # SUBROUTINE_CREATE_PROJECTILE
         "00 2E",    # 01BB: Push unsigned byte 0x2E
-        "C2",       # 01BD: Push $13
+        "C2",       # 01BD: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 01BE: Push object's Z coordinate / 4
-        "C2",       # 01C0: Push $13
+        "C2",       # 01C0: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 01C1: Push object's Y coordinate / 4
-        "C2",       # 01C3: Push $13
+        "C2",       # 01C3: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 01C4: Push object's X coordinate / 4
         "00 78",    # 01C6: Push unsigned byte 0x78
         "58 A8",    # 01C8: Spawn object at abs coords?
@@ -9921,12 +9921,12 @@ expandedOffset = scriptHelper(
         "C0",       # 01CE: Push zero
         "C0",       # 01CF: Push zero
         "14 31 03", # 01D0: Push short 0x0331
-        "C2",       # 01D3: Push $13
+        "C2",       # 01D3: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 01D4: Push object's Z coordinate / 4
-        "C2",       # 01D6: Push $13
+        "C2",       # 01D6: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 01D7: Push object's Y coordinate / 4
         "88",       # 01D9: Decrement
-        "C2",       # 01DA: Push $13
+        "C2",       # 01DA: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 01DB: Push object's X coordinate / 4
         "88",       # 01DD: Decrement
         "00 78",    # 01DE: Push unsigned byte 0x78
@@ -9943,7 +9943,7 @@ romBytes[0x6BBC9] |= 0x40
 #   Using the 0x80 flag would be more consistent, but the portal script
 #   is already using that flag as part of player proximity detection.
 writeHelper(romBytes, 0xDE224, bytes.fromhex(' '.join([
-    "C2",       # 0009: Push $13
+    "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
     "58 02",    # 000A: Push object's flags
     "00 01",    # 000C: Push unsigned byte 0x01
     "7E",       # 000E: Bitwise AND
@@ -10005,7 +10005,7 @@ writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
 # - Show the correct floor on the floor indicator in the "game won" case
 writeHelper(romBytes, 0xF76E7, bytes.fromhex(' '.join([
     "00 20",    # 001A: Push unsigned byte 0x20
-    "C2",       # 001C: Push $13
+    "C2",       # 001C: Push unsigned byte from $13+00 <-- Spawn index
     "58 33",    # 001D: Set bits of object's flags
     "48 24 00", # 001F: Jump to 0024
 ])))
@@ -10026,7 +10026,7 @@ writeHelper(romBytes, 0xF771D, bytes.fromhex(' '.join([
     "7E",       # 0062: Bitwise AND
     "C0",       # 0063: Push zero
     "9A",       # 0064: Check if greater than
-    "C2",       # 0065: Push $13
+    "C2",       # 0065: Push unsigned byte from $13+00 <-- Spawn index
     "58 02",    # 0066: Push object's flags
     "00 20",    # 0068: Push unsigned byte 0x20
     "7E",       # 006A: Bitwise AND
@@ -10047,12 +10047,12 @@ writeHelper(romBytes, 0xF771D, bytes.fromhex(' '.join([
     # - The elevator to the next floor is locked again
     # Solution: Set the 0x20 flag here before jumping to 00DE.
     "00 20",    # 0070: Push unsigned byte 0x20
-    "C2",       # 0072: Push $13
+    "C2",       # 0072: Push unsigned byte from $13+00 <-- Spawn index
     "58 33",    # 0073: Set bits of object's flags
     "48 DE 00", # 0075: Jump to 00DE
     # CHANGE_SPRITE
     "00 02",    # 0078: Push unsigned byte 0x02
-    "C2",       # 007A: Push $13
+    "C2",       # 007A: Push unsigned byte from $13+00 <-- Spawn index
     "58 D0",    # 007B: Display sprite
     # TOP_OF_LOOP
     "00 06",    # 007D: Push unsigned byte 0x06
@@ -10065,7 +10065,7 @@ writeHelper(romBytes, 0xF771D, bytes.fromhex(' '.join([
     "7E",       # 008A: Bitwise AND
     "C0",       # 008B: Push zero
     "9A",       # 008C: Check if greater than
-    "C2",       # 008D: Push $13
+    "C2",       # 008D: Push unsigned byte from $13+00 <-- Spawn index
     "58 02",    # 008E: Push object's flags
     "00 20",    # 0090: Push unsigned byte 0x20
     "7E",       # 0092: Bitwise AND
@@ -10088,7 +10088,7 @@ expandedOffset = scriptHelper(
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         # CHECK_IF_DRAKE_TOWERS_1F_DESCENDING_ELEVATOR
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 0003: Push object-id
         "14 0B 14", # 0005: Push short 0x140B
         "AA",       # 0008: Check if equal
@@ -10099,7 +10099,7 @@ expandedOffset = scriptHelper(
         "58 12",    # 0010: Write short to 7E3BBB+n
         "48 38 00", # 0012: Jump to DISPLAY_SPRITE
         # CHECK_IF_ANEKI_BUILDING_1F_DESCENDING_ELEVATOR
-        "C2",       # 0015: Push $13
+        "C2",       # 0015: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 0016: Push object-id
         "14 CC 13", # 0018: Push short 0x13CC
         "AA",       # 001B: Check if equal
@@ -10110,7 +10110,7 @@ expandedOffset = scriptHelper(
         "58 12",    # 0023: Write short to 7E3BBB+n
         "48 38 00", # 0025: Jump to DISPLAY_SPRITE
         # CHECK_IF_ANEKI_BUILDING_5F_ASCENDING_ELEVATOR
-        "C2",       # 0028: Push $13
+        "C2",       # 0028: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 0029: Push object-id
         "14 2E 14", # 002B: Push short 0x142E
         "AA",       # 002E: Check if equal
@@ -10122,12 +10122,12 @@ expandedOffset = scriptHelper(
         # DISPLAY_SPRITE
         "00 05",    # 0038: Push unsigned byte 0x05
         "00 02",    # 003A: Push unsigned byte 0x02
-        "C2",       # 003C: Push $13
+        "C2",       # 003C: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 003D: Display sprite with facing direction
         "14 00 01", # 003F: Push short 0x0100
-        "C2",       # 0042: Push $13
+        "C2",       # 0042: Push unsigned byte from $13+00 <-- Spawn index
         "58 CE",    # 0043: Set bits of 7E1474+n
-        "C2",       # 0045: Push $13
+        "C2",       # 0045: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0046: ???
         "56",       # 0048: End
     ],
@@ -10162,10 +10162,10 @@ expandedOffset = scriptHelper(
         "02 01",    # 0019: Push unsigned byte from $13+01 <-- "Event short" index for indicator's floor number
         "58 57",    # 001B: Read short from 7E3BBB+n
         "88",       # 001D: Decrement
-        "C2",       # 001E: Push $13
+        "C2",       # 001E: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 001F: Display sprite with facing direction
         # DONE
-        "C2",       # 0021: Push $13
+        "C2",       # 0021: Push unsigned byte from $13+00 <-- Spawn index
         "58 5B",    # 0022: ???
         "56",       # 0024: End
     ],
@@ -10209,13 +10209,13 @@ expandedOffset = scriptHelper(
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
-        "C2",       # 0002: Push $13
+        "C2",       # 0002: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0003: Check if object has an owner
         "46 0C 00", # 0005: If yes, jump to TOP_OF_LOOP
-        "C2",       # 0008: Push $13
+        "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         # TOP_OF_LOOP
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 000D: Check if object has an owner
         "2C 01",    # 000F: Pop byte to $13+01 <-- Whether object has an owner
         "C0",       # 0011: Push zero
@@ -10232,7 +10232,7 @@ expandedOffset = scriptHelper(
         "00 03",    # 0020: Push unsigned byte 0x03
         "00 FF",    # 0022: Push unsigned byte 0xFF
         "00 32",    # 0024: Push unsigned byte 0x32
-        "C2",       # 0026: Push $13
+        "C2",       # 0026: Push unsigned byte from $13+00 <-- Spawn index
         "58 4C",    # 0027: Play sound effect
         "00 F0",    # 0029: Push unsigned byte 0xF0 <-- Was 0x78
         "00 9A",    # 002B: Push unsigned byte 0x9A
@@ -10250,7 +10250,7 @@ expandedOffset = scriptHelper(
         "44 4F 00", # 0042: If not equal, jump to BOTTOM_OF_LOOP
         # PICKUP
         # Interaction menu option: Pickup
-        "C2",       # 0045: Push $13
+        "C2",       # 0045: Push unsigned byte from $13+00 <-- Spawn index
         "58 6F",    # 0046: Set object's owner to Jake
         "52 4B 00", # 0048: Execute behaviour script 0x4B = "Got item" sound effect
         "0A FF",    # 004B: Push signed byte 0xFF
@@ -10259,7 +10259,7 @@ expandedOffset = scriptHelper(
         "0C 01",    # 004F: Push signed byte from $13+01 <-- Whether object has an owner
         "44 0C 00", # 0051: If no, jump to TOP_OF_LOOP
         # DONE
-        "C2",       # 0054: Push $13
+        "C2",       # 0054: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0055: Despawn object
         "56",       # 0057: End
     ],
@@ -10291,7 +10291,7 @@ expandedOffset = scriptHelper(
         "00 C0",    # 0016: Push unsigned byte 0xC0
         "00 01",    # 0018: Push unsigned byte 0x01
         "C0",       # 001A: Push zero
-        "C2",       # 001B: Push $13
+        "C2",       # 001B: Push unsigned byte from $13+00 <-- Spawn index
         "52 0B 00", # 001C: Execute behaviour script 0xB
         # GOLD_NAGA_DEFEATED
         f"14 {romBytes[0xD26C7+0]:02X} {romBytes[0xD26C7+1]:02X}",
@@ -10306,15 +10306,15 @@ expandedOffset = scriptHelper(
                     # 002B: Push short 0x####   <-- Item drop's object-id
         "58 C2",    # 002E: Push object's RAM_1 <-- Item drop's spawn index
         "2C 01",    # 0030: Pop byte to $13+01  <-- Item drop's spawn index
-        "C2",       # 0032: Push $13
+        "C2",       # 0032: Push unsigned byte from $13+00 <-- Spawn index
         "58 51",    # 0033: Push object's Z coordinate / 4
         "00 02",    # 0035: Push unsigned byte 0x02
         "7A",       # 0037: Left shift
-        "C2",       # 0038: Push $13
+        "C2",       # 0038: Push unsigned byte from $13+00 <-- Spawn index
         "58 50",    # 0039: Push object's Y coordinate / 4
         "00 02",    # 003B: Push unsigned byte 0x02
         "7A",       # 003D: Left shift
-        "C2",       # 003E: Push $13
+        "C2",       # 003E: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 003F: Push object's X coordinate / 4
         "00 02",    # 0041: Push unsigned byte 0x02
         "7A",       # 0043: Left shift
@@ -10336,7 +10336,7 @@ expandedOffset = scriptHelper(
         "02 01",    # 005E: Push unsigned byte from $13+01 <-- Item drop's spawn index
         "58 CE",    # 0060: Set bits of 7E1474+n <-- Makes the item drop subject to gravity
         # DONE
-        "C2",       # 0062: Push $13
+        "C2",       # 0062: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0063: Despawn object
         "56",       # 0065: End
     ],
@@ -10359,19 +10359,19 @@ expandedOffset = scriptHelper(
         "58 71",    # 0004: Learn keyword
         "00 04",    # 0006: Push unsigned byte 0x04
         "C0",       # 0008: Push zero
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 000A: Display sprite with facing direction
         "00 40",    # 000C: Push unsigned byte 0x40
-        "C2",       # 000E: Push $13
+        "C2",       # 000E: Push unsigned byte from $13+00 <-- Spawn index
         "58 B4",    # 000F: Register conversation
         # TOP_OF_LOOP
-        "C2",       # 0011: Push $13
+        "C2",       # 0011: Push unsigned byte from $13+00 <-- Spawn index
         "58 6C",    # 0012: Face towards Jake
         "00 05",    # 0014: Push unsigned byte 0x05
         "00 03",    # 0016: Push unsigned byte 0x03
         "58 9E",    # 0018: Register menu options / time delay
         "BC",       # 001A: Pop
-        "C2",       # 001B: Push $13
+        "C2",       # 001B: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 001C: Push object's flags
         "00 80",    # 001E: Push unsigned byte 0x80
         "7E",       # 0020: Bitwise AND
@@ -10412,7 +10412,7 @@ expandedOffset = scriptHelper(
         "58 9E",    # 005D: Register menu options / time delay
         "BC",       # 005F: Pop
         # DONE
-        "C2",       # 0060: Push $13
+        "C2",       # 0060: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0061: Despawn object
         "56",       # 0063: End
     ],
@@ -10438,20 +10438,20 @@ expandedOffset = scriptHelper(
         "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
         "C0",       # 0002: Push zero
         "C0",       # 0003: Push zero
-        "C2",       # 0004: Push $13
+        "C2",       # 0004: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0005: Display sprite with facing direction
         "00 80",    # 0007: Push unsigned byte 0x80
-        "C2",       # 0009: Push $13
+        "C2",       # 0009: Push unsigned byte from $13+00 <-- Spawn index
         "58 CE",    # 000A: Set bits of 7E1474+n <-- Makes the AI Computer object invisible
         # CHECK_IF_AI_COMPUTER_ALREADY_DESTROYED
-        "C2",       # 000C: Push $13
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 000D: Push object's flags
         "00 40",    # 000F: Push unsigned byte 0x40
         "7E",       # 0011: Bitwise AND
         "BE",       # 0012: Convert to boolean
         "46 90 00", # 0013: If true, jump to DONE
         # CHECK_IF_JUST_FINISHED_DECKING
-        "C2",       # 0016: Push $13
+        "C2",       # 0016: Push unsigned byte from $13+00 <-- Spawn index
         "58 02",    # 0017: Push object's flags
         "00 01",    # 0019: Push unsigned byte 0x01
         "7E",       # 001B: Bitwise AND
@@ -10463,7 +10463,7 @@ expandedOffset = scriptHelper(
         "58 9E",    # 0023: Register menu options / time delay
         "BC",       # 0025: Pop
         "14 7E FF", # 0026: Push short 0xFF7E
-        "C2",       # 0029: Push $13
+        "C2",       # 0029: Push unsigned byte from $13+00 <-- Spawn index
         "58 7A",    # 002A: Clear bits of object's flags <-- Clear the AI Computer's 0x80 and 0x01 flags
         # CHECK_IF_JUST_FINISHED_DESTROYING_THE_AI_COMPUTER
         "04 AE 1D", # 002C: Push unsigned byte from $7E1DAE <-- Bit flags for interacted-with Matrix objects
@@ -10482,7 +10482,7 @@ expandedOffset = scriptHelper(
         "58 C7",    # 0044: Print text ("PROGRAM DOWNLOADED")
         "58 A2",    # 0046: Wait for player input
         "00 40",    # 0048: Push unsigned byte 0x40
-        "C2",       # 004A: Push $13
+        "C2",       # 004A: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 004B: Set bits of object's flags
         ## STOCK_DARK_BLADE_CASES
         #"0A FD",    # ____: Push signed byte 0xFD
@@ -10521,19 +10521,19 @@ expandedOffset = scriptHelper(
         "48 90 00", # 0079: Jump to DONE
         # WAIT_FOR_CYBERDECK
         # Using a Cyberdeck on the AI Computer will set the latter's 0x80 flag.
-        "C2",       # 007C: Push $13
+        "C2",       # 007C: Push unsigned byte from $13+00 <-- Spawn index
         "52 01 01", # 007D: Execute behaviour script 0x101 = Wait for object's 0x80 flag to be set
         "00 01",    # 0080: Push unsigned byte 0x01
-        "C2",       # 0082: Push $13
+        "C2",       # 0082: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 0083: Set bits of object's flags
         "00 03",    # 0085: Push unsigned byte 0x03
         "C0",       # 0087: Push zero
         "00 A0",    # 0088: Push unsigned byte 0xA0
         "00 10",    # 008A: Push unsigned byte 0x10
-        "C2",       # 008C: Push $13
+        "C2",       # 008C: Push unsigned byte from $13+00 <-- Spawn index
         "52 E7 02", # 008D: Execute behaviour script 0x2E7 = Matrix login helper script
         # DONE
-        "C2",       # 0090: Push $13
+        "C2",       # 0090: Push unsigned byte from $13+00 <-- Spawn index
         "58 B8",    # 0091: Despawn object
         "56",       # 0093: End
     ],
