@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-06-19"
+randomizerVersion = "2024-06-21"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -3483,9 +3483,9 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
+        category = Category.CONSTANT,
         description = "Safe Key",
-        vanilla = Entity(Category.KEY_ITEM, "Safe Key", 0x6B65F, [
+        vanilla = Entity(Category.CONSTANT, "Safe Key", 0x6B65F, [
             (Progress.ITEM___SAFE_KEY, []),
         ]),
         requires = [],

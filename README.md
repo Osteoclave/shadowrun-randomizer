@@ -103,7 +103,6 @@ Randomizer for Shadowrun (SNES)
    * Crowbar
    * Drake Password
    * Bronze Key
-   * Safe Key
    * Green Bottle
    * Jester Spirit Insignia
 * Shadowrunners have been shuffled among their vanilla locations...
