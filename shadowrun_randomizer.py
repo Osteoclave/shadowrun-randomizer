@@ -7218,7 +7218,7 @@ expandedOffset = scriptHelper(
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
         "00 08",    # 000C: Push unsigned byte 0x08
         "C2",       # 000E: Push $13
-        "58 D0",    # 000F: Change displayed sprite? <-- We do this to fix the "spinning Ghoul Bone" bug
+        "58 D0",    # 000F: Display sprite <-- We do this to fix the "spinning Ghoul Bone" bug
         # TOP_OF_LOOP
         "C2",       # 0011: Push $13
         "58 C5",    # 0012: Check if object has an owner
@@ -7445,7 +7445,7 @@ expandedOffset = scriptHelper(
         "58 C7",    # 007D: Print text ("Thanks!")
         "00 02",    # 007F: Push unsigned byte 0x02
         "C2",       # 0081: Push $13
-        "58 D0",    # 0082: Change displayed sprite?
+        "58 D0",    # 0082: Display sprite
         "C0",       # 0084: Push zero
         "00 08",    # 0085: Push unsigned byte 0x08
         "58 9E",    # 0087: Register menu options / time delay
@@ -7456,7 +7456,7 @@ expandedOffset = scriptHelper(
         "58 0D",    # 008F: Set bits of object's flags
         "00 03",    # 0091: Push unsigned byte 0x03
         "C2",       # 0093: Push $13
-        "58 D0",    # 0094: Change displayed sprite?
+        "58 D0",    # 0094: Display sprite
         "00 02",    # 0096: Push unsigned byte 0x02
         "C0",       # 0098: Push zero
         "C0",       # 0099: Push zero
@@ -8116,14 +8116,14 @@ expandedOffset = scriptHelper(
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
-        "58 D0",    # 0015: Change displayed sprite?
+        "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
         "C2",       # 0020: Push $13
-        "58 D0",    # 0021: Change displayed sprite?
+        "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
@@ -8133,7 +8133,7 @@ expandedOffset = scriptHelper(
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
         "C2",       # 002F: Push $13
-        "58 D0",    # 0030: Change displayed sprite?
+        "58 D0",    # 0030: Display sprite
         "C2",       # 0032: Push $13
         "58 5B",    # 0033: ???
         "56",       # 0035: End
@@ -8229,14 +8229,14 @@ expandedOffset = scriptHelper(
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
-        "58 D0",    # 0015: Change displayed sprite?
+        "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
         "C2",       # 0020: Push $13
-        "58 D0",    # 0021: Change displayed sprite?
+        "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
@@ -8246,7 +8246,7 @@ expandedOffset = scriptHelper(
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
         "C2",       # 002F: Push $13
-        "58 D0",    # 0030: Change displayed sprite?
+        "58 D0",    # 0030: Display sprite
         "C2",       # 0032: Push $13
         "58 5B",    # 0033: ???
         "56",       # 0035: End
@@ -8349,14 +8349,14 @@ expandedOffset = scriptHelper(
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
-        "58 D0",    # 0015: Change displayed sprite?
+        "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
         "C2",       # 0020: Push $13
-        "58 D0",    # 0021: Change displayed sprite?
+        "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
@@ -8366,7 +8366,7 @@ expandedOffset = scriptHelper(
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
         "C2",       # 002F: Push $13
-        "58 D0",    # 0030: Change displayed sprite?
+        "58 D0",    # 0030: Display sprite
         "C2",       # 0032: Push $13
         "58 5B",    # 0033: ???
         "56",       # 0035: End
@@ -8469,14 +8469,14 @@ expandedOffset = scriptHelper(
         "58 D1",    # 0010: Display sprite with facing direction
         "00 02",    # 0012: Push unsigned byte 0x02
         "C2",       # 0014: Push $13
-        "58 D0",    # 0015: Change displayed sprite?
+        "58 D0",    # 0015: Display sprite
         "00 14",    # 0017: Push unsigned byte 0x14
         "00 01",    # 0019: Push unsigned byte 0x01
         "58 9E",    # 001B: Register menu options / time delay
         "BC",       # 001D: Pop
         "00 04",    # 001E: Push unsigned byte 0x04
         "C2",       # 0020: Push $13
-        "58 D0",    # 0021: Change displayed sprite?
+        "58 D0",    # 0021: Display sprite
         "C0",       # 0023: Push zero
         "00 08",    # 0024: Push unsigned byte 0x08
         "58 9E",    # 0026: Register menu options / time delay
@@ -8486,7 +8486,7 @@ expandedOffset = scriptHelper(
         "58 33",    # 002C: Set bits of object's flags
         "C0",       # 002E: Push zero
         "C2",       # 002F: Push $13
-        "58 D0",    # 0030: Change displayed sprite?
+        "58 D0",    # 0030: Display sprite
         "C2",       # 0032: Push $13
         "58 5B",    # 0033: ???
         "56",       # 0035: End
@@ -10053,7 +10053,7 @@ writeHelper(romBytes, 0xF771D, bytes.fromhex(' '.join([
     # CHANGE_SPRITE
     "00 02",    # 0078: Push unsigned byte 0x02
     "C2",       # 007A: Push $13
-    "58 D0",    # 007B: Change displayed sprite?
+    "58 D0",    # 007B: Display sprite
     # TOP_OF_LOOP
     "00 06",    # 007D: Push unsigned byte 0x06
     "00 01",    # 007F: Push unsigned byte 0x01
