@@ -12,7 +12,7 @@ Randomizer for Shadowrun (SNES)
       * `py --version`
       * `python --version`
       * `python3 --version`
-   * If one of these returns a Python 3.x version string (e.g. `Python 3.11.2`), you should be good to go.
+   * If one of these returns a Python 3.x version string (e.g. `Python 3.12.6`), you should be good to go.
    * If not, [download and install Python](https://www.python.org/downloads/).
 1. Click the green "Code" button at the upper right of this repository page, then "Download ZIP".
 1. Extract the ZIP archive's contents to a convenient directory.
@@ -120,5 +120,8 @@ Randomizer for Shadowrun (SNES)
 * The Tenth Street monorail is open for business when the game begins.
 * The King starts out paid off, so you can enter and leave the caryards freely.
 * You don't have to defeat the Rust Stilettos to enter Jagged Nails.
+* The gate to the Dark Blade courtyard is open when the game begins.
+   * This allows access to the Dark Blade weapon shop at any time
+   * You still need to phone the Dark Blade before you can enter the mansion, though
 * The Aneki Password is no longer required to enter the Aneki Building.
 * Remember that you can hire shadowrunners to help you out.

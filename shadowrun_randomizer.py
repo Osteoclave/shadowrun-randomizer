@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-06-21"
+randomizerVersion = "2024-09-15"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -319,7 +319,7 @@ Progress = Enum(
         "EVENT___EARTH_CREATURE_AND_MAN",
         "EVENT___RAT_SHAMAN_GATE_OPENED",
         "EVENT___RAT_SHAMAN_DEFEATED",
-        "EVENT___DARK_BLADE_GATE_OPENED",
+        "EVENT___INVITED_TO_DARK_BLADE",
         "EVENT___VAMPIRE_DEFEATED",
         "EVENT___ICE_DELIVERED_TO_DOCKS",
         "EVENT___TAXIBOAT_HIRED",
@@ -1400,7 +1400,7 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "DBlade 826-661",
         vanilla = Entity(Category.CONSTANT, "DBlade 826-661", None, [
-            (Progress.EVENT___DARK_BLADE_GATE_OPENED, [Progress.KEYWORD___MAGIC_FETISH]),
+            (Progress.EVENT___INVITED_TO_DARK_BLADE, [Progress.KEYWORD___MAGIC_FETISH]),
         ]),
         requires = [Progress.PHONE_NUMBER___DBLADE],
         address = None,
@@ -3038,7 +3038,9 @@ thisRegion = Region(regionName)
 thisRegion.doors.extend([
     Door("Downtown - Graveyard and Graveyard Street // Graveyard Street", []),
     Door("Downtown - Monorail Plaza", []),
-    Door("Dark Blade - Courtyard", [Progress.EVENT___DARK_BLADE_GATE_OPENED]),
+    # In vanilla, "Progress.EVENT___INVITED_TO_DARK_BLADE" is required
+    # to enter the Dark Blade courtyard.
+    Door("Dark Blade - Courtyard", []),
 ])
 regions[regionName] = thisRegion
 
@@ -3050,7 +3052,8 @@ thisRegion = Region(regionName)
 thisRegion.doors.extend([
     Door("Downtown - Dark Blade Street", []),
     Door("Dark Blade - Gun Shop", []),
-    Door("Dark Blade - Main Hall", []),
+    # In vanilla, you can go from the courtyard to the mansion freely.
+    Door("Dark Blade - Main Hall", [Progress.EVENT___INVITED_TO_DARK_BLADE]),
 ])
 regions[regionName] = thisRegion
 
@@ -8803,9 +8806,78 @@ writeHelper(romBytes, 0xF4F3E, bytes.fromhex(' '.join([
     "BC",       # 006F: Pop
 ])))
 
-# Doorway from Dark Blade courtyard into Dark Blade mansion interior
-# Enlarge the doorway warp zone to make it easier to traverse
-romBytes[0xD105C] = 0x26 # <-- Was 0x27
+# Bronze Gate to Dark Blade courtyard
+# Set the gate's 0x01 flag, so it starts out already open
+initialItemState[0x565] |= 0x01
+# Setting the gate's 0x01 flag also stops "DBlade" from answering
+# the phone, so let's update the Video Phone conversation helper
+# script so it checks if the gate's 0x02 flag is set instead...
+romBytes[0x16EDB] = 0x02 # <-- Was 0x01
+# ...and update the script that sets the gate's 0x01 flag in
+# vanilla (invoked by "DBlade" when you ask about "Magic Fetish")
+# so it sets the 0x02 flag instead.
+romBytes[0x17B9B] = 0x02 # <-- Was 0x01
+
+# Door from Dark Blade courtyard into Dark Blade mansion interior
+# Convert the door into a proximity-triggered behaviour script
+writeHelper(romBytes, 0xD104A, bytes.fromhex(' '.join([
+    # D104A: 0x01 proximity-triggered behaviour scripts (was 0x00)
+    "01",
+    # D104B: Replacement for vanilla door to "Dark Blade - Main Hall"
+    # - Slightly larger than the vanilla door to make it easier to traverse
+    # - Invokes script 0x342 instead of warping to door destination 0x12E
+    "80 01", # D104B: lowX
+    "26 02", # D104D: lowY <-- Was 0x0227
+    "40 00", # D104F: lowZ
+    "A3 01", # D1051: highX
+    "33 02", # D1053: highY
+    "83 00", # D1055: highZ
+    "42 03", # D1057: script
+    # D1059: 0x02 doors (was 0x03)
+    "02",
+    # D105A: Vanilla door to "Downtown - Dark Blade Street"
+    "44 02 8C 01 40 00 4B 02 BF 01 83 00 C0 00",
+    # D1068: Vanilla door to "Dark Blade - Gun Shop"
+    "AB 00 36 02 40 00 EA 00 47 02 5F 00 7C 01",
+])))
+# New proximity-triggered behaviour
+# We're using behaviour script 0x342, which is Vladimir in vanilla.
+# Since we've replaced Vladimir with the "Bremerton" keyword-item,
+# his script is now unused and eligible to be repurposed.
+expandedOffset = scriptHelper(
+    scriptNumber = 0x342,
+    argsLen      = 0x00, # Script 0x342 now takes 0 bytes (= 0 stack items) as arguments
+    returnLen    = 0x00, # Script 0x342 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x00, # Header byte: Script uses 0x00 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        "14 05 19", # 0000: Push short 0x1905 <-- Object-id of Bronze Gate to Dark Blade courtyard
+        "58 BA",    # 0003: Push object's flags
+        "00 02",    # 0005: Push unsigned byte 0x02
+        "7E",       # 0007: Bitwise AND
+        "BE",       # 0008: Convert to boolean
+        "46 26 00", # 0009: If true, jump to DARK_BLADE_UNLOCKED
+        # DARK_BLADE_LOCKED
+        "00 01",    # 000C: Push unsigned byte 0x01
+        "14 D4 01", # 000E: Push short 0x01D4
+        "C0",       # 0011: Push zero
+        "00 04",    # 0012: Push unsigned byte 0x04
+        "00 17",    # 0014: Push unsigned byte 0x17
+        "00 02",    # 0016: Push unsigned byte 0x02
+        "00 04",    # 0018: Push unsigned byte 0x04
+        "58 C7",    # 001A: Print text ("The sign on the gate reads - Dark Blade. Members only.")
+        "58 A2",    # 001C: Wait for player input
+        "14 40 01", # 001E: Push short 0x0140
+        "58 56",    # 0021: Teleport to door destination
+        "48 2B 00", # 0023: Jump to DONE
+        # DARK_BLADE_UNLOCKED
+        "14 2E 01", # 0026: Push short 0x012E
+        "58 56",    # 0029: Teleport to door destination
+        # DONE
+        "56",       # 002B: End
+    ],
+)
 
 # Viper H. Pistol ($3,000): Gun Case
 # Offer for sale the new item shuffled to this location
@@ -10896,9 +10968,10 @@ romBytes[0x1CE3] = 0xBD
 ## (Side effect: prevents Dog Spirit conversation where you learn "Rat")
 #initialItemState[0x4CA] |= 0x01
 
-## Open the gate to the Dark Blade mansion
+## Allow entry into the Dark Blade mansion
+## (In vanilla, set the 0x01 flag instead to open the courtyard gate)
 ## (Side effect: prevents "DBlade" phone conversation)
-#initialItemState[0x565] |= 0x01
+#initialItemState[0x565] |= 0x02
 
 ## Make the Massive Orc appear on the Taxiboat Dock
 ## In vanilla, this happens if you know either "Nirwanda" or "Laughlyn"
