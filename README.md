@@ -119,6 +119,7 @@ Randomizer for Shadowrun (SNES)
    * Picking up the Magic Fetish now silently teaches you the associated keyword
 * The Tenth Street monorail is open for business when the game begins.
 * The King starts out paid off, so you can enter and leave the caryards freely.
+* Bosses now give nuyen rewards ("boss bounties") when they are defeated.
 * You don't have to defeat the Rust Stilettos to enter Jagged Nails.
 * The gate to the Dark Blade courtyard is open when the game begins.
    * This allows access to the Dark Blade weapon shop at any time

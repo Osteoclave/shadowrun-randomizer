@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-09-15"
+randomizerVersion = "2024-09-22"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -6521,6 +6521,37 @@ writeHelper(romBytes, 0xF8917, bytes.fromhex(' '.join([
 ])))
 
 # ------------------------------------------------------------------------
+# Boss bounties
+# ------------------------------------------------------------------------
+# In vanilla, most of the money for end-game equipment comes from
+# hacking computers in the Drake Volcano and Aneki Building.
+# In the randomizer, we'd prefer to have enough money for end-game
+# equipment before entering either of those locations.
+# Solution: Large (one-time) money rewards for defeating bosses.
+bossBounties = {
+    "Gang Leader"   : 5000,
+    "Octopus"       : 5000,
+    "Rat Shaman"    : 10000,
+    "Vampire"       : 10000,
+    "Jester Spirit" : 10000,
+}
+
+# Replace "The vampire had 5,000 nuyen." with "Boss bounty:"
+# (The amount will be printed dynamically, like with shop items)
+writeHelper(romBytes, 0xF21A3, bytes.fromhex(' '.join([
+    # "Boss bounty:"
+    "D3", # "B"  = 110100110
+    "7B", # "os" = 11110111101
+    "DE", # "s " = 1110000
+    "0E", # "bo" = 011101000
+    "80", # "un" = 00001011
+    "B7", # "ty" = 01111100010
+    "C4", # ":"  = 00010100000
+    "28",
+    "32", # "\n" = 110010
+])))
+
+# ------------------------------------------------------------------------
 # Items and NPCs
 # ------------------------------------------------------------------------
 
@@ -8583,6 +8614,108 @@ romBytes[0x6C6B9] |= 0x3F
 # Reveal the new item shuffled to this location
 romBytes[0xF95F4:0xF95F4+2] = romBytes[0xD0827:0xD0827+2]
 
+# Gang Leader <-- Rust Stiletto gang leader
+expandedOffset = scriptHelper(
+    scriptNumber = 0x27,
+    argsLen      = 0x02, # Script 0x27 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x27 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x05, # Header byte: Script uses 0x05 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-0062 from the original script.
+        romBytes[0xF9087:0xF90EA].hex(' '),
+        # New code.
+        # Password (Drake): Gang Leader
+        # Reveal the new item shuffled to this location
+        "00 80",    # 0063: Push unsigned byte 0x80
+        f"14 {romBytes[0xD08ED+0]:02X} {romBytes[0xD08ED+1]:02X}",
+                    # 0065: Push short 0x#### <-- Object-id of new item in "Password (Drake)" location
+        "58 0D",    # 0068: Set bits of object's flags
+        # Silently award the boss bounty
+        f"""14 {struct.pack("<H", bossBounties["Gang Leader"]).hex(' ')}""",
+                    # 006A: Push short 0x#### <-- Boss bounty
+        "58 98",    # 006D: Increase nuyen
+        # If Jetboy is in the party, silently award the Jetboy bonus
+        "14 2E 0D", # 006F: Push short 0x0D2E <-- Object-id of Jetboy (as hired runner)
+        "58 BA",    # 0072: Push object's flags
+        "00 80",    # 0074: Push unsigned byte 0x80
+        "7E",       # 0076: Bitwise AND
+        "BE",       # 0077: Convert to boolean
+        "2C 03",    # 0078: Pop byte to $13+03 <-- "Jetboy in party" boolean
+        "0C 03",    # 007A: Push signed byte from $13+03 <-- "Jetboy in party" boolean
+        "44 84 00", # 007C: If false, jump to PERISH
+        "14 D0 07", # 007F: Push short 0x07D0
+        "58 98",    # 0082: Increase nuyen
+        # Skip the automatic conversation after defeating the Gang Leader
+        ## (Located at 006A-006E in the original script)
+        #"00 84",    # ____: Push unsigned byte 0x84
+        #"C2",       # ____: Push unsigned byte from $13+00 <-- Spawn index
+        #"58 94",    # ____: Start conversation
+        ## Skip vestigial increment of event short 28
+        ## (Located at 006F-0077 in the original script)
+        #"00 28",    # ____: Push unsigned byte 0x28
+        #"58 57",    # ____: Read short from 7E3BBB+n
+        #"86",       # ____: Increment
+        #"00 28",    # ____: Push unsigned byte 0x28
+        #"58 12",    # ____: Write short to 7E3BBB+n
+        # PERISH
+        "00 12",    # 0084: Push unsigned byte 0x12
+        "58 7B",    # 0086: Increase experience
+        "C2",       # 0088: Push unsigned byte from $13+00 <-- Spawn index
+        "58 BF",    # 0089: Remove object from battlers list?
+        "C2",       # 008B: Push unsigned byte from $13+00 <-- Spawn index
+        "52 5C 03", # 008C: Execute behaviour script 0x35C
+        "BC",       # 008F: Pop
+        # Announce the boss bounty (sound effect + text popup)
+        "00 50",    # 0090: Push unsigned byte 0x50
+        "00 01",    # 0092: Push unsigned byte 0x01
+        "58 9E",    # 0094: Register menu options / time delay
+        "BC",       # 0096: Pop
+        "52 4B 00", # 0097: Execute behaviour script 0x4B = "Got item" sound effect
+        # Create text window
+        "00 B4",    # 009A: Push unsigned byte 0xB4
+        "14 F6 01", # 009C: Push short 0x01F6 <-- Text-id for "The vampire had 5,000 nuyen." (text changed to "Boss bounty:")
+        "C0",       # 009F: Push zero
+        "00 04",    # 00A0: Push unsigned byte 0x04
+        "00 0B",    # 00A2: Push unsigned byte 0x0B
+        "00 04",    # 00A4: Push unsigned byte 0x04
+        "00 0B",    # 00A6: Push unsigned byte 0x0B
+        "58 3D",    # 00A8: Print text, return text-window-slot number <-- Repurposed function!
+        "2C 04",    # 00AA: Pop byte to $13+04 <-- Text-window-slot number
+        # Move text cursor
+        "00 01",    # 00AC: Push unsigned byte 0x01 <-- Y coordinate
+        "00 00",    # 00AE: Push unsigned byte 0x00 <-- X coordinate
+        "02 04",    # 00B0: Push unsigned byte from $13+04 <-- Text-window-slot number
+        "58 0E",    # 00B2: Set window's text cursor position <-- Repurposed function!
+        # Print bounty amount
+        "C0",       # 00B4: Push zero
+        f"""14 {struct.pack("<H", bossBounties["Gang Leader"]).hex(' ')}""",
+                    # 00B5: Push short 0x#### <-- Boss bounty
+        "02 04",    # 00B8: Push unsigned byte from $13+04 <-- Text-window-slot number
+        "58 04",    # 00BA: Print nuyen amount to window
+        # If Jetboy is in the party, announce the Jetboy bonus
+        "0C 03",    # 00BC: Push signed byte from $13+03 <-- "Jetboy in party" boolean
+        "44 DB 00", # 00BE: If false, jump to DONE
+        # ANNOUNCE_JETBOY_BONUS
+        "00 5A",    # 00C1: Push unsigned byte 0x5A
+        "00 01",    # 00C3: Push unsigned byte 0x01
+        "58 9E",    # 00C5: Register menu options / time delay
+        "BC",       # 00C7: Pop
+        "52 4B 00", # 00C8: Execute behaviour script 0x4B = "Got item" sound effect
+        "00 B4",    # 00CB: Push unsigned byte 0xB4
+        "14 F3 01", # 00CD: Push short 0x01F3
+        "C0",       # 00D0: Push zero
+        "00 03",    # 00D1: Push unsigned byte 0x03
+        "00 17",    # 00D3: Push unsigned byte 0x17
+        "00 07",    # 00D5: Push unsigned byte 0x07 <-- Was 0x04
+        "00 05",    # 00D7: Push unsigned byte 0x05 <-- Was 0x04
+        "58 C7",    # 00D9: Print text ("The decker finds 2,000 nuyen.")
+        # DONE
+        "56",       # 00DB: End
+    ],
+)
+
 # Password (Drake)
 writeHelper(romBytes, 0xD08E9, bytes.fromhex(' '.join([
     "E3 02",    # Move the spawn point to slightly below the Gang Leader
@@ -8597,26 +8730,6 @@ romBytes[0x66864] = 0x08
 # Inventory list item-hiding
 # Don't hide the Password (Drake) after taking the helicopter to Drake Volcano
 romBytes[0x6B79A] |= 0x3F
-
-# Password (Drake): Gang Leader
-# Skip the automatic conversation after defeating the Gang Leader
-# Reveal the new item shuffled to this location
-writeHelper(romBytes, 0xF90F1, bytes.fromhex(' '.join([
-    "C0",       # 006A: Push zero
-    "BE",       # 006B: Convert to boolean
-    "BE",       # 006C: Convert to boolean
-    "BE",       # 006D: Convert to boolean
-    "BC",       # 006E: Pop
-    "00 28",    # 006F: Push unsigned byte 0x28
-    "58 57",    # 0071: Read short from 7E3BBB+n
-    "86",       # 0073: Increment
-    "00 28",    # 0074: Push unsigned byte 0x28
-    "58 12",    # 0076: Write short to 7E3BBB+n
-    "00 80",    # 0078: Push unsigned byte 0x80
-    f"14 {romBytes[0xD08ED+0]:02X} {romBytes[0xD08ED+1]:02X}",
-                # 007A: Push short 0x#### <-- Object-id of new item in "Password (Drake)" location
-    "58 0D",    # 007D: Set bits of object's flags
-])))
 
 # Cruel man <-- Left bouncer at the entrance to Jagged Nails
 # Allow access to Jagged Nails without having to defeat the Rust Stilettos
@@ -8711,14 +8824,76 @@ expandedOffset = scriptHelper(
     ],
 )
 
-# Nuyen: Octopus
-# Reveal the new item shuffled to this location
-romBytes[0xF87B4:0xF87B4+2] = romBytes[0xCB18D:0xCB18D+2]
-
 # Loyal citizen <-- Turns into Octopus
 # Take into account the new item shuffled to the "Nuyen: Octopus" location
 romBytes[0xF866C:0xF866C+2] = romBytes[0xCB18D:0xCB18D+2]
 romBytes[0xF8677:0xF8677+2] = romBytes[0xCB18D:0xCB18D+2]
+
+# Octopus
+expandedOffset = scriptHelper(
+    scriptNumber = 0x36F,
+    argsLen      = 0x02, # Script 0x36F now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x36F now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x05, # Header byte: Script uses 0x05 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
+    commandList  = [
+        # Copy 0000-00AD from the original script.
+        romBytes[0xF86F6:0xF87A4].hex(' '),
+        # New code.
+        # Nuyen: Octopus
+        # Reveal the new item shuffled to this location
+        "00 80",    # 00AE: Push unsigned byte 0x80
+        f"14 {romBytes[0xCB18D+0]:02X} {romBytes[0xCB18D+1]:02X}",
+                    # 00B0: Push short 0x#### <-- Object-id of new item in "Nuyen" location
+        "58 0D",    # 00B3: Set bits of object's flags
+        # Pool of Ink
+        "00 01",    # 00B5: Push unsigned byte 0x01
+        "14 66 06", # 00B7: Push short 0x0666 <-- Object-id of "Pool of Ink"
+        "58 0D",    # 00BA: Set bits of object's flags
+        # Silently award the boss bounty
+        f"""14 {struct.pack("<H", bossBounties["Octopus"]).hex(' ')}""",
+                    # 00BC: Push short 0x#### <-- Boss bounty
+        "58 98",    # 00BF: Increase nuyen
+        # Perish
+        "00 1A",    # 00C1: Push unsigned byte 0x1A
+        "58 7B",    # 00C3: Increase experience
+        "C2",       # 00C5: Push unsigned byte from $13+00 <-- Spawn index
+        "58 BF",    # 00C6: Remove object from battlers list?
+        "C2",       # 00C8: Push unsigned byte from $13+00 <-- Spawn index
+        "58 C4",    # 00C9: Set object's owner to "Dog Food"
+        "C2",       # 00CB: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B8",    # 00CC: Despawn object
+        # Announce the boss bounty (sound effect + text popup)
+        "00 50",    # 00CE: Push unsigned byte 0x50
+        "00 01",    # 00D0: Push unsigned byte 0x01
+        "58 9E",    # 00D2: Register menu options / time delay
+        "BC",       # 00D4: Pop
+        "52 4B 00", # 00D5: Execute behaviour script 0x4B = "Got item" sound effect
+        # Create text window
+        "00 B4",    # 00D8: Push unsigned byte 0xB4
+        "14 F6 01", # 00DA: Push short 0x01F6 <-- Text-id for "The vampire had 5,000 nuyen." (text changed to "Boss bounty:")
+        "C0",       # 00DD: Push zero
+        "00 04",    # 00DE: Push unsigned byte 0x04
+        "00 0B",    # 00E0: Push unsigned byte 0x0B
+        "00 04",    # 00E2: Push unsigned byte 0x04
+        "00 0B",    # 00E4: Push unsigned byte 0x0B
+        "58 3D",    # 00E6: Print text, return text-window-slot number <-- Repurposed function!
+        "2C 04",    # 00E8: Pop byte to $13+04 <-- Text-window-slot number
+        # Move text cursor
+        "00 01",    # 00EA: Push unsigned byte 0x01 <-- Y coordinate
+        "00 00",    # 00EC: Push unsigned byte 0x00 <-- X coordinate
+        "02 04",    # 00EE: Push unsigned byte from $13+04 <-- Text-window-slot number
+        "58 0E",    # 00F0: Set window's text cursor position <-- Repurposed function!
+        # Print bounty amount
+        "C0",       # 00F2: Push zero
+        f"""14 {struct.pack("<H", bossBounties["Octopus"]).hex(' ')}""",
+                    # 00F3: Push short 0x#### <-- Boss bounty
+        "02 04",    # 00F6: Push unsigned byte from $13+04 <-- Text-window-slot number
+        "58 04",    # 00F8: Print nuyen amount to window
+        "56",       # 00FA: End
+    ],
+)
 
 # Randomly-appearing enemies in Waterfront - Octopus boss room
 # Take into account the new item shuffled to the "Nuyen: Octopus" location
@@ -8726,73 +8901,152 @@ romBytes[0xFA9AC:0xFA9AC+2] = romBytes[0xCB18D:0xCB18D+2]
 romBytes[0xFA9D2:0xFA9D2+2] = romBytes[0xCB18D:0xCB18D+2]
 
 # Rat Shaman
+# The Rat Shaman object uses behaviour script 0x72, but that script
+# invokes script 0x10D to do all of the heavy lifting.
+# Hence, this script taking three arguments instead of one.
 expandedOffset = scriptHelper(
     scriptNumber = 0x10D,
     argsLen      = 0x06, # Script 0x10D now takes 6 bytes (= 3 stack items) as arguments
     returnLen    = 0x00, # Script 0x10D now returns 0 bytes (= 0 stack items) upon completion
     offset       = expandedOffset,
-    scratchLen   = 0x0F, # Header byte: Script uses 0x0F bytes of $13+xx space
-    maxStackLen  = 0x0A, # Header byte: Maximum stack height of 0x0A bytes (= 5 stack items)
+    scratchLen   = 0x10, # Header byte: Script uses 0x10 bytes of $13+xx space
+    maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
-        # Copy 0000-018E from the original script.
-        romBytes[0xF4CC7:0xF4E56].hex(' '),
+        # Copy 0000-0178 from the original script.
+        romBytes[0xF4CC7:0xF4E40].hex(' '),
         # New code.
         # Keyword: Jester Spirit
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xD29A7+0]:02X} {romBytes[0xD29A7+1]:02X}",
-                    # 018F: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 0192: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 0E",    # 0194: Pop byte to $13+0E  <-- Item drop's spawn index
-        "02 0A",    # 0196: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 51",    # 0198: Push object's Z coordinate / 4
-        "00 02",    # 019A: Push unsigned byte 0x02
-        "7A",       # 019C: Left shift
-        "02 0A",    # 019D: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 50",    # 019F: Push object's Y coordinate / 4
-        "00 02",    # 01A1: Push unsigned byte 0x02
-        "7A",       # 01A3: Left shift
-        "00 42",    # 01A4: Push unsigned byte 0x42
-        "5E",       # 01A6: Subtraction
-        "02 0A",    # 01A7: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 4F",    # 01A9: Push object's X coordinate / 4
-        "00 02",    # 01AB: Push unsigned byte 0x02
-        "7A",       # 01AD: Left shift
-        "00 02",    # 01AE: Push unsigned byte 0x02
-        "5E",       # 01B0: Subtraction
-        "02 0E",    # 01B1: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 82",    # 01B3: Set object X/Y/Z position
-        "00 80",    # 01B5: Push unsigned byte 0x80
-        "02 0E",    # 01B7: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 33",    # 01B9: Set bits of object's flags
+                    # 0179: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 017C: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 0E",    # 017E: Pop byte to $13+0E  <-- Item drop's spawn index
+        "02 0C",    # 0180: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 51",    # 0182: Push object's Z coordinate / 4
+        "00 02",    # 0184: Push unsigned byte 0x02
+        "7A",       # 0186: Left shift
+        "02 0C",    # 0187: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 50",    # 0189: Push object's Y coordinate / 4
+        "00 02",    # 018B: Push unsigned byte 0x02
+        "7A",       # 018D: Left shift
+        "00 42",    # 018E: Push unsigned byte 0x42
+        "5E",       # 0190: Subtraction
+        "02 0C",    # 0191: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 4F",    # 0193: Push object's X coordinate / 4
+        "00 02",    # 0195: Push unsigned byte 0x02
+        "7A",       # 0197: Left shift
+        "00 02",    # 0198: Push unsigned byte 0x02
+        "5E",       # 019A: Subtraction
+        "02 0E",    # 019B: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 82",    # 019D: Set object X/Y/Z position
+        "00 80",    # 019F: Push unsigned byte 0x80
+        "02 0E",    # 01A1: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 33",    # 01A3: Set bits of object's flags
         # Nuyen: Rat Shaman
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xD2965+0]:02X} {romBytes[0xD2965+1]:02X}",
-                    # 01BB: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 01BE: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 0E",    # 01C0: Pop byte to $13+0E  <-- Item drop's spawn index
-        "02 0A",    # 01C2: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 51",    # 01C4: Push object's Z coordinate / 4
-        "00 02",    # 01C6: Push unsigned byte 0x02
-        "7A",       # 01C8: Left shift
-        "02 0A",    # 01C9: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 50",    # 01CB: Push object's Y coordinate / 4
-        "00 02",    # 01CD: Push unsigned byte 0x02
-        "7A",       # 01CF: Left shift
-        "00 02",    # 01D0: Push unsigned byte 0x02
-        "5E",       # 01D2: Subtraction
-        "02 0A",    # 01D3: Push unsigned byte from $13+0A <-- Corpse's spawn index
-        "58 4F",    # 01D5: Push object's X coordinate / 4
-        "00 02",    # 01D7: Push unsigned byte 0x02
-        "7A",       # 01D9: Left shift
-        "00 42",    # 01DA: Push unsigned byte 0x42
-        "5E",       # 01DC: Subtraction
-        "02 0E",    # 01DD: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 82",    # 01DF: Set object X/Y/Z position
-        "00 80",    # 01E1: Push unsigned byte 0x80
-        "02 0E",    # 01E3: Push unsigned byte from $13+0E <-- Item drop's spawn index
-        "58 33",    # 01E5: Set bits of object's flags
-        # Copy 01A3-01D9 from the original script.
-        romBytes[0xF4E6A:0xF4EA1].hex(' '),
+                    # 01A5: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 01A8: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 0E",    # 01AA: Pop byte to $13+0E  <-- Item drop's spawn index
+        "02 0C",    # 01AC: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 51",    # 01AE: Push object's Z coordinate / 4
+        "00 02",    # 01B0: Push unsigned byte 0x02
+        "7A",       # 01B2: Left shift
+        "02 0C",    # 01B3: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 50",    # 01B5: Push object's Y coordinate / 4
+        "00 02",    # 01B7: Push unsigned byte 0x02
+        "7A",       # 01B9: Left shift
+        "00 02",    # 01BA: Push unsigned byte 0x02
+        "5E",       # 01BC: Subtraction
+        "02 0C",    # 01BD: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 4F",    # 01BF: Push object's X coordinate / 4
+        "00 02",    # 01C1: Push unsigned byte 0x02
+        "7A",       # 01C3: Left shift
+        "00 42",    # 01C4: Push unsigned byte 0x42
+        "5E",       # 01C6: Subtraction
+        "02 0E",    # 01C7: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 82",    # 01C9: Set object X/Y/Z position
+        "00 80",    # 01CB: Push unsigned byte 0x80
+        "02 0E",    # 01CD: Push unsigned byte from $13+0E <-- Item drop's spawn index
+        "58 33",    # 01CF: Set bits of object's flags
+        # Silently award the boss bounty
+        f"""14 {struct.pack("<H", bossBounties["Rat Shaman"]).hex(' ')}""",
+                    # 01D1: Push short 0x#### <-- Boss bounty
+        "58 98",    # 01D4: Increase nuyen
+        # Set the Dog Spirit's 0x01 flag ("Rat Shaman defeated")
+        "00 01",    # 01D6: Push unsigned byte 0x01
+        "14 31 15", # 01D8: Push short 0x1531 <-- Object-id of Dog Spirit
+        "58 0D",    # 01DB: Set bits of object's flags
+        ## Skip vestigial increment of event short 28.
+        ## (Located at 01AA-01B2 in the original script.)
+        #"00 28",    # ____: Push unsigned byte 0x28
+        #"58 57",    # ____: Read short from 7E3BBB+n
+        #"86",       # ____: Increment
+        #"00 28",    # ____: Push unsigned byte 0x28
+        #"58 12",    # ____: Write short to 7E3BBB+n
+        # Perish
+        "00 14",    # 01DD: Push unsigned byte 0x14
+        "58 7B",    # 01DF: Increase experience
+        "02 0C",    # 01E1: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "58 BF",    # 01E3: Remove object from battlers list?
+        "02 0C",    # 01E5: Push unsigned byte from $13+0C <-- Rat Shaman's spawn index
+        "52 5C 03", # 01E7: Execute behaviour script 0x35C
+        "2C 0A",    # 01EA: Pop byte to $13+0A <-- Corpse's spawn index
+        # Wait
+        "00 14",    # 01EC: Push unsigned byte 0x14
+        "00 01",    # 01EE: Push unsigned byte 0x01
+        "58 9E",    # 01F0: Register menu options / time delay
+        "BC",       # 01F2: Pop
+        # Spawn the Jester Spirit
+        "14 2F 01", # 01F3: Push short 0x012F
+        "02 0A",    # 01F6: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 51",    # 01F8: Push object's Z coordinate / 4
+        "02 0A",    # 01FA: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 50",    # 01FC: Push object's Y coordinate / 4
+        "02 0A",    # 01FE: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 4F",    # 0200: Push object's X coordinate / 4
+        "00 78",    # 0202: Push unsigned byte 0x78
+        "58 A8",    # 0204: Spawn object at abs coords?
+        "BC",       # 0206: Pop
+        # Jester Spirit laughter
+        "00 03",    # 0207: Push unsigned byte 0x03
+        "00 FF",    # 0209: Push unsigned byte 0xFF
+        "00 56",    # 020B: Push unsigned byte 0x56
+        "02 0A",    # 020D: Push unsigned byte from $13+0A <-- Corpse's spawn index
+        "58 4C",    # 020F: Play sound effect
+        # Announce the boss bounty (sound effect + text popup)
+        "00 A0",    # 0211: Push unsigned byte 0xA0
+        "00 01",    # 0213: Push unsigned byte 0x01
+        "58 9E",    # 0215: Register menu options / time delay
+        "BC",       # 0217: Pop
+        "52 4B 00", # 0218: Execute behaviour script 0x4B = "Got item" sound effect
+        # Create text window
+        "00 B4",    # 021B: Push unsigned byte 0xB4
+        "14 F6 01", # 021D: Push short 0x01F6 <-- Text-id for "The vampire had 5,000 nuyen." (text changed to "Boss bounty:")
+        "C0",       # 0220: Push zero
+        "00 04",    # 0221: Push unsigned byte 0x04
+        "00 0B",    # 0223: Push unsigned byte 0x0B
+        "00 04",    # 0225: Push unsigned byte 0x04
+        "00 0B",    # 0227: Push unsigned byte 0x0B
+        "58 3D",    # 0229: Print text, return text-window-slot number <-- Repurposed function!
+        "2C 0F",    # 022B: Pop byte to $13+0F <-- Text-window-slot number
+        # Move text cursor
+        "00 01",    # 022D: Push unsigned byte 0x01 <-- Y coordinate
+        "00 00",    # 022F: Push unsigned byte 0x00 <-- X coordinate
+        "02 0F",    # 0231: Push unsigned byte from $13+0F <-- Text-window-slot number
+        "58 0E",    # 0233: Set window's text cursor position <-- Repurposed function!
+        # Print bounty amount
+        "C0",       # 0235: Push zero
+        f"""14 {struct.pack("<H", bossBounties["Rat Shaman"]).hex(' ')}""",
+                    # 0236: Push short 0x#### <-- Boss bounty
+        "02 0F",    # 0239: Push unsigned byte from $13+0F <-- Text-window-slot number
+        "58 04",    # 023B: Print nuyen amount to window
+        # Wait
+        "00 FA",    # 023D: Push unsigned byte 0xFA
+        "00 01",    # 023F: Push unsigned byte 0x01
+        "58 9E",    # 0241: Register menu options / time delay
+        "BC",       # 0243: Pop
+        "56",       # 0244: End
     ],
 )
 # Skip the automatic conversations with the Jester Spirit and Kitsune
@@ -9009,7 +9263,7 @@ expandedOffset = scriptHelper(
         "C2",       # 0027: Push unsigned byte from $13+00 <-- Spawn index
         "58 D1",    # 0028: Display sprite with facing direction
         "C2",       # 002A: Push unsigned byte from $13+00 <-- Spawn index
-        "58 AB",    # 002B: ???
+        "58 AB",    # 002B: Add object to battlers list?
         # TOP_OF_LOOP
         "C2",       # 002D: Push unsigned byte from $13+00 <-- Spawn index
         "58 07",    # 002E: ???
@@ -9051,7 +9305,7 @@ expandedOffset = scriptHelper(
         "00 09",    # 006C: Push unsigned byte 0x09
         "58 7B",    # 006E: Increase experience
         "C2",       # 0070: Push unsigned byte from $13+00 <-- Spawn index
-        "58 BF",    # 0071: ???
+        "58 BF",    # 0071: Remove object from battlers list?
         "C2",       # 0073: Push unsigned byte from $13+00 <-- Spawn index
         "58 CB",    # 0074: Push object-id
         "14 B0 05", # 0076: Push short 0x05B0 <-- Object-id of Samurai Warrior that drops "Mesh Jacket (free)"
@@ -9078,7 +9332,7 @@ expandedOffset = scriptHelper(
     argsLen      = 0x02, # Script 0x385 now takes 2 bytes (= 1 stack item) as arguments
     returnLen    = 0x00, # Script 0x385 now returns 0 bytes (= 0 stack items) upon completion
     offset       = expandedOffset,
-    scratchLen   = 0x08, # Header byte: Script uses 0x08 bytes of $13+xx space
+    scratchLen   = 0x09, # Header byte: Script uses 0x09 bytes of $13+xx space
     maxStackLen  = 0x0E, # Header byte: Maximum stack height of 0x0E bytes (= 7 stack items)
     commandList  = [
         # Copy 0000-003A from the original script.
@@ -9104,99 +9358,112 @@ expandedOffset = scriptHelper(
         # New Vampire behaviour:
         # - No conversations
         # - Defeated after one use of the Stake
-        "00 F0",    # 0122: Push unsigned byte 0xF0
-        "C2",       # 0124: Push unsigned byte from $13+00 <-- Spawn index
-        "58 51",    # 0125: Push object's Z coordinate / 4
-        "C2",       # 0127: Push unsigned byte from $13+00 <-- Spawn index
-        "58 50",    # 0128: Push object's Y coordinate / 4
-        "C2",       # 012A: Push unsigned byte from $13+00 <-- Spawn index
-        "58 4F",    # 012B: Push object's X coordinate / 4
-        "00 56",    # 012D: Push unsigned byte 0x56
-        "58 A8",    # 012F: Spawn object at abs coords?
-        "BC",       # 0131: Pop
-        "C2",       # 0132: Push unsigned byte from $13+00 <-- Spawn index
-        "58 AB",    # 0133: ???
-        "00 20",    # 0135: Push unsigned byte 0x20
-        "58 7B",    # 0137: Increase experience
-        "C2",       # 0139: Push unsigned byte from $13+00 <-- Spawn index
-        "58 BF",    # 013A: ???
-        "00 01",    # 013C: Push unsigned byte 0x01
-        "BA",       # 013E: Duplicate
-        "58 9E",    # 013F: Register menu options / time delay
-        "BC",       # 0141: Pop
         # Keyword: Laughlyn
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xD29CB+0]:02X} {romBytes[0xD29CB+1]:02X}",
-                    # 0142: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 0145: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 07",    # 0147: Pop byte to $13+07  <-- Item drop's spawn index
-        "C2",       # 0149: Push unsigned byte from $13+00 <-- Spawn index
-        "58 51",    # 014A: Push object's Z coordinate / 4
-        "00 02",    # 014C: Push unsigned byte 0x02
-        "7A",       # 014E: Left shift
-        "C2",       # 014F: Push unsigned byte from $13+00 <-- Spawn index
-        "58 50",    # 0150: Push object's Y coordinate / 4
-        "00 02",    # 0152: Push unsigned byte 0x02
-        "7A",       # 0154: Left shift
-        "00 42",    # 0155: Push unsigned byte 0x42
-        "5E",       # 0157: Subtraction
+                    # 0122: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 0125: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 07",    # 0127: Pop byte to $13+07  <-- Item drop's spawn index
+        "C2",       # 0129: Push unsigned byte from $13+00 <-- Spawn index
+        "58 51",    # 012A: Push object's Z coordinate / 4
+        "00 02",    # 012C: Push unsigned byte 0x02
+        "7A",       # 012E: Left shift
+        "C2",       # 012F: Push unsigned byte from $13+00 <-- Spawn index
+        "58 50",    # 0130: Push object's Y coordinate / 4
+        "00 02",    # 0132: Push unsigned byte 0x02
+        "7A",       # 0134: Left shift
+        "00 42",    # 0135: Push unsigned byte 0x42
+        "5E",       # 0137: Subtraction
+        "C2",       # 0138: Push unsigned byte from $13+00 <-- Spawn index
+        "58 4F",    # 0139: Push object's X coordinate / 4
+        "00 02",    # 013B: Push unsigned byte 0x02
+        "7A",       # 013D: Left shift
+        "00 02",    # 013E: Push unsigned byte 0x02
+        "5E",       # 0140: Subtraction
+        "02 07",    # 0141: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 82",    # 0143: Set object X/Y/Z position
+        "00 80",    # 0145: Push unsigned byte 0x80
+        "02 07",    # 0147: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 33",    # 0149: Set bits of object's flags
+        # Nuyen: Vampire
+        # Reveal the new item shuffled to this location
+        f"14 {romBytes[0xD29AD+0]:02X} {romBytes[0xD29AD+1]:02X}",
+                    # 014B: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 014E: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 07",    # 0150: Pop byte to $13+07  <-- Item drop's spawn index
+        "C2",       # 0152: Push unsigned byte from $13+00 <-- Spawn index
+        "58 51",    # 0153: Push object's Z coordinate / 4
+        "00 02",    # 0155: Push unsigned byte 0x02
+        "7A",       # 0157: Left shift
         "C2",       # 0158: Push unsigned byte from $13+00 <-- Spawn index
-        "58 4F",    # 0159: Push object's X coordinate / 4
+        "58 50",    # 0159: Push object's Y coordinate / 4
         "00 02",    # 015B: Push unsigned byte 0x02
         "7A",       # 015D: Left shift
         "00 02",    # 015E: Push unsigned byte 0x02
         "5E",       # 0160: Subtraction
-        "02 07",    # 0161: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 82",    # 0163: Set object X/Y/Z position
-        "00 80",    # 0165: Push unsigned byte 0x80
-        "02 07",    # 0167: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 33",    # 0169: Set bits of object's flags
-        # Nuyen: Vampire
-        # Reveal the new item shuffled to this location
-        f"14 {romBytes[0xD29AD+0]:02X} {romBytes[0xD29AD+1]:02X}",
-                    # 016B: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 016E: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 07",    # 0170: Pop byte to $13+07  <-- Item drop's spawn index
-        "C2",       # 0172: Push unsigned byte from $13+00 <-- Spawn index
-        "58 51",    # 0173: Push object's Z coordinate / 4
-        "00 02",    # 0175: Push unsigned byte 0x02
-        "7A",       # 0177: Left shift
-        "C2",       # 0178: Push unsigned byte from $13+00 <-- Spawn index
-        "58 50",    # 0179: Push object's Y coordinate / 4
-        "00 02",    # 017B: Push unsigned byte 0x02
-        "7A",       # 017D: Left shift
-        "00 02",    # 017E: Push unsigned byte 0x02
-        "5E",       # 0180: Subtraction
+        "C2",       # 0161: Push unsigned byte from $13+00 <-- Spawn index
+        "58 4F",    # 0162: Push object's X coordinate / 4
+        "00 02",    # 0164: Push unsigned byte 0x02
+        "7A",       # 0166: Left shift
+        "00 42",    # 0167: Push unsigned byte 0x42
+        "5E",       # 0169: Subtraction
+        "02 07",    # 016A: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 82",    # 016C: Set object X/Y/Z position
+        "00 80",    # 016E: Push unsigned byte 0x80
+        "02 07",    # 0170: Push unsigned byte from $13+07 <-- Item drop's spawn index
+        "58 33",    # 0172: Set bits of object's flags
+        # Silently award the boss bounty
+        f"""14 {struct.pack("<H", bossBounties["Vampire"]).hex(' ')}""",
+                    # 0174: Push short 0x#### <-- Boss bounty
+        "58 98",    # 0177: Increase nuyen
+        # Death animation
+        "00 F0",    # 0179: Push unsigned byte 0xF0
+        "C2",       # 017B: Push unsigned byte from $13+00 <-- Spawn index
+        "58 51",    # 017C: Push object's Z coordinate / 4
+        "C2",       # 017E: Push unsigned byte from $13+00 <-- Spawn index
+        "58 50",    # 017F: Push object's Y coordinate / 4
         "C2",       # 0181: Push unsigned byte from $13+00 <-- Spawn index
         "58 4F",    # 0182: Push object's X coordinate / 4
-        "00 02",    # 0184: Push unsigned byte 0x02
-        "7A",       # 0186: Left shift
-        "00 42",    # 0187: Push unsigned byte 0x42
-        "5E",       # 0189: Subtraction
-        "02 07",    # 018A: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 82",    # 018C: Set object X/Y/Z position
-        "00 80",    # 018E: Push unsigned byte 0x80
-        "02 07",    # 0190: Push unsigned byte from $13+07 <-- Item drop's spawn index
-        "58 33",    # 0192: Set bits of object's flags
-        # Despawn the Vampire and give the 5,000 nuyen reward.
-        "C2",       # 0194: Push unsigned byte from $13+00 <-- Spawn index
-        "58 B8",    # 0195: Despawn object
-        "00 50",    # 0197: Push unsigned byte 0x50
-        "00 01",    # 0199: Push unsigned byte 0x01
-        "58 9E",    # 019B: Register menu options / time delay
-        "BC",       # 019D: Pop
-        "14 88 13", # 019E: Push short 0x1388
-        "58 98",    # 01A1: Increase nuyen
-        "52 4B 00", # 01A3: Execute behaviour script 0x4B = "Got item" sound effect
-        "00 B4",    # 01A6: Push unsigned byte 0xB4
-        "14 F6 01", # 01A8: Push short 0x01F6
-        "C0",       # 01AB: Push zero
-        "00 03",    # 01AC: Push unsigned byte 0x03
-        "00 16",    # 01AE: Push unsigned byte 0x16
-        "00 04",    # 01B0: Push unsigned byte 0x04
-        "00 04",    # 01B2: Push unsigned byte 0x04
-        "58 C7",    # 01B4: Print text ("The vampire had 5,000 nuyen.")
-        "56",       # 01B6: End
+        "00 56",    # 0184: Push unsigned byte 0x56
+        "58 A8",    # 0186: Spawn object at abs coords?
+        "BC",       # 0188: Pop
+        # Perish
+        "C2",       # 0189: Push unsigned byte from $13+00 <-- Spawn index
+        "58 AB",    # 018A: Add object to battlers list?
+        "00 20",    # 018C: Push unsigned byte 0x20
+        "58 7B",    # 018E: Increase experience
+        "C2",       # 0190: Push unsigned byte from $13+00 <-- Spawn index
+        "58 BF",    # 0191: Remove object from battlers list?
+        "C2",       # 0193: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B8",    # 0194: Despawn object
+        # Announce the boss bounty (sound effect + text popup)
+        "00 50",    # 0196: Push unsigned byte 0x50
+        "00 01",    # 0198: Push unsigned byte 0x01
+        "58 9E",    # 019A: Register menu options / time delay
+        "BC",       # 019C: Pop
+        "52 4B 00", # 019D: Execute behaviour script 0x4B = "Got item" sound effect
+        # Create text window
+        "00 B4",    # 01A0: Push unsigned byte 0xB4
+        "14 F6 01", # 01A2: Push short 0x01F6 <-- Text-id for "The vampire had 5,000 nuyen." (text changed to "Boss bounty:")
+        "C0",       # 01A5: Push zero
+        "00 04",    # 01A6: Push unsigned byte 0x04 <-- Was 0x03
+        "00 0B",    # 01A8: Push unsigned byte 0x0B <-- Was 0x16
+        "00 04",    # 01AA: Push unsigned byte 0x04 <-- Was 0x04
+        "00 0B",    # 01AC: Push unsigned byte 0x0B <-- Was 0x04
+        "58 3D",    # 01AE: Print text, return text-window-slot number <-- Repurposed function!
+        "2C 08",    # 01B0: Pop byte to $13+08 <-- Text-window-slot number
+        # Move text cursor
+        "00 01",    # 01B2: Push unsigned byte 0x01 <-- Y coordinate
+        "00 00",    # 01B4: Push unsigned byte 0x00 <-- X coordinate
+        "02 08",    # 01B6: Push unsigned byte from $13+08 <-- Text-window-slot number
+        "58 0E",    # 01B8: Set window's text cursor position <-- Repurposed function!
+        # Print bounty amount
+        "C0",       # 01BA: Push zero
+        f"""14 {struct.pack("<H", bossBounties["Vampire"]).hex(' ')}""",
+                    # 01BB: Push short 0x#### <-- Boss bounty
+        "02 08",    # 01BE: Push unsigned byte from $13+08 <-- Text-window-slot number
+        "58 04",    # 01C0: Print nuyen amount to window
+        "56",       # 01C2: End
     ],
 )
 
@@ -9468,7 +9735,7 @@ expandedOffset = scriptHelper(
         # Reveal the new item shuffled to this location
         "00 80",    # 00E2: Push unsigned byte 0x80
         f"14 {romBytes[0xD24E9+0]:02X} {romBytes[0xD24E9+1]:02X}",
-                    # 00E4: Push short 0x#### <-- Object-id of new item in "Detonator" location
+                    # 00E4: Push short 0x#### <-- Object-id of new item in "Green Bottle" location
         "58 0D",    # 00E7: Set bits of object's flags
         # SAFE_UNLOCKED
         "00 2E",    # 00E9: Push unsigned byte 0x2E
@@ -9579,7 +9846,7 @@ expandedOffset = scriptHelper(
     argsLen      = 0x02, # Script 0x19E now takes 2 bytes (= 1 stack item) as arguments
     returnLen    = 0x00, # Script 0x19E now returns 0 bytes (= 0 stack items) upon completion
     offset       = expandedOffset,
-    scratchLen   = 0x05, # Header byte: Script uses 0x05 bytes of $13+xx space
+    scratchLen   = 0x06, # Header byte: Script uses 0x06 bytes of $13+xx space
     maxStackLen  = 0x10, # Header byte: Maximum stack height of 0x10 bytes (= 8 stack items)
     commandList  = [
         # 0000-0005
@@ -9604,90 +9871,117 @@ expandedOffset = scriptHelper(
         # 017E-0180
         # Update jump destination (changed due to removal of some vanilla code).
         "44 3E 01", # 017E: If false, jump to 013E
-        # 0181-01ED
+        # 0181-0224
         # New code.
-        # Make the defeated Jester Spirit disappear in a puff of smoke.
-        "C2",       # 0181: Push unsigned byte from $13+00 <-- Spawn index
-        "58 4D",    # 0182: Stop object's movement?
-        "00 F0",    # 0184: Push unsigned byte 0xF0
-        "C2",       # 0186: Push unsigned byte from $13+00 <-- Spawn index
-        "58 51",    # 0187: Push object's Z coordinate / 4
-        "C2",       # 0189: Push unsigned byte from $13+00 <-- Spawn index
-        "58 50",    # 018A: Push object's Y coordinate / 4
-        "C2",       # 018C: Push unsigned byte from $13+00 <-- Spawn index
-        "58 4F",    # 018D: Push object's X coordinate / 4
-        "00 56",    # 018F: Push unsigned byte 0x56
-        "58 A8",    # 0191: Spawn object at abs coords?
-        "BC",       # 0193: Pop
-        "00 01",    # 0194: Push unsigned byte 0x01
-        "BA",       # 0196: Duplicate
-        "58 9E",    # 0197: Register menu options / time delay
-        "BC",       # 0199: Pop
         # Keyword: Volcano
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xD299B+0]:02X} {romBytes[0xD299B+1]:02X}",
-                    # 019A: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 019D: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 04",    # 019F: Pop byte to $13+04  <-- Item drop's spawn index
-        "C2",       # 01A1: Push unsigned byte from $13+00 <-- Spawn index
-        "58 51",    # 01A2: Push object's Z coordinate / 4
-        "00 02",    # 01A4: Push unsigned byte 0x02
-        "7A",       # 01A6: Left shift
-        "C2",       # 01A7: Push unsigned byte from $13+00 <-- Spawn index
-        "58 50",    # 01A8: Push object's Y coordinate / 4
-        "00 02",    # 01AA: Push unsigned byte 0x02
-        "7A",       # 01AC: Left shift
-        "00 42",    # 01AD: Push unsigned byte 0x42
-        "5E",       # 01AF: Subtraction
-        "C2",       # 01B0: Push unsigned byte from $13+00 <-- Spawn index
-        "58 4F",    # 01B1: Push object's X coordinate / 4
-        "00 02",    # 01B3: Push unsigned byte 0x02
-        "7A",       # 01B5: Left shift
-        "00 02",    # 01B6: Push unsigned byte 0x02
-        "5E",       # 01B8: Subtraction
-        "02 04",    # 01B9: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 82",    # 01BB: Set object X/Y/Z position
-        "00 80",    # 01BD: Push unsigned byte 0x80
-        "02 04",    # 01BF: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 33",    # 01C1: Set bits of object's flags
+                    # 0181: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 0184: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 04",    # 0186: Pop byte to $13+04  <-- Item drop's spawn index
+        "C2",       # 0188: Push unsigned byte from $13+00 <-- Spawn index
+        "58 51",    # 0189: Push object's Z coordinate / 4
+        "00 02",    # 018B: Push unsigned byte 0x02
+        "7A",       # 018D: Left shift
+        "C2",       # 018E: Push unsigned byte from $13+00 <-- Spawn index
+        "58 50",    # 018F: Push object's Y coordinate / 4
+        "00 02",    # 0191: Push unsigned byte 0x02
+        "7A",       # 0193: Left shift
+        "00 42",    # 0194: Push unsigned byte 0x42
+        "5E",       # 0196: Subtraction
+        "C2",       # 0197: Push unsigned byte from $13+00 <-- Spawn index
+        "58 4F",    # 0198: Push object's X coordinate / 4
+        "00 02",    # 019A: Push unsigned byte 0x02
+        "7A",       # 019C: Left shift
+        "00 02",    # 019D: Push unsigned byte 0x02
+        "5E",       # 019F: Subtraction
+        "02 04",    # 01A0: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 82",    # 01A2: Set object X/Y/Z position
+        "00 80",    # 01A4: Push unsigned byte 0x80
+        "02 04",    # 01A6: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 33",    # 01A8: Set bits of object's flags
         # Jester Spirit Insignia
         # Reveal the new item shuffled to this location
         f"14 {romBytes[0xCAE23+0]:02X} {romBytes[0xCAE23+1]:02X}",
-                    # 01C3: Push short 0x####   <-- Item drop's object-id
-        "58 C2",    # 01C6: Push object's RAM_1 <-- Item drop's spawn index
-        "2C 04",    # 01C8: Pop byte to $13+04  <-- Item drop's spawn index
-        "C2",       # 01CA: Push unsigned byte from $13+00 <-- Spawn index
-        "58 51",    # 01CB: Push object's Z coordinate / 4
-        "00 02",    # 01CD: Push unsigned byte 0x02
-        "7A",       # 01CF: Left shift
-        "C2",       # 01D0: Push unsigned byte from $13+00 <-- Spawn index
-        "58 50",    # 01D1: Push object's Y coordinate / 4
-        "00 02",    # 01D3: Push unsigned byte 0x02
-        "7A",       # 01D5: Left shift
-        "00 02",    # 01D6: Push unsigned byte 0x02
-        "5E",       # 01D8: Subtraction
-        "C2",       # 01D9: Push unsigned byte from $13+00 <-- Spawn index
-        "58 4F",    # 01DA: Push object's X coordinate / 4
-        "00 02",    # 01DC: Push unsigned byte 0x02
-        "7A",       # 01DE: Left shift
-        "00 42",    # 01DF: Push unsigned byte 0x42
-        "5E",       # 01E1: Subtraction
-        "02 04",    # 01E2: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 82",    # 01E4: Set object X/Y/Z position
-        "00 80",    # 01E6: Push unsigned byte 0x80
-        "02 04",    # 01E8: Push unsigned byte from $13+04 <-- Item drop's spawn index
-        "58 33",    # 01EA: Set bits of object's flags
-        # Reveal the Jester Spirit portal.
-        "00 01",    # 01EC: Push unsigned byte 0x01
-        "14 DF 1E", # 01EE: Push short 0x1EDF <-- Object-id of the Jester Spirit portal
-        "58 0D",    # 01F1: Set bits of object's flags
-        # Mark the Jester Spirit as defeated.
-        "C2",       # 01F3: Push unsigned byte from $13+00 <-- Spawn index
-        "58 C4",    # 01F4: Set object's owner to "Dog Food"
-        # Despawn the Jester Spirit.
-        "C2",       # 01F6: Push unsigned byte from $13+00 <-- Spawn index
-        "58 B8",    # 01F7: Despawn object
-        "56",       # 01F9: End
+                    # 01AA: Push short 0x####   <-- Item drop's object-id
+        "58 C2",    # 01AD: Push object's RAM_1 <-- Item drop's spawn index
+        "2C 04",    # 01AF: Pop byte to $13+04  <-- Item drop's spawn index
+        "C2",       # 01B1: Push unsigned byte from $13+00 <-- Spawn index
+        "58 51",    # 01B2: Push object's Z coordinate / 4
+        "00 02",    # 01B4: Push unsigned byte 0x02
+        "7A",       # 01B6: Left shift
+        "C2",       # 01B7: Push unsigned byte from $13+00 <-- Spawn index
+        "58 50",    # 01B8: Push object's Y coordinate / 4
+        "00 02",    # 01BA: Push unsigned byte 0x02
+        "7A",       # 01BC: Left shift
+        "00 02",    # 01BD: Push unsigned byte 0x02
+        "5E",       # 01BF: Subtraction
+        "C2",       # 01C0: Push unsigned byte from $13+00 <-- Spawn index
+        "58 4F",    # 01C1: Push object's X coordinate / 4
+        "00 02",    # 01C3: Push unsigned byte 0x02
+        "7A",       # 01C5: Left shift
+        "00 42",    # 01C6: Push unsigned byte 0x42
+        "5E",       # 01C8: Subtraction
+        "02 04",    # 01C9: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 82",    # 01CB: Set object X/Y/Z position
+        "00 80",    # 01CD: Push unsigned byte 0x80
+        "02 04",    # 01CF: Push unsigned byte from $13+04 <-- Item drop's spawn index
+        "58 33",    # 01D1: Set bits of object's flags
+        # Silently award the boss bounty
+        f"""14 {struct.pack("<H", bossBounties["Jester Spirit"]).hex(' ')}""",
+                    # 01D3: Push short 0x#### <-- Boss bounty
+        "58 98",    # 01D6: Increase nuyen
+        # Reveal the Jester Spirit portal
+        "00 01",    # 01D8: Push unsigned byte 0x01
+        "14 DF 1E", # 01DA: Push short 0x1EDF <-- Object-id of the Jester Spirit portal
+        "58 0D",    # 01DD: Set bits of object's flags
+        # Make the defeated Jester Spirit disappear in a puff of smoke
+        "C2",       # 01DF: Push unsigned byte from $13+00 <-- Spawn index
+        "58 4D",    # 01E0: Stop object's movement?
+        "00 F0",    # 01E2: Push unsigned byte 0xF0
+        "C2",       # 01E4: Push unsigned byte from $13+00 <-- Spawn index
+        "58 51",    # 01E5: Push object's Z coordinate / 4
+        "C2",       # 01E7: Push unsigned byte from $13+00 <-- Spawn index
+        "58 50",    # 01E8: Push object's Y coordinate / 4
+        "C2",       # 01EA: Push unsigned byte from $13+00 <-- Spawn index
+        "58 4F",    # 01EB: Push object's X coordinate / 4
+        "00 56",    # 01ED: Push unsigned byte 0x56
+        "58 A8",    # 01EF: Spawn object at abs coords?
+        "BC",       # 01F1: Pop
+        # Mark the Jester Spirit as defeated
+        "C2",       # 01F2: Push unsigned byte from $13+00 <-- Spawn index
+        "58 C4",    # 01F3: Set object's owner to "Dog Food"
+        # Despawn the Jester Spirit
+        "C2",       # 01F5: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B8",    # 01F6: Despawn object
+        # Announce the boss bounty (sound effect + text popup)
+        "00 50",    # 01F8: Push unsigned byte 0x50
+        "00 01",    # 01FA: Push unsigned byte 0x01
+        "58 9E",    # 01FC: Register menu options / time delay
+        "BC",       # 01FE: Pop
+        "52 4B 00", # 01FF: Execute behaviour script 0x4B = "Got item" sound effect
+        # Create text window
+        "00 B4",    # 0202: Push unsigned byte 0xB4
+        "14 F6 01", # 0204: Push short 0x01F6 <-- Text-id for "The vampire had 5,000 nuyen." (text changed to "Boss bounty:")
+        "C0",       # 0207: Push zero
+        "00 04",    # 0208: Push unsigned byte 0x04
+        "00 0B",    # 020A: Push unsigned byte 0x0B
+        "00 04",    # 020C: Push unsigned byte 0x04
+        "00 0B",    # 020E: Push unsigned byte 0x0B
+        "58 3D",    # 0210: Print text, return text-window-slot number <-- Repurposed function!
+        "2C 05",    # 0212: Pop byte to $13+05 <-- Text-window-slot number
+        # Move text cursor
+        "00 01",    # 0214: Push unsigned byte 0x01 <-- Y coordinate
+        "00 00",    # 0216: Push unsigned byte 0x00 <-- X coordinate
+        "02 05",    # 0218: Push unsigned byte from $13+05 <-- Text-window-slot number
+        "58 0E",    # 021A: Set window's text cursor position <-- Repurposed function!
+        # Print bounty amount
+        "C0",       # 021C: Push zero
+        f"""14 {struct.pack("<H", bossBounties["Jester Spirit"]).hex(' ')}""",
+                    # 021D: Push short 0x#### <-- Boss bounty
+        "02 05",    # 0220: Push unsigned byte from $13+05 <-- Text-window-slot number
+        "58 04",    # 0222: Print nuyen amount to window
+        "56",       # 0224: End
     ],
 )
 
@@ -10961,17 +11255,35 @@ romBytes[0x1CE3] = 0xBD
 ## Open the door to the Rust Stilettos HQ
 #initialItemState[0x59C] |= 0x80
 
+## Warp to the Gang Leader boss room when exiting the morgue's main room
+#struct.pack_into("<H", romBytes, 0xC84F4, 0xB6) # 0xB6 = Door-id to enter Gang Leader boss room
+
 ## Set the Jagged Nails entry fee to 0 nuyen (doesn't change text)
 #romBytes[0x179DF] = 0x00
+
+## Warp to the Octopus boss room when exiting the morgue's main room
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x97) # 0x97 = Door-id to enter Octopus boss room
 
 ## Open the gate to the Rat Shaman Lair
 ## (Side effect: prevents Dog Spirit conversation where you learn "Rat")
 #initialItemState[0x4CA] |= 0x01
 
+## Warp to the Rat Shaman boss room when exiting the morgue's main room
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x12C) # 0x12C = Door-id to enter Rat Shaman boss room
+
 ## Allow entry into the Dark Blade mansion
 ## (In vanilla, set the 0x01 flag instead to open the courtyard gate)
 ## (Side effect: prevents "DBlade" phone conversation)
 #initialItemState[0x565] |= 0x02
+
+## Warp to the Vampire boss room when exiting the morgue's main room
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x13D) # 0x13D = Door-id to enter Vampire boss room
+
+## Start with the Strobe
+#struct.pack_into("<H", initialItemState, 0x657, 0x8B2) # 0x8B2 = Object-id for Jake
+
+## Start with the Stake
+#struct.pack_into("<H", initialItemState, 0x2C9, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Make the Massive Orc appear on the Taxiboat Dock
 ## In vanilla, this happens if you know either "Nirwanda" or "Laughlyn"
@@ -10987,45 +11299,34 @@ romBytes[0x1CE3] = 0xBD
 #initialItemState[0x3E9] |= 0x80
 
 ## Start with the Crowbar
-#initialItemState[0x814] = 0xB2 # 0x08B2 = Object-id for Jake
-#initialItemState[0x815] = 0x08
+#struct.pack_into("<H", initialItemState, 0x814, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Open the door leading to Bremerton's interior
 #initialItemState[0x32B] |= 0x01
 
 ## Warp to Safe I's room when exiting the morgue's main room
-#romBytes[0xC84F4] = 0x4C # 0x014C = Door-id to enter Safe I's room
-#romBytes[0xC84F5] = 0x01
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x14C) # 0x14C = Door-id to enter Safe I's room
 
 ## Start with the Safe Key
-#initialItemState[0xC47] = 0xB2 # 0x08B2 = Object-id for Jake
-#initialItemState[0xC48] = 0x08
+#struct.pack_into("<H", initialItemState, 0xC47, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Warp to Safe II's room when exiting the morgue's main room
-#romBytes[0xC84F4] = 0x56 # 0x0156 = Door-id to enter Safe II's room
-#romBytes[0xC84F5] = 0x01
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x156) # 0x156 = Door-id to enter Safe II's room
 
 ## Start with the Time Bomb
-#initialItemState[0x66B] = 0xB2 # 0x08B2 = Object-id for Jake
-#initialItemState[0x66C] = 0x08
+#struct.pack_into("<H", initialItemState, 0x66B, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Start with Safe II's guards defeated
-#initialItemState[0xCA6] = 0x38
-#initialItemState[0xCA7] = 0x15
-#initialItemState[0xCAB] = 0x38
-#initialItemState[0xCAC] = 0x15
-#initialItemState[0xCB0] = 0x38
-#initialItemState[0xCB1] = 0x15
-#initialItemState[0xCB5] = 0x38
-#initialItemState[0xCB6] = 0x15
+#struct.pack_into("<H", initialItemState, 0xCA6, 0x1538)
+#struct.pack_into("<H", initialItemState, 0xCAB, 0x1538)
+#struct.pack_into("<H", initialItemState, 0xCB0, 0x1538)
+#struct.pack_into("<H", initialItemState, 0xCB5, 0x1538)
 
 ## Warp to the Jester Spirit boss room when exiting the morgue's main room
-#romBytes[0xC84F4] = 0x4B # 0x004B = Door-id to enter Jester Spirit boss room
-#romBytes[0xC84F5] = 0x00
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x4B) # 0x4B = Door-id to enter Jester Spirit boss room
 
 ## Start with the Cyberdeck
-#initialItemState[0x229] = 0xB2 # 0x08B2 = Object-id for Jake
-#initialItemState[0x22A] = 0x08
+#struct.pack_into("<H", initialItemState, 0x229, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## In the Computer helper script, skip the "Jake + datajack damaged" check
 #romBytes[0xFD644] = 0x48
@@ -11036,27 +11337,22 @@ romBytes[0x1CE3] = 0xBD
 ## The computer on the first floor of the Drake Towers requires you to
 ## have the Drake Password in your inventory in order to proceed.
 ## Examining the Drake Password has no effect.
-#initialItemState[0x81E] = 0xB2 # 0x08B2 = Object-id for Jake
-#initialItemState[0x81F] = 0x08
+#struct.pack_into("<H", initialItemState, 0x81E, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Warp to the Gold Naga boss room when exiting the morgue's main room
 ## (For testing the item drop in the Serpent Scales location)
-#romBytes[0xC84F4] = 0x9F # 0x009F = Door-id to enter Gold Naga boss room from lower left
-#romBytes[0xC84F5] = 0x00
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x9F) # 0x9F = Door-id to enter Gold Naga boss room from lower left
 
 ## Warp to Professor Pushkin's room when exiting the morgue's main room
-#romBytes[0xC84F4] = 0xA2 # 0x00A2 = Door-id to enter Professor Pushkin's room
-#romBytes[0xC84F5] = 0x00
+#struct.pack_into("<H", romBytes, 0xC84F4, 0xA2) # 0xA2 = Door-id to enter Professor Pushkin's room
 
 ## Start with the Aneki Password
 ## The computer on the first floor of the Aneki Building requires you to
 ## have the Aneki Password in your inventory in order to proceed.
-#initialItemState[0x666] = 0xB2 # 0x08B2 = Object-id for Jake
-#initialItemState[0x667] = 0x08
+#struct.pack_into("<H", initialItemState, 0x666, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Warp to the AI Computer room when exiting the morgue's main room
-#romBytes[0xC84F4] = 0x76 # 0x0176 = Door-id to enter AI Computer room
-#romBytes[0xC84F5] = 0x01
+#struct.pack_into("<H", romBytes, 0xC84F4, 0x176) # 0x176 = Door-id to enter AI Computer room
 
 # ------------------------------------------------------------------------
 # TODO:
