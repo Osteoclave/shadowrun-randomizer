@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-09-22"
+randomizerVersion = "2024-09-23"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -6260,6 +6260,10 @@ writeHelper(romBytes, 0xEEBA4, bytes.fromhex(' '.join([
 
 # Change the "hmmm...." appearance so it uses the "Tickets" sprite
 struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x30), 0xA46A)
+
+# Keyword-items are inanimate objects
+# Clear the "animate" flag for the "hmmm...." appearance
+romBytes[0x670D5] &= ~0x80
 
 # Create text strings for use by the new "keyword-item" script.
 # Since the "hmmm...." dog's conversation will become inaccessible
