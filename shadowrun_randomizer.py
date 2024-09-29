@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-09-23"
+randomizerVersion = "2024-09-29"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -6233,6 +6233,471 @@ initialItemState[0xA33] &= ~0x01 # Full Bodysuit
 initialItemState[0xA38] &= ~0x01 # AS-7 A. Cannon
 
 # ------------------------------------------------------------------------
+# Equipment prices
+# ------------------------------------------------------------------------
+equipmentPrices = {
+    # Weapons
+    0x1952 :   500, # Beretta Pistol
+    0x17C3 :   500, # Colt L36 Pistol
+    0x12F3 :  2000, # Fichetti L. Pistol
+    0x0157 :  3000, # Viper H. Pistol ($3,000)
+    0x0150 :  4000, # Viper H. Pistol ($4,000)
+    0x013B :  9000, # Warhawk H. Pistol
+    0x0276 : 12000, # T-250 Shotgun ($12,000)
+    0x0261 : 15000, # T-250 Shotgun ($15,000)
+    0x01A4 : 30000, # Uzi III SMG
+    0x0BF3 : 24000, # HK 277 A. Rifle
+    0x1B5F : 40000, # AS-7 A. Cannon
+    # Armor
+    0x0B21 :  2000, # Leather Jacket
+    0x085E :  4000, # Mesh Jacket (free)
+    0x0850 :  5000, # Mesh Jacket ($5,000)
+    0x18A3 :  8000, # Bulletproof Vest
+    0x1696 : 13000, # Concealed Jacket
+    0x0770 : 20000, # Partial Bodysuit
+    0x129F : 30000, # Full Bodysuit
+}
+
+# ------------------------------------------------------------------------
+# Helper script for selling equipment
+# ------------------------------------------------------------------------
+# Rewrite the vanilla helper script for selling equipment.
+# Changes in the rewritten script:
+# - Item sell prices are now printed dynamically instead of using
+#   fixed text strings, allowing for flexible price changes
+# - Item sell prices have been increased to match the buy prices
+#   to make money <-> equipment conversion lossless (important
+#   because's there a limited amount of reasonably-accessible
+#   money in Shadowrun's economy)
+# - Merchant dialogue has been edited slightly to make it look
+#   better with the new dynamically-printed prices
+# - You can now sell the "free" Mesh Jacket
+
+# Tenth Street Business Man: Text before the price
+writeHelper(romBytes, 0xF2D64, bytes.fromhex(' '.join([
+    # Old: "Quiet man, Okay. I'll give ya..."
+    # New: "Quiet man, okay. I'll give ya..."
+    "F7", # "Q"   = 11110111110111
+    "DC", # "u"   = 0011000
+    "C7", # "i"   = 1111101101
+    "DB", # "et"  = 10011100
+    "38", # " m"  = 0001001
+    "26", # "an"  = 1000110
+    "35", # ", "  = 1011010
+    "A8", # "ok"  = 1000011011
+    "6D", # "ay"  = 010101011
+    "57", # ". "  = 1011101
+    "74", # "I'"  = 00011101
+    "77", # "ll"  = 11110010
+    "CA", # " g"  = 10111001
+    "E4", # "iv"  = 000010010
+    "24", # "e "  = 01000
+    "8B", # "y"   = 10110110
+    "63", # "a"   = 00111011
+    "B7", # ".."  = 01110010
+    "2C", # ".\n" = 1100010
+    "40",
+])))
+
+# Tenth Street Business Man: Text after the price
+writeHelper(romBytes, 0xF0D44, bytes.fromhex(' '.join([
+    # Old: ". Deal?"
+    # New: "Deal?"
+    "59", # "D"   = 01011001
+    "53", # "ea"  = 01010011
+    "BE", # "l"   = 10111110
+    "26", # "?\n" = 00100110
+])))
+
+# Oldtown Gun Shop: Text after the price
+writeHelper(romBytes, 0xF0D49, bytes.fromhex(' '.join([
+    # Old: " for it! Still wanna sell?"
+    # New: "for it! Still wanna sell?"
+    "2C", # "fo"  = 00101100
+    "9E", # "r "  = 1001111
+    "1F", # "it"  = 0000111
+    "A6", # "! "  = 11101001
+    "4E", # "St"  = 1001001110
+    "AE", # "il"  = 101011101
+    "D3", # "l "  = 10100111
+    "BA", # "wa"  = 01110101
+    "D3", # "nn"  = 1010011010
+    "5A", # "a "  = 11010001
+    "2C", # "se"  = 01100110
+    "DE", # "ll"  = 11110010
+    "44", # "?\n" = 00100110
+    "C0",
+])))
+
+# Dark Blade Gun Shop: Text before the price
+writeHelper(romBytes, 0xF2D34, bytes.fromhex(' '.join([
+    # Old: "Hmm.. Okay. How about if I give you"
+    # New: "Hmm... okay. How about if I give you"
+    "7D", # "H"  = 011111011
+    "DB", # "mm" = 1011011101
+    "AE", # ".." = 01110010
+    "57", # ". " = 1011101
+    "61", # "ok" = 1000011011
+    "B5", # "ay" = 010101011
+    "5D", # ". " = 1011101
+    "D7", # "H"  = 011111011
+    "D9", # "ow" = 00101011
+    "5E", # " a" = 1101101
+    "D4", # "b"  = 01001110
+    "E4", # "ou" = 010010
+    "A5", # "t " = 100101
+    "81", # "if" = 1000000110
+    "9C", # " I" = 01110000
+    "2E", # " g" = 10111001
+    "42", # "iv" = 000010010
+    "48", # "e " = 01000
+    "A2", # "yo" = 1010001
+    "63", # "u"  = 0011000
+    "20", # "\n" = 110010
+])))
+
+expandedOffset = scriptHelper(
+    scriptNumber = 0x1E3,
+    argsLen      = 0x00, # Script 0x1E3 now takes 0 bytes (= 0 stack items) as arguments
+    returnLen    = 0x00, # Script 0x1E3 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x06, # Header byte: Script uses 0x06 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "00 1C",    # 0000: Push unsigned byte 0x1C
+        "58 57",    # 0002: Read short from 7E3BBB+n
+        "34 00",    # 0004: Pop short to $13+00 <-- Object-id of the item being sold
+        "00 1E",    # 0006: Push unsigned byte 0x1E
+        "58 57",    # 0008: Read short from 7E3BBB+n
+        "34 02",    # 000A: Pop short to $13+02 <-- Merchant-id
+        "C0",       # 000C: Push zero
+        "34 04",    # 000D: Pop short to $13+04 <-- Selling price
+        # CHECK_IF_BERETTA_PISTOL
+        "16 00",    # 000F: Push short from $13+00 <-- Object-id of the item being sold
+        "14 52 19", # 0011: Push short 0x1952      <-- Object-id of Beretta Pistol
+        "AA",       # 0014: Check if equal
+        "44 20 00", # 0015: If not equal, jump to CHECK_IF_COLT_L36_PISTOL
+        # BERETTA_PISTOL
+        f"""14 {struct.pack("<H", equipmentPrices[0x1952]).hex(' ')}""",
+                    # 0018: Push short 0x####   <-- Equipment price
+        "34 04",    # 001B: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 001D: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_COLT_L36_PISTOL
+        "16 00",    # 0020: Push short from $13+00 <-- Object-id of the item being sold
+        "14 C3 17", # 0022: Push short 0x17C3      <-- Object-id of Colt L36 Pistol
+        "AA",       # 0025: Check if equal
+        "44 31 00", # 0026: If not equal, jump to CHECK_IF_FICHETTI_L_PISTOL
+        # COLT_L36_PISTOL
+        f"""14 {struct.pack("<H", equipmentPrices[0x17C3]).hex(' ')}""",
+                    # 0029: Push short 0x####   <-- Equipment price
+        "34 04",    # 002C: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 002E: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_FICHETTI_L_PISTOL
+        "16 00",    # 0031: Push short from $13+00 <-- Object-id of the item being sold
+        "14 F3 12", # 0033: Push short 0x12F3      <-- Object-id of Fichetti L. Pistol
+        "AA",       # 0036: Check if equal
+        "44 42 00", # 0037: If not equal, jump to CHECK_IF_VIPER_H_PISTOL___3000
+        # FICHETTI_L_PISTOL
+        f"""14 {struct.pack("<H", equipmentPrices[0x12F3]).hex(' ')}""",
+                    # 003A: Push short 0x####   <-- Equipment price
+        "34 04",    # 003D: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 003F: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_VIPER_H_PISTOL___3000
+        "16 00",    # 0042: Push short from $13+00 <-- Object-id of the item being sold
+        "14 57 01", # 0044: Push short 0x0157      <-- Object-id of Viper H. Pistol ($3,000)
+        "AA",       # 0047: Check if equal
+        "44 53 00", # 0048: If not equal, jump to CHECK_IF_VIPER_H_PISTOL___4000
+        # VIPER_H_PISTOL___3000
+        f"""14 {struct.pack("<H", equipmentPrices[0x0157]).hex(' ')}""",
+                    # 004B: Push short 0x####   <-- Equipment price
+        "34 04",    # 004E: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 0050: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_VIPER_H_PISTOL___4000
+        "16 00",    # 0053: Push short from $13+00 <-- Object-id of the item being sold
+        "14 50 01", # 0055: Push short 0x0150      <-- Object-id of Viper H. Pistol ($4,000)
+        "AA",       # 0058: Check if equal
+        "44 64 00", # 0059: If not equal, jump to CHECK_IF_WARHAWK_H_PISTOL
+        # VIPER_H_PISTOL___4000
+        f"""14 {struct.pack("<H", equipmentPrices[0x0150]).hex(' ')}""",
+                    # 005C: Push short 0x####   <-- Equipment price
+        "34 04",    # 005F: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 0061: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_WARHAWK_H_PISTOL
+        "16 00",    # 0064: Push short from $13+00 <-- Object-id of the item being sold
+        "14 3B 01", # 0066: Push short 0x013B      <-- Object-id of Warhawk H. Pistol
+        "AA",       # 0069: Check if equal
+        "44 75 00", # 006A: If not equal, jump to CHECK_IF_T_250_SHOTGUN___12000
+        # WARHAWK_H_PISTOL
+        f"""14 {struct.pack("<H", equipmentPrices[0x013B]).hex(' ')}""",
+                    # 006D: Push short 0x####   <-- Equipment price
+        "34 04",    # 0070: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 0072: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_T_250_SHOTGUN___12000
+        "16 00",    # 0075: Push short from $13+00 <-- Object-id of the item being sold
+        "14 76 02", # 0077: Push short 0x0276      <-- Object-id of T-250 Shotgun ($12,000)
+        "AA",       # 007A: Check if equal
+        "44 86 00", # 007B: If not equal, jump to CHECK_IF_T_250_SHOTGUN___15000
+        # T_250_SHOTGUN___12000
+        f"""14 {struct.pack("<H", equipmentPrices[0x0276]).hex(' ')}""",
+                    # 007E: Push short 0x####   <-- Equipment price
+        "34 04",    # 0081: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 0083: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_T_250_SHOTGUN___15000
+        "16 00",    # 0086: Push short from $13+00 <-- Object-id of the item being sold
+        "14 61 02", # 0088: Push short 0x0261      <-- Object-id of T-250 Shotgun ($15,000)
+        "AA",       # 008B: Check if equal
+        "44 97 00", # 008C: If not equal, jump to CHECK_IF_UZI_III_SMG
+        # T_250_SHOTGUN___15000
+        f"""14 {struct.pack("<H", equipmentPrices[0x0261]).hex(' ')}""",
+                    # 008F: Push short 0x####   <-- Equipment price
+        "34 04",    # 0092: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 0094: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_UZI_III_SMG
+        "16 00",    # 0097: Push short from $13+00 <-- Object-id of the item being sold
+        "14 A4 01", # 0099: Push short 0x01A4      <-- Object-id of Uzi III SMG
+        "AA",       # 009C: Check if equal
+        "44 A8 00", # 009D: If not equal, jump to CHECK_IF_HK_277_A_RIFLE
+        # UZI_III_SMG
+        f"""14 {struct.pack("<H", equipmentPrices[0x01A4]).hex(' ')}""",
+                    # 00A0: Push short 0x####   <-- Equipment price
+        "34 04",    # 00A3: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 00A5: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_HK_277_A_RIFLE
+        "16 00",    # 00A8: Push short from $13+00 <-- Object-id of the item being sold
+        "14 F3 0B", # 00AA: Push short 0x0BF3      <-- Object-id of HK 277 A. Rifle
+        "AA",       # 00AD: Check if equal
+        "44 B9 00", # 00AE: If not equal, jump to CHECK_IF_AS_7_A_CANNON
+        # HK_277_A_RIFLE
+        f"""14 {struct.pack("<H", equipmentPrices[0x0BF3]).hex(' ')}""",
+                    # 00B1: Push short 0x####   <-- Equipment price
+        "34 04",    # 00B4: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 00B6: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_AS_7_A_CANNON
+        "16 00",    # 00B9: Push short from $13+00 <-- Object-id of the item being sold
+        "14 5F 1B", # 00BB: Push short 0x1B5F      <-- Object-id of AS-7 A. Cannon
+        "AA",       # 00BE: Check if equal
+        "44 CA 00", # 00BF: If not equal, jump to CHECK_IF_LEATHER_JACKET
+        # AS_7_A_CANNON
+        f"""14 {struct.pack("<H", equipmentPrices[0x1B5F]).hex(' ')}""",
+                    # 00C2: Push short 0x####   <-- Equipment price
+        "34 04",    # 00C5: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 00C7: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_LEATHER_JACKET
+        "16 00",    # 00CA: Push short from $13+00 <-- Object-id of the item being sold
+        "14 21 0B", # 00CC: Push short 0x0B21      <-- Object-id of Leather Jacket
+        "AA",       # 00CF: Check if equal
+        "44 DB 00", # 00D0: If not equal, jump to CHECK_IF_MESH_JACKET___FREE
+        # LEATHER_JACKET
+        f"""14 {struct.pack("<H", equipmentPrices[0x0B21]).hex(' ')}""",
+                    # 00D3: Push short 0x####   <-- Equipment price
+        "34 04",    # 00D6: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 00D8: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_MESH_JACKET___FREE
+        "16 00",    # 00DB: Push short from $13+00 <-- Object-id of the item being sold
+        "14 5E 08", # 00DD: Push short 0x085E      <-- Object-id of Mesh Jacket (free)
+        "AA",       # 00E0: Check if equal
+        "44 EC 00", # 00E1: If not equal, jump to CHECK_IF_MESH_JACKET___5000
+        # MESH_JACKET___FREE
+        f"""14 {struct.pack("<H", equipmentPrices[0x085E]).hex(' ')}""",
+                    # 00E4: Push short 0x####   <-- Equipment price
+        "34 04",    # 00E7: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 00E9: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_MESH_JACKET___5000
+        "16 00",    # 00EC: Push short from $13+00 <-- Object-id of the item being sold
+        "14 50 08", # 00EE: Push short 0x0850      <-- Object-id of Mesh Jacket ($5,000)
+        "AA",       # 00F1: Check if equal
+        "44 FD 00", # 00F2: If not equal, jump to CHECK_IF_BULLETPROOF_VEST
+        # MESH_JACKET___5000
+        f"""14 {struct.pack("<H", equipmentPrices[0x0850]).hex(' ')}""",
+                    # 00F5: Push short 0x####   <-- Equipment price
+        "34 04",    # 00F8: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 00FA: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_BULLETPROOF_VEST
+        "16 00",    # 00FD: Push short from $13+00 <-- Object-id of the item being sold
+        "14 A3 18", # 00FF: Push short 0x18A3      <-- Object-id of Bulletproof Vest
+        "AA",       # 0102: Check if equal
+        "44 0E 01", # 0103: If not equal, jump to CHECK_IF_CONCEALED_JACKET
+        # BULLETPROOF_VEST
+        f"""14 {struct.pack("<H", equipmentPrices[0x18A3]).hex(' ')}""",
+                    # 0106: Push short 0x####   <-- Equipment price
+        "34 04",    # 0109: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 010B: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_CONCEALED_JACKET
+        "16 00",    # 010E: Push short from $13+00 <-- Object-id of the item being sold
+        "14 96 16", # 0110: Push short 0x1696      <-- Object-id of Concealed Jacket
+        "AA",       # 0113: Check if equal
+        "44 1F 01", # 0114: If not equal, jump to CHECK_IF_PARTIAL_BODYSUIT
+        # CONCEALED_JACKET
+        f"""14 {struct.pack("<H", equipmentPrices[0x1696]).hex(' ')}""",
+                    # 0117: Push short 0x####   <-- Equipment price
+        "34 04",    # 011A: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 011C: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_PARTIAL_BODYSUIT
+        "16 00",    # 011F: Push short from $13+00 <-- Object-id of the item being sold
+        "14 70 07", # 0121: Push short 0x0770      <-- Object-id of Partial Bodysuit
+        "AA",       # 0124: Check if equal
+        "44 30 01", # 0125: If not equal, jump to CHECK_IF_FULL_BODYSUIT
+        # PARTIAL_BODYSUIT
+        f"""14 {struct.pack("<H", equipmentPrices[0x0770]).hex(' ')}""",
+                    # 0128: Push short 0x####   <-- Equipment price
+        "34 04",    # 012B: Pop short to $13+04 <-- Selling price
+        "48 3E 01", # 012D: Jump to CHECK_IF_SELLABLE
+        # CHECK_IF_FULL_BODYSUIT
+        "16 00",    # 0130: Push short from $13+00 <-- Object-id of the item being sold
+        "14 9F 12", # 0132: Push short 0x129F      <-- Object-id of Full Bodysuit
+        "AA",       # 0135: Check if equal
+        "44 3E 01", # 0136: If not equal, jump to CHECK_IF_SELLABLE
+        # FULL_BODYSUIT
+        f"""14 {struct.pack("<H", equipmentPrices[0x129F]).hex(' ')}""",
+                    # 0139: Push short 0x####   <-- Equipment price
+        "34 04",    # 013C: Pop short to $13+04 <-- Selling price
+        # CHECK_IF_SELLABLE
+        "16 04",    # 013E: Push short from $13+04 <-- Selling price
+        "46 4B 01", # 0140: If nonzero, jump to CHECK_IF_TENTH_STREET_BUSINESS_MAN
+        # UNSELLABLE
+        "14 25 01", # 0143: Push short 0x0125 <-- Text-id for "I've got a bad feeling about this, no DEAL!"
+        "58 99",    # 0146: Print conversation text
+        "48 38 02", # 0148: Jump to DONE
+        # CHECK_IF_TENTH_STREET_BUSINESS_MAN
+        "16 02",    # 014B: Push short from $13+02 <-- Merchant-id
+        "00 10",    # 014D: Push unsigned byte 0x10
+        "AA",       # 014F: Check if equal
+        "44 9B 01", # 0150: If not equal, jump to CHECK_IF_OLDTOWN_GUN_SHOP
+        # TENTH_STREET_BUSINESS_MAN
+        # Text before the price
+        "14 63 02", # 0153: Push short 0x0263 <-- Text-id for "Quiet man, okay. I'll give ya..." (edited)
+        "58 99",    # 0156: Print conversation text
+        # Move text cursor
+        "00 03",    # 0158: Push unsigned byte 0x03 <-- Y coordinate
+        "00 0C",    # 015A: Push unsigned byte 0x0C <-- X coordinate
+        "04 14 00", # 015C: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 0E",    # 015F: Set window's text cursor position <-- Repurposed function!
+        # Print item price
+        "C0",       # 0161: Push zero
+        "16 04",    # 0162: Push short from $13+04 <-- Selling price
+        "04 14 00", # 0164: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 04",    # 0167: Print nuyen amount to window
+        # Move text cursor
+        "00 05",    # 0169: Push unsigned byte 0x05 <-- Y coordinate
+        "00 00",    # 016B: Push unsigned byte 0x00 <-- X coordinate
+        "04 14 00", # 016D: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 0E",    # 0170: Set window's text cursor position <-- Repurposed function!
+        # Text after the price
+        "14 26 01", # 0172: Push short 0x0126 <-- Text-id for "Deal?" (edited)
+        "58 D6",    # 0175: Append to conversation text
+        # Accept or decline the offer
+        "00 09",    # 0177: Push unsigned byte 0x09
+        "00 12",    # 0179: Push unsigned byte 0x12
+        "58 72",    # 017B: Display Yes/No menu
+        "44 93 01", # 017D: If No/Cancel, jump to TENTH_STREET_BUSINESS_MAN___DECLINE
+        # TENTH_STREET_BUSINESS_MAN___ACCEPT
+        "14 29 01", # 0180: Push short 0x0129 <-- Text-id for "You'll never get a better deal anywhere!"
+        "58 99",    # 0183: Print conversation text
+        "14 AD 0B", # 0185: Push short 0x0BAD      <-- Object-id that owns objects sold by the player
+        "16 00",    # 0188: Push short from $13+00 <-- Object-id of the item being sold
+        "58 BB",    # 018A: Set object's owner, handles unequipping
+        "16 04",    # 018C: Push short from $13+04 <-- Selling price
+        "58 98",    # 018E: Increase nuyen
+        "48 38 02", # 0190: Jump to DONE
+        # TENTH_STREET_BUSINESS_MAN___DECLINE
+        "14 2C 01", # 0193: Push short 0x012C <-- Text-id for "Too bad, I would have liked to have one of those!"
+        "58 99",    # 0196: Print conversation text
+        "48 38 02", # 0198: Jump to DONE
+        # CHECK_IF_OLDTOWN_GUN_SHOP
+        "16 02",    # 019B: Push short from $13+02 <-- Merchant-id
+        "00 15",    # 019D: Push unsigned byte 0x15
+        "AA",       # 019F: Check if equal
+        "44 EB 01", # 01A0: If not equal, jump to CHECK_IF_DARK_BLADE_GUN_SHOP
+        # OLDTOWN_GUN_SHOP
+        # Text before the price
+        "14 62 02", # 01A3: Push short 0x0262 <-- Text-id for "Oh boy! You got a beauty there! I'll give ya"
+        "58 99",    # 01A6: Print conversation text
+        # Move text cursor
+        "00 03",    # 01A8: Push unsigned byte 0x03 <-- Y coordinate
+        "00 0C",    # 01AA: Push unsigned byte 0x0C <-- X coordinate
+        "04 14 00", # 01AC: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 0E",    # 01AF: Set window's text cursor position <-- Repurposed function!
+        # Print item price
+        "C0",       # 01B1: Push zero
+        "16 04",    # 01B2: Push short from $13+04 <-- Selling price
+        "04 14 00", # 01B4: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 04",    # 01B7: Print nuyen amount to window
+        # Move text cursor
+        "00 05",    # 01B9: Push unsigned byte 0x05 <-- Y coordinate
+        "00 00",    # 01BB: Push unsigned byte 0x00 <-- X coordinate
+        "04 14 00", # 01BD: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 0E",    # 01C0: Set window's text cursor position <-- Repurposed function!
+        # Text after the price
+        "14 27 01", # 01C2: Push short 0x0127 <-- Text-id for "for it! Still wanna sell?" (edited)
+        "58 D6",    # 01C5: Append to conversation text
+        # Accept or decline the offer
+        "00 09",    # 01C7: Push unsigned byte 0x09
+        "00 12",    # 01C9: Push unsigned byte 0x12
+        "58 72",    # 01CB: Display Yes/No menu
+        "44 E3 01", # 01CD: If No/Cancel, jump to OLDTOWN_GUN_SHOP___DECLINE
+        # OLDTOWN_GUN_SHOP___ACCEPT
+        "14 2A 01", # 01D0: Push short 0x012A <-- Text-id for "Sucker!! Just kiddin'. I never rip off my friends! HAR HAR!"
+        "58 99",    # 01D3: Print conversation text
+        "14 AD 0B", # 01D5: Push short 0x0BAD      <-- Object-id that owns objects sold by the player
+        "16 00",    # 01D8: Push short from $13+00 <-- Object-id of the item being sold
+        "58 BB",    # 01DA: Set object's owner, handles unequipping
+        "16 04",    # 01DC: Push short from $13+04 <-- Selling price
+        "58 98",    # 01DE: Increase nuyen
+        "48 38 02", # 01E0: Jump to DONE
+        # OLDTOWN_GUN_SHOP___DECLINE
+        "14 2D 01", # 01E3: Push short 0x012D <-- Text-id for "Awww, you're acting just like my mother-in-law! Wishy Washy!"
+        "58 99",    # 01E6: Print conversation text
+        "48 38 02", # 01E8: Jump to DONE
+        # CHECK_IF_DARK_BLADE_GUN_SHOP
+        "16 02",    # 01EB: Push short from $13+02 <-- Merchant-id
+        "00 1A",    # 01ED: Push unsigned byte 0x1A
+        "AA",       # 01EF: Check if equal
+        "44 38 02", # 01F0: If not equal, jump to DONE
+        # DARK_BLADE_GUN_SHOP
+        # Text before the price
+        "14 61 02", # 01F3: Push short 0x0261 <-- Text-id for "Hmm... okay. How about if I give you" (edited)
+        "58 99",    # 01F6: Print conversation text
+        # Move text cursor
+        "00 03",    # 01F8: Push unsigned byte 0x03 <-- Y coordinate
+        "00 0C",    # 01FA: Push unsigned byte 0x0C <-- X coordinate
+        "04 14 00", # 01FC: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 0E",    # 01FF: Set window's text cursor position <-- Repurposed function!
+        # Print item price
+        "C0",       # 0201: Push zero
+        "16 04",    # 0202: Push short from $13+04 <-- Selling price
+        "04 14 00", # 0204: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 04",    # 0207: Print nuyen amount to window
+        # Move text cursor
+        "00 05",    # 0209: Push unsigned byte 0x05 <-- Y coordinate
+        "00 00",    # 020B: Push unsigned byte 0x00 <-- X coordinate
+        "04 14 00", # 020D: Push unsigned byte from $7E0014 <-- Text-window-slot number
+        "58 0E",    # 0210: Set window's text cursor position <-- Repurposed function!
+        # Text after the price
+        "14 28 01", # 0212: Push short 0x0128 <-- Text-id for "for the item. Okay?"
+        "58 D6",    # 0215: Append to conversation text
+        # Accept or decline the offer
+        "00 09",    # 0217: Push unsigned byte 0x09
+        "00 12",    # 0219: Push unsigned byte 0x12
+        "58 72",    # 021B: Display Yes/No menu
+        "44 33 02", # 021D: If No/Cancel, jump to DARK_BLADE_GUN_SHOP___DECLINE
+        # DARK_BLADE_GUN_SHOP___ACCEPT
+        "14 2B 01", # 0220: Push short 0x012B <-- Text-id for "Okay, thank you."
+        "58 99",    # 0223: Print conversation text
+        "14 AD 0B", # 0225: Push short 0x0BAD      <-- Object-id that owns objects sold by the player
+        "16 00",    # 0228: Push short from $13+00 <-- Object-id of the item being sold
+        "58 BB",    # 022A: Set object's owner, handles unequipping
+        "16 04",    # 022C: Push short from $13+04 <-- Selling price
+        "58 98",    # 022E: Increase nuyen
+        "48 38 02", # 0230: Jump to DONE
+        # DARK_BLADE_GUN_SHOP___DECLINE
+        "14 2E 01", # 0233: Push short 0x012E <-- Text-id for "Okay, no sale then."
+        "58 99",    # 0236: Print conversation text
+        # DONE
+        "56",       # 0238: End
+    ],
+)
+
+# ------------------------------------------------------------------------
 # Keyword-items and nuyen-items
 # ------------------------------------------------------------------------
 # Item randomization, on its own, produces seeds that are very linear
@@ -8037,26 +8502,38 @@ romBytes[0xE5DB5:0xE5DB5+2] = romBytes[0xC9707:0xC9707+2]
 # Colt L36 Pistol: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F3B:0xE5F3B+2] = romBytes[0xC9649:0xC9649+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xE5F3E, equipmentPrices[struct.unpack_from("<H", romBytes, 0xC9649)[0]])
 
 # Viper H. Pistol ($4,000): Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F4D:0xE5F4D+2] = romBytes[0xC964F:0xC964F+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xE5F50, equipmentPrices[struct.unpack_from("<H", romBytes, 0xC964F)[0]])
 
 # Mesh Jacket ($5,000): Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F5F:0xE5F5F+2] = romBytes[0xC9655:0xC9655+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xE5F62, equipmentPrices[struct.unpack_from("<H", romBytes, 0xC9655)[0]])
 
 # T-250 Shotgun ($15,000): Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F71:0xE5F71+2] = romBytes[0xC965B:0xC965B+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xE5F74, equipmentPrices[struct.unpack_from("<H", romBytes, 0xC965B)[0]])
 
 # Fichetti L. Pistol: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F83:0xE5F83+2] = romBytes[0xC966D:0xC966D+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xE5F86, equipmentPrices[struct.unpack_from("<H", romBytes, 0xC966D)[0]])
 
 # Warhawk H. Pistol: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xE5F95:0xE5F95+2] = romBytes[0xC9673:0xC9673+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xE5F98, equipmentPrices[struct.unpack_from("<H", romBytes, 0xC9673)[0]])
 
 # Glass doors <-- Left door at Oldtown monorail station
 # Change the behaviour script for the left glass door from 0x2B4
@@ -9140,38 +9617,56 @@ expandedOffset = scriptHelper(
 # Viper H. Pistol ($3,000): Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCE76:0xFCE76+2] = romBytes[0xD1715:0xD1715+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCE79, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD1715)[0]])
 
 # T-250 Shotgun ($12,000): Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCE88:0xFCE88+2] = romBytes[0xD171B:0xD171B+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCE8B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD171B)[0]])
 
 # Uzi III SMG: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCE9A:0xFCE9A+2] = romBytes[0xD1721:0xD1721+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCE9D, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD1721)[0]])
 
 # HK 277 A. Rifle: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCEAC:0xFCEAC+2] = romBytes[0xD1727:0xD1727+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCEAF, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD1727)[0]])
 
 # Bulletproof Vest: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCED0:0xFCED0+2] = romBytes[0xD172D:0xD172D+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCED3, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD172D)[0]])
 
 # Concealed Jacket: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCEE2:0xFCEE2+2] = romBytes[0xD1733:0xD1733+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCEE5, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD1733)[0]])
 
 # Partial Bodysuit: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCEF4:0xFCEF4+2] = romBytes[0xD1739:0xD1739+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCEF7, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD1739)[0]])
 
 # Full Bodysuit: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCF06:0xFCF06+2] = romBytes[0xD1745:0xD1745+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCF09, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD1745)[0]])
 
 # AS-7 A. Cannon: Gun Case
 # Offer for sale the new item shuffled to this location
 romBytes[0xFCF18:0xFCF18+2] = romBytes[0xD174B:0xD174B+2]
+# Set the case's price to match the new case contents
+struct.pack_into("<H", romBytes, 0xFCF1B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xD174B)[0]])
 
 # Dark Blade mansion security status
 # Start with the mansion security on alert
@@ -11155,64 +11650,6 @@ writeHelper(romBytes, 0x6327, bytes.fromhex(' '.join([
 
 # ------------------------------------------------------------------------
 
-# Update the glass cases containing weapons and armor so that their
-# cost matches the new randomized contents.
-# This causes power growth to be more money-driven.
-equipmentPrices = {
-    # Weapons
-    0x1952 :   200, # Beretta Pistol
-    0x17C3 :   200, # Colt L36 Pistol
-    0x12F3 :  1000, # Fichetti L. Pistol
-    0x0157 :  1300, # Viper H. Pistol ($3,000)
-    0x0150 :  2000, # Viper H. Pistol ($4,000)
-    0x013B :  4000, # Warhawk H. Pistol
-    0x0276 :  6000, # T-250 Shotgun ($12,000)
-    0x0261 :  7500, # T-250 Shotgun ($15,000)
-    0x01A4 : 14000, # Uzi III SMG
-    0x0BF3 : 11000, # HK 277 A. Rifle
-    0x1B5F : 20000, # AS-7 A. Cannon
-    # Armor
-    0x0B21 :  1000, # Leather Jacket
-    0x085E :  2500, # Mesh Jacket (free)
-    0x0850 :  2500, # Mesh Jacket ($5,000)
-    0x18A3 :  3000, # Bulletproof Vest
-    0x1696 :  6000, # Concealed Jacket
-    0x0770 :  9000, # Partial Bodysuit
-    0x129F : 15000, # Full Bodysuit
-}
-
-# Oldtown - Gun Shop
-struct.pack_into("<H", romBytes, 0xE5F3E, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F3B)[0]]) # Colt L36 Pistol
-struct.pack_into("<H", romBytes, 0xE5F50, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F4D)[0]]) # Viper H. Pistol ($4,000)
-struct.pack_into("<H", romBytes, 0xE5F62, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F5F)[0]]) # Mesh Jacket ($5,000)
-struct.pack_into("<H", romBytes, 0xE5F74, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F71)[0]]) # T-250 Shotgun ($15,000)
-struct.pack_into("<H", romBytes, 0xE5F86, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F83)[0]]) # Fichetti L. Pistol
-struct.pack_into("<H", romBytes, 0xE5F98, equipmentPrices[struct.unpack_from("<H", romBytes, 0xE5F95)[0]]) # Warhawk H. Pistol
-
-# Dark Blade - Gun Shop
-struct.pack_into("<H", romBytes, 0xFCE79, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCE76)[0]]) # Viper H. Pistol ($3,000)
-struct.pack_into("<H", romBytes, 0xFCE8B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCE88)[0]]) # T-250 Shotgun ($12,000)
-struct.pack_into("<H", romBytes, 0xFCE9D, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCE9A)[0]]) # Uzi III SMG
-struct.pack_into("<H", romBytes, 0xFCEAF, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCEAC)[0]]) # HK 277 A. Rifle
-struct.pack_into("<H", romBytes, 0xFCED3, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCED0)[0]]) # Bulletproof Vest
-struct.pack_into("<H", romBytes, 0xFCEE5, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCEE2)[0]]) # Concealed Jacket
-struct.pack_into("<H", romBytes, 0xFCEF7, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCEF4)[0]]) # Partial Bodysuit
-struct.pack_into("<H", romBytes, 0xFCF09, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCF06)[0]]) # Full Bodysuit
-struct.pack_into("<H", romBytes, 0xFCF1B, equipmentPrices[struct.unpack_from("<H", romBytes, 0xFCF18)[0]]) # AS-7 A. Cannon
-
-## Make all of the "initially out of stock" items available
-## This specifically undoes something we went out of our way to do
-## just after the "common code for glass cases" script.
-## If we decide to keep this behaviour, we can comment out those
-## lines as well as these ones.
-#initialItemState[0x9F7] &= ~0x02 # HK 277 A. Rifle  ($24,000)
-#initialItemState[0xA01] &= ~0x02 # Concealed Jacket ($13,000)
-#initialItemState[0xA06] &= ~0x02 # Partial Bodysuit ($20,000)
-#initialItemState[0xA3D] &= ~0x02 # Full Bodysuit    ($30,000)
-#initialItemState[0xA42] &= ~0x02 # AS-7 A. Cannon   ($40,000)
-
-# ------------------------------------------------------------------------
-
 # Give Jake the Zip Gun as a default weapon
 # The Zip Gun is never actually in Jake's inventory, so he can't give
 # it away. It works like default equipment for shadowrunners.
@@ -11250,6 +11687,29 @@ romBytes[0x1CE3] = 0xBD
 
 ## Start with a 6 in both Firearms and Computer
 #romBytes[0x18F3] = 0x06
+
+## Start with various equipment
+## 0x8B2 = Object-id for Jake
+## Weapons
+#struct.pack_into("<H", initialItemState, 0x2F2C - 0x2E00 + 3, 0x8B2) # Beretta Pistol
+#struct.pack_into("<H", initialItemState, 0x3076 - 0x2E00 + 3, 0x8B2) # Colt L36 Pistol
+#struct.pack_into("<H", initialItemState, 0x3094 - 0x2E00 + 3, 0x8B2) # Fichetti L. Pistol
+#struct.pack_into("<H", initialItemState, 0x380A - 0x2E00 + 3, 0x8B2) # Viper H. Pistol ($3,000)
+#struct.pack_into("<H", initialItemState, 0x307B - 0x2E00 + 3, 0x8B2) # Viper H. Pistol ($4,000)
+#struct.pack_into("<H", initialItemState, 0x3099 - 0x2E00 + 3, 0x8B2) # Warhawk H. Pistol
+#struct.pack_into("<H", initialItemState, 0x380F - 0x2E00 + 3, 0x8B2) # T-250 Shotgun ($12,000)
+#struct.pack_into("<H", initialItemState, 0x3085 - 0x2E00 + 3, 0x8B2) # T-250 Shotgun ($15,000)
+#struct.pack_into("<H", initialItemState, 0x3814 - 0x2E00 + 3, 0x8B2) # Uzi III SMG
+#struct.pack_into("<H", initialItemState, 0x3819 - 0x2E00 + 3, 0x8B2) # HK 277 A. Rifle
+#struct.pack_into("<H", initialItemState, 0x3837 - 0x2E00 + 3, 0x8B2) # AS-7 A. Cannon
+## Armor
+#struct.pack_into("<H", initialItemState, 0x2F31 - 0x2E00 + 3, 0x8B2) # Leather Jacket
+#struct.pack_into("<H", initialItemState, 0x367A - 0x2E00 + 3, 0x8B2) # Mesh Jacket (free)
+#struct.pack_into("<H", initialItemState, 0x3080 - 0x2E00 + 3, 0x8B2) # Mesh Jacket ($5,000)
+#struct.pack_into("<H", initialItemState, 0x381E - 0x2E00 + 3, 0x8B2) # Bulletproof Vest
+#struct.pack_into("<H", initialItemState, 0x3823 - 0x2E00 + 3, 0x8B2) # Concealed Jacket
+#struct.pack_into("<H", initialItemState, 0x3828 - 0x2E00 + 3, 0x8B2) # Partial Bodysuit
+#struct.pack_into("<H", initialItemState, 0x3832 - 0x2E00 + 3, 0x8B2) # Full Bodysuit
 
 # ------------------------------------------------------------------------
 
