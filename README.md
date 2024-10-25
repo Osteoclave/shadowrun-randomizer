@@ -101,7 +101,6 @@ Randomizer for Shadowrun (SNES)
    * Stake
    * Iron Key
    * Crowbar
-   * Drake Password
    * Bronze Key
    * Green Bottle
    * Jester Spirit Insignia
@@ -124,5 +123,7 @@ Randomizer for Shadowrun (SNES)
 * The gate to the Dark Blade courtyard is open when the game begins.
    * This allows access to the Dark Blade weapon shop at any time
    * You still need to phone the Dark Blade before you can enter the mansion, though
-* The Aneki Password is no longer required to enter the Aneki Building.
+* Reach the top of Drake Towers to stock the five empty cases at the Dark Blade weapon shop.
+* The two Password items (Drake Password and Aneki Password) have been removed.
+   * If you can enter the Matrix, you can enter Drake Towers and the Aneki Building
 * Remember that you can hire shadowrunners to help you out.

@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-09-29"
+randomizerVersion = "2024-10-24"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -266,12 +266,12 @@ Progress = Enum(
         "ITEM___MATCHBOX",
         "ITEM___MEMO",
         "ITEM___MERMAID_SCALES",
+        "ITEM___NUYEN___GANG_LEADER",
         "ITEM___NUYEN___GLUTMAN",
         "ITEM___NUYEN___OCTOPUS",
         "ITEM___NUYEN___RAT_SHAMAN",
         "ITEM___NUYEN___VAMPIRE",
         "ITEM___PAPERWEIGHT",
-        "ITEM___PASSWORD___DRAKE",
         "ITEM___POTION_BOTTLES",
         "ITEM___RIPPED_NOTE",
         "ITEM___SAFE_KEY",
@@ -2328,10 +2328,9 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "Dermal Plating",
         vanilla = Entity(Category.CONSTANT, "Dermal Plating", 0x6C5F5, [
-            (Progress.CYBERWARE___DERMAL_PLATING, [
-                Progress.KEYWORD___CYBERWARE,
-                Progress.EVENT___JESTER_SPIRIT_PORTAL_USED,
-            ]),
+            # In vanilla, the Dermal Plating also requires that
+            # you've passed through the Jester Spirit portal.
+            (Progress.CYBERWARE___DERMAL_PLATING, [Progress.KEYWORD___CYBERWARE]),
         ]),
         requires = [],
         address = 0xCB3ED,
@@ -2539,14 +2538,15 @@ thisRegion.locations.extend([
         address = 0xD08E7,
         hidden = False,
     ),
+    # In vanilla, this is the Drake Password.
     Location(
         region = thisRegion,
         category = Category.PHYSICAL_KEY_ITEM,
-        description = "Password (Drake)",
-        vanilla = Entity(Category.KEY_ITEM, "Password (Drake)", 0x6B79A, [
-            (Progress.ITEM___PASSWORD___DRAKE, []),
+        description = "Nuyen: Gang Leader",
+        vanilla = Entity(Category.PHYSICAL_ITEM, "Nuyen: Gang Leader", 0x6B79A, [
+            (Progress.ITEM___NUYEN___GANG_LEADER, []),
         ]),
-        requires = [],
+        requires = [Progress.EVENT___RUST_STILETTOS_DEFEATED],
         address = 0xD08ED,
         hidden = True,
     ),
@@ -3112,7 +3112,9 @@ thisRegion.locations.extend([
         vanilla = Entity(Category.WEAPON, "HK 277 A. Rifle", 0x6BC24, [
             (Progress.WEAPON___HK_277_A_RIFLE, []),
         ]),
-        requires = [Progress.EVENT___JESTER_SPIRIT_PORTAL_USED],
+        # In vanilla, the item at this location isn't available
+        # until you've passed through the Jester Spirit portal.
+        requires = [Progress.EVENT___DRAKE_TOWERS_CLEARED],
         address = 0xD1727,
         hidden = False,
     ),
@@ -3145,7 +3147,9 @@ thisRegion.locations.extend([
         vanilla = Entity(Category.ARMOR, "Partial Bodysuit", 0x6B7A1, [
             (Progress.ARMOR___PARTIAL_BODYSUIT, []),
         ]),
-        requires = [Progress.EVENT___JESTER_SPIRIT_PORTAL_USED],
+        # In vanilla, the item at this location isn't available
+        # until you've passed through the Jester Spirit portal.
+        requires = [Progress.EVENT___DRAKE_TOWERS_CLEARED],
         address = 0xD1739,
         hidden = False,
     ),
@@ -3156,7 +3160,9 @@ thisRegion.locations.extend([
         vanilla = Entity(Category.ARMOR, "Full Bodysuit", 0x6C2D0, [
             (Progress.ARMOR___FULL_BODYSUIT, []),
         ]),
-        requires = [Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED],
+        # In vanilla, the item at this location isn't available
+        # until you've rescued Professor Pushkin.
+        requires = [Progress.EVENT___DRAKE_TOWERS_CLEARED],
         address = 0xD1745,
         hidden = False,
     ),
@@ -3167,7 +3173,9 @@ thisRegion.locations.extend([
         vanilla = Entity(Category.WEAPON, "AS-7 A. Cannon", 0x6CB90, [
             (Progress.WEAPON___AS_7_A_CANNON, []),
         ]),
-        requires = [Progress.EVENT___PROFESSOR_PUSHKIN_RESCUED],
+        # In vanilla, the item at this location isn't available
+        # until you've rescued Professor Pushkin.
+        requires = [Progress.EVENT___DRAKE_TOWERS_CLEARED],
         address = 0xD174B,
         hidden = False,
     ),
@@ -3809,10 +3817,11 @@ thisRegion.locations.extend([
         category = Category.CONSTANT,
         description = "Computer",
         vanilla = Entity(Category.CONSTANT, "Computer", 0x6C730, [
+            # In vanilla, you need the Drake Password to get
+            # into this computer.
             (Progress.EVENT___DRAKE_TOWERS_2F_UNLOCKED, [
                 Progress.ITEM___CYBERDECK,
                 Progress.EVENT___DATAJACK_REPAIRED,
-                Progress.ITEM___PASSWORD___DRAKE,
             ]),
         ]),
         requires = [],
@@ -6267,7 +6276,7 @@ equipmentPrices = {
 #   fixed text strings, allowing for flexible price changes
 # - Item sell prices have been increased to match the buy prices
 #   to make money <-> equipment conversion lossless (important
-#   because's there a limited amount of reasonably-accessible
+#   because's there a limited amount of reasonably-attainable
 #   money in Shadowrun's economy)
 # - Merchant dialogue has been edited slightly to make it look
 #   better with the new dynamically-printed prices
@@ -6852,6 +6861,9 @@ writeHelper(romBytes, 0x6B8B9, bytes.fromhex("FF FD 3A 9E 00 D6 00"))
 # Keyword-item: Jester Spirit
 # Vanilla: Mesh Jacket (Jetboy)
 writeHelper(romBytes, 0x6B8C0, bytes.fromhex("FF 34 3B 30 00 C6 02"))
+# Nuyen-item: Gang Leader
+# Vanilla: Password (Drake)
+writeHelper(romBytes, 0x6B79A, bytes.fromhex("FF 1B 36 9E 00 D6 00"))
 # Nuyen-item: Glutman
 # Vanilla: "Shady character..." (Glutman)
 writeHelper(romBytes, 0x6B3F0, bytes.fromhex("FF FA 2E 9E 00 D6 00"))
@@ -9054,6 +9066,10 @@ struct.pack_into("<H", romBytes, 0x6C559, 0x037B)
 # Enlarge the doorway warp zone to make it easier to traverse
 romBytes[0xCB2F0] = 0x16 # <-- Was 0x17
 
+# Dermal Plating
+# Make the Dermal Plating always available at Dr. Maplethorpe's office
+initialItemState[0x55B] |= 0x01
+
 # Club Manager <-- Bartender at Wastelands
 # Change conversation when you know the "Bremerton" keyword.
 # In vanilla, this happens when you know either "Nirwanda" or "Laughlyn".
@@ -9107,11 +9123,11 @@ expandedOffset = scriptHelper(
         # Copy 0000-0062 from the original script.
         romBytes[0xF9087:0xF90EA].hex(' '),
         # New code.
-        # Password (Drake): Gang Leader
+        # Nuyen: Gang Leader
         # Reveal the new item shuffled to this location
         "00 80",    # 0063: Push unsigned byte 0x80
         f"14 {romBytes[0xD08ED+0]:02X} {romBytes[0xD08ED+1]:02X}",
-                    # 0065: Push short 0x#### <-- Object-id of new item in "Password (Drake)" location
+                    # 0065: Push short 0x#### <-- Object-id of new item in "Nuyen: Gang Leader" location
         "58 0D",    # 0068: Set bits of object's flags
         # Silently award the boss bounty
         f"""14 {struct.pack("<H", bossBounties["Gang Leader"]).hex(' ')}""",
@@ -9197,20 +9213,11 @@ expandedOffset = scriptHelper(
     ],
 )
 
-# Password (Drake)
+# Nuyen: Gang Leader
 writeHelper(romBytes, 0xD08E9, bytes.fromhex(' '.join([
     "E3 02",    # Move the spawn point to slightly below the Gang Leader
     "FE 11",    # New coordinates: (739, 510, 64)
 ])))
-writeHelper(romBytes, 0xF4909, bytes.fromhex(' '.join([
-    "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
-    "48 12 00", # 000C: Jump to 0012
-])))
-# Use facing direction 05's sprite for direction 00
-romBytes[0x66864] = 0x08
-# Inventory list item-hiding
-# Don't hide the Password (Drake) after taking the helicopter to Drake Volcano
-romBytes[0x6B79A] |= 0x3F
 
 # Cruel man <-- Left bouncer at the entrance to Jagged Nails
 # Allow access to Jagged Nails without having to defeat the Rust Stilettos
@@ -9326,7 +9333,7 @@ expandedOffset = scriptHelper(
         # Reveal the new item shuffled to this location
         "00 80",    # 00AE: Push unsigned byte 0x80
         f"14 {romBytes[0xCB18D+0]:02X} {romBytes[0xCB18D+1]:02X}",
-                    # 00B0: Push short 0x#### <-- Object-id of new item in "Nuyen" location
+                    # 00B0: Push short 0x#### <-- Object-id of new item in "Nuyen: Octopus" location
         "58 0D",    # 00B3: Set bits of object's flags
         # Pool of Ink
         "00 01",    # 00B5: Push unsigned byte 0x01
@@ -10817,45 +10824,17 @@ writeHelper(romBytes, 0xDE224, bytes.fromhex(' '.join([
     "C0",       # 0013: Push zero
     "BC",       # 0014: Pop
 ])))
-# - Stock the $20,000 case at the Dark Blade Gun Shop (vanilla: Partial Bodysuit)
-# - Stock the $24,000 case at the Dark Blade Gun Shop (vanilla: HK 277 A. Rifle)
+# - In vanilla, using the Jester Spirit portal has side effects:
+#    - Partial Bodysuit becomes available at the Dark Blade Gun Shop
+#    - HK 277 A. Rifle becomes available at the Dark Blade Gun Shop
+#    - Dermal Plating becomes available at Dr. Maplethorpe's office
+#    - Some keywords are silently forgotten
+#       - Rust Stilettos, Laughlyn, Nirwanda, Ice, Docks, Bremerton
+# - Skip all of these side effects and just warp to the docks
 writeHelper(romBytes, 0xDE297, bytes.fromhex(' '.join([
-    "0A FD",    # 007C: Push signed byte 0xFD
-    "14 0D 10", # 007E: Push short 0x100D <-- Object-id of "Partial Bodysuit" glass case
-    "58 4B",    # 0081: Clear bits of object's flags
-    "0A FD",    # 0083: Push signed byte 0xFD
-    "14 3E 10", # 0085: Push short 0x103E <-- Object-id of "HK 277 A. Rifle" glass case
-    "58 4B",    # 0088: Clear bits of object's flags
-])))
-# - Don't forget "Rust Stilettos"
-writeHelper(romBytes, 0xDE2AE, bytes.fromhex(' '.join([
-    "BC",       # 0093: Pop
-    "C0",       # 0094: Push zero
-])))
-# - Don't forget "Laughlyn"
-writeHelper(romBytes, 0xDE2B3, bytes.fromhex(' '.join([
-    "BC",       # 0098: Pop
-    "C0",       # 0099: Push zero
-])))
-# - Don't forget "Nirwanda"
-writeHelper(romBytes, 0xDE2B8, bytes.fromhex(' '.join([
-    "BC",       # 009D: Pop
-    "C0",       # 009E: Push zero
-])))
-# - Don't forget "Ice"
-writeHelper(romBytes, 0xDE2BD, bytes.fromhex(' '.join([
-    "BC",       # 00A2: Pop
-    "C0",       # 00A3: Push zero
-])))
-# - Don't forget "Docks"
-writeHelper(romBytes, 0xDE2C2, bytes.fromhex(' '.join([
-    "BC",       # 00A7: Pop
-    "C0",       # 00A8: Push zero
-])))
-# - Don't forget "Bremerton"
-writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
-    "BC",       # 00AC: Pop
-    "C0",       # 00AD: Push zero
+    "00 87",    # 007C: Push unsigned byte 0x87
+    "58 56",    # 007E: Teleport to door destination
+    "56",       # 0080: End
 ])))
 # TODO:
 # Should the "Vampire respawns after going through the portal" behaviour
@@ -10865,6 +10844,14 @@ writeHelper(romBytes, 0xDE2C7, bytes.fromhex(' '.join([
 # event flags, so this arguably good bug doesn't happen anymore.
 # To restore the vanilla behaviour, write 0x00 to the Vampire's flags as
 # part of the portal's behaviour script.
+
+# Computer <-- Drake Towers lobby
+# Remove the check for the Drake Password
+writeHelper(romBytes, 0xFDA77, bytes.fromhex(' '.join([
+    "BC",       # 0040: Pop
+    "C0",       # 0041: Push zero
+    "BC",       # 0042: Pop
+])))
 
 # Elevator Doors helper script
 # - Show the correct floor on the floor indicator in the "game won" case
@@ -11037,28 +11024,126 @@ expandedOffset = scriptHelper(
 )
 
 # Helicopter Pilot <-- Drake Towers
-# - Stock the $13,000 case at the Dark Blade Gun Shop (vanilla: Concealed Jacket)
-writeHelper(romBytes, 0x177C0, bytes.fromhex(' '.join([
-    "0A FD",    # 0010: Push signed byte 0xFD
-    "14 45 10", # 0012: Push short 0x1045 <-- Object-id of "Concealed Jacket" glass case
-    "58 4B",    # 0015: Clear bits of object's flags
-])))
+# - Stock the five empty cases at the Dark Blade Gun Shop
+expandedOffset = scriptHelper(
+    scriptNumber = 0x25,
+    argsLen      = 0x02, # Script 0x25 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x25 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 2C",    # 0002: Push unsigned byte 0x2C
+        "58 57",    # 0004: Read short from 7E3BBB+n
+        "46 5D 00", # 0006: If nonzero, jump to DONE <-- Prevents appearance during ending cutscenes
+        # GAME_NOT_COMPLETED_YET
+        "14 FF DF", # 0009: Push short 0xDFFF
+        "C2",       # 000C: Push unsigned byte from $13+00 <-- Spawn index
+        "58 2C",    # 000D: Clear bits of 7E1474+n <-- Makes the Helicopter Pilot non-hostile
+        # STOCK_DARK_BLADE_CASES
+        "0A FD",    # 000F: Push signed byte 0xFD
+        "14 45 10", # 0011: Push short 0x1045 <-- Object-id of vanilla "Concealed Jacket" glass case
+        "58 4B",    # 0014: Clear bits of object's flags
+        "0A FD",    # 0016: Push signed byte 0xFD
+        "14 0D 10", # 0018: Push short 0x100D <-- Object-id of vanilla "Partial Bodysuit" glass case
+        "58 4B",    # 001B: Clear bits of object's flags
+        "0A FD",    # 001D: Push signed byte 0xFD
+        "14 3E 10", # 001F: Push short 0x103E <-- Object-id of vanilla "HK 277 A. Rifle" glass case
+        "58 4B",    # 0022: Clear bits of object's flags
+        "0A FD",    # 0024: Push signed byte 0xFD
+        "14 F1 0F", # 0026: Push short 0x0FF1 <-- Object-id of vanilla "Full Bodysuit" glass case
+        "58 4B",    # 0029: Clear bits of object's flags
+        "0A FD",    # 002B: Push signed byte 0xFD
+        "14 14 10", # 002D: Push short 0x1014 <-- Object-id of vanilla "AS-7 A. Cannon" glass case
+        "58 4B",    # 0030: Clear bits of object's flags
+        # SPAWN_HELICOPTER_PILOT
+        "00 04",    # 0032: Push unsigned byte 0x04
+        "C0",       # 0034: Push zero
+        "C2",       # 0035: Push unsigned byte from $13+00 <-- Spawn index
+        "58 D1",    # 0036: Display sprite with facing direction
+        "00 30",    # 0038: Push unsigned byte 0x30
+        "C2",       # 003A: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B4",    # 003B: Register conversation
+        # TOP_OF_LOOP
+        "00 06",    # 003D: Push unsigned byte 0x06
+        "00 03",    # 003F: Push unsigned byte 0x03
+        "58 9E",    # 0041: Register menu options / time delay
+        "BC",       # 0043: Pop
+        "C2",       # 0044: Push unsigned byte from $13+00 <-- Spawn index
+        "58 02",    # 0045: Push object's flags
+        "00 01",    # 0047: Push unsigned byte 0x01
+        "7E",       # 0049: Bitwise AND
+        "BE",       # 004A: Convert to boolean
+        "44 3D 00", # 004B: If false, jump to TOP_OF_LOOP
+        # FLY_TO_DRAKE_VOLCANO
+        "00 05",    # 004E: Push unsigned byte 0x05
+        "58 DA",    # 0050: ???
+        "C0",       # 0052: Push zero
+        "C2",       # 0053: Push unsigned byte from $13+00 <-- Spawn index
+        "58 95",    # 0054: Write byte to object's flags
+        "00 F3",    # 0056: Push unsigned byte 0xF3
+        "C0",       # 0058: Push zero
+        "00 02",    # 0059: Push unsigned byte 0x02
+        "58 54",    # 005B: Teleport to door destination with vehicle cutscene
+        # DONE
+        "C2",       # 005D: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B8",    # 005E: Despawn object
+        "56",       # 0060: End
+    ],
+)
 
 # Helicopter Pilot <-- Volcano
 # - Silently teach the "Drake" keyword, to avoid a possible softlock
-# - Don't spawn the pilot after landing the helicopter. Spawn the pilot
-#   when entering the helipad map from Sublevel Zero of the volcano.
-#   (This is vanilla behaviour, but implemented more efficiently.)
-writeHelper(romBytes, 0x1753A, bytes.fromhex(' '.join([
-    "00 0E",    # 0002: Push unsigned byte 0x0E <-- Keyword-id for "Drake"
-    "58 71",    # 0004: Learn keyword
-    "18 E2 2D", # 0006: Push short from $7E2DE2
-    "14 F4 00", # 0009: Push short 0x00F4
-    "AA",       # 000C: Check if equal
-    "46 12 00", # 000D: If equal, jump to 0012
-    "56",       # 0010: End
-    "56",       # 0011: End
-])))
+# - Don't spawn the pilot if you've just arrived from Drake Towers
+#   (vanilla behaviour, but re-implemented more efficiently)
+expandedOffset = scriptHelper(
+    scriptNumber = 0x384,
+    argsLen      = 0x02, # Script 0x384 now takes 2 bytes (= 1 stack item) as arguments
+    returnLen    = 0x00, # Script 0x384 now returns 0 bytes (= 0 stack items) upon completion
+    offset       = expandedOffset,
+    scratchLen   = 0x01, # Header byte: Script uses 0x01 bytes of $13+xx space
+    maxStackLen  = 0x06, # Header byte: Maximum stack height of 0x06 bytes (= 3 stack items)
+    commandList  = [
+        "2C 00",    # 0000: Pop byte to $13+00 <-- Spawn index
+        "00 0E",    # 0002: Push unsigned byte 0x0E <-- Keyword-id for "Drake"
+        "58 71",    # 0004: Learn keyword
+        # CHECK_IF_ARRIVING_FROM_DRAKE_TOWERS
+        "18 E2 2D", # 0006: Push short from $7E2DE2
+        "14 F3 00", # 0009: Push short 0x00F3
+        "AA",       # 000C: Check if equal
+        "46 39 00", # 000D: If equal, jump to DONE
+        # NOT_ARRIVING_FROM_DRAKE_TOWERS
+        "00 03",    # 0010: Push unsigned byte 0x03
+        "C0",       # 0012: Push zero
+        "C2",       # 0013: Push unsigned byte from $13+00 <-- Spawn index
+        "58 D1",    # 0014: Display sprite with facing direction
+        "00 3F",    # 0016: Push unsigned byte 0x3F
+        "C2",       # 0018: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B4",    # 0019: Register conversation
+        # TOP_OF_LOOP
+        "00 06",    # 001B: Push unsigned byte 0x06
+        "00 03",    # 001D: Push unsigned byte 0x03
+        "58 9E",    # 001F: Register menu options / time delay
+        "BC",       # 0021: Pop
+        "C2",       # 0022: Push unsigned byte from $13+00 <-- Spawn index
+        "58 02",    # 0023: Push object's flags
+        "00 01",    # 0025: Push unsigned byte 0x01
+        "7E",       # 0027: Bitwise AND
+        "BE",       # 0028: Convert to boolean
+        "44 1B 00", # 0029: If false, jump to TOP_OF_LOOP
+        # FLY_TO_DRAKE_TOWERS
+        "C0",       # 002C: Push zero
+        "C2",       # 002D: Push unsigned byte from $13+00 <-- Spawn index
+        "58 95",    # 002E: Write byte to object's flags
+        "14 AA 01", # 0030: Push short 0x01AA
+        "C0",       # 0033: Push zero
+        "14 02 80", # 0034: Push short 0x8002
+        "58 54",    # 0037: Teleport to door destination with vehicle cutscene
+        # DONE
+        "56",       # 0039: End
+    ],
+)
 
 # Serpent Scales
 writeHelper(romBytes, 0xD26C3, bytes.fromhex(' '.join([
@@ -11209,8 +11294,11 @@ expandedOffset = scriptHelper(
 
 # Scientist <-- Professor Pushkin
 # - Silently teach the "Head Computer" keyword, to avoid a possible softlock
-# - Stock the $30,000 case at the Dark Blade Gun Shop (vanilla: Full Bodysuit)
-# - Stock the $40,000 case at the Dark Blade Gun Shop (vanilla: AS-7 A. Cannon)
+# - In vanilla, rescuing Professor Pushkin has side effects:
+#    - Aneki Password is silently added to your inventory
+#    - Full Bodysuit becomes available at the Dark Blade Gun Shop
+#    - AS-7 A. Cannon becomes available at the Dark Blade Gun Shop
+# - Skip all of these side effects
 expandedOffset = scriptHelper(
     scriptNumber = 0x38A,
     argsLen      = 0x02, # Script 0x38A now takes 2 bytes (= 1 stack item) as arguments
@@ -11242,44 +11330,37 @@ expandedOffset = scriptHelper(
         "7E",       # 0020: Bitwise AND
         "BE",       # 0021: Convert to boolean
         "44 11 00", # 0022: If false, jump to TOP_OF_LOOP
-        # STOCK_DARK_BLADE_CASES
-        "0A FD",    # 0025: Push signed byte 0xFD
-        "14 F1 0F", # 0027: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
-        "58 4B",    # 002A: Clear bits of object's flags
-        "0A FD",    # 002C: Push signed byte 0xFD
-        "14 14 10", # 002E: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
-        "58 4B",    # 0031: Clear bits of object's flags
         # CHECK_IF_AI_COMPUTER_DESTROYED
-        "14 7B 1B", # 0033: Push short 0x1B7B <-- Object-id of AI Computer
-        "58 BA",    # 0036: Push object's flags
-        "00 40",    # 0038: Push unsigned byte 0x40
-        "7E",       # 003A: Bitwise AND
-        "BE",       # 003B: Convert to boolean
-        "46 4D 00", # 003C: If true, jump to AI_COMPUTER_DESTROYED
+        "14 7B 1B", # 0025: Push short 0x1B7B <-- Object-id of AI Computer
+        "58 BA",    # 0028: Push object's flags
+        "00 40",    # 002A: Push unsigned byte 0x40
+        "7E",       # 002C: Bitwise AND
+        "BE",       # 002D: Convert to boolean
+        "46 3F 00", # 002E: If true, jump to AI_COMPUTER_DESTROYED
         # AI_COMPUTER_NOT_DESTROYED
-        "14 AA 01", # 003F: Push short 0x01AA
-        "58 56",    # 0042: Teleport to door destination
-        "00 01",    # 0044: Push unsigned byte 0x01
-        "BA",       # 0046: Duplicate
-        "58 9E",    # 0047: Register menu options / time delay
-        "BC",       # 0049: Pop
-        "48 60 00", # 004A: Jump to DONE
+        "14 AA 01", # 0031: Push short 0x01AA
+        "58 56",    # 0034: Teleport to door destination
+        "00 01",    # 0036: Push unsigned byte 0x01
+        "BA",       # 0038: Duplicate
+        "58 9E",    # 0039: Register menu options / time delay
+        "BC",       # 003B: Pop
+        "48 52 00", # 003C: Jump to DONE
         # AI_COMPUTER_DESTROYED
-        "00 03",    # 004D: Push unsigned byte 0x03
-        "00 2C",    # 004F: Push unsigned byte 0x2C
-        "58 12",    # 0051: Write short to 7E3BBB+n
-        "00 F2",    # 0053: Push unsigned byte 0xF2
-        "C0",       # 0055: Push zero
-        "00 14",    # 0056: Push unsigned byte 0x14
-        "58 54",    # 0058: Teleport to door destination with vehicle cutscene
-        "00 01",    # 005A: Push unsigned byte 0x01
-        "BA",       # 005C: Duplicate
-        "58 9E",    # 005D: Register menu options / time delay
-        "BC",       # 005F: Pop
+        "00 03",    # 003F: Push unsigned byte 0x03
+        "00 2C",    # 0041: Push unsigned byte 0x2C
+        "58 12",    # 0043: Write short to 7E3BBB+n
+        "00 F2",    # 0045: Push unsigned byte 0xF2
+        "C0",       # 0047: Push zero
+        "00 14",    # 0048: Push unsigned byte 0x14
+        "58 54",    # 004A: Teleport to door destination with vehicle cutscene
+        "00 01",    # 004C: Push unsigned byte 0x01
+        "BA",       # 004E: Duplicate
+        "58 9E",    # 004F: Register menu options / time delay
+        "BC",       # 0051: Pop
         # DONE
-        "C2",       # 0060: Push unsigned byte from $13+00 <-- Spawn index
-        "58 B8",    # 0061: Despawn object
-        "56",       # 0063: End
+        "C2",       # 0052: Push unsigned byte from $13+00 <-- Spawn index
+        "58 B8",    # 0053: Despawn object
+        "56",       # 0055: End
     ],
 )
 
@@ -11349,13 +11430,6 @@ expandedOffset = scriptHelper(
         "00 40",    # 0048: Push unsigned byte 0x40
         "C2",       # 004A: Push unsigned byte from $13+00 <-- Spawn index
         "58 33",    # 004B: Set bits of object's flags
-        ## STOCK_DARK_BLADE_CASES
-        #"0A FD",    # ____: Push signed byte 0xFD
-        #"14 F1 0F", # ____: Push short 0x0FF1 <-- Object-id of "Full Bodysuit" glass case
-        #"58 4B",    # ____: Clear bits of object's flags
-        #"0A FD",    # ____: Push signed byte 0xFD
-        #"14 14 10", # ____: Push short 0x1014 <-- Object-id of "AS-7 A. Cannon" glass case
-        #"58 4B",    # ____: Clear bits of object's flags
         # CHECK_IF_PROFESSOR_PUSHKIN_RESCUED
         "14 B4 04", # 004D: Push short 0x04B4 <-- Object-id of Professor Pushkin
         "58 BA",    # 0050: Push object's flags
@@ -11713,9 +11787,6 @@ romBytes[0x1CE3] = 0xBD
 
 # ------------------------------------------------------------------------
 
-## Make the Dermal Plating immediately available at Maplethorpe's
-#initialItemState[0x55B] |= 0x01
-
 ## Open the door to the Rust Stilettos HQ
 #initialItemState[0x59C] |= 0x80
 
@@ -11798,8 +11869,9 @@ romBytes[0x1CE3] = 0xBD
 #romBytes[0xFD646] = 0x00
 
 ## Start with the Drake Password
-## The computer on the first floor of the Drake Towers requires you to
-## have the Drake Password in your inventory in order to proceed.
+## In vanilla, the computer on the first floor of the Drake Towers
+## requires you to have the Drake Password in your inventory
+## in order to proceed.
 ## Examining the Drake Password has no effect.
 #struct.pack_into("<H", initialItemState, 0x81E, 0x8B2) # 0x8B2 = Object-id for Jake
 
@@ -11811,8 +11883,10 @@ romBytes[0x1CE3] = 0xBD
 #struct.pack_into("<H", romBytes, 0xC84F4, 0xA2) # 0xA2 = Door-id to enter Professor Pushkin's room
 
 ## Start with the Aneki Password
-## The computer on the first floor of the Aneki Building requires you to
-## have the Aneki Password in your inventory in order to proceed.
+## In vanilla, the computer on the first floor of the Aneki Building
+## requires you to have the Aneki Password in your inventory
+## in order to proceed.
+## Examining the Aneki Password has no effect.
 #struct.pack_into("<H", initialItemState, 0x666, 0x8B2) # 0x8B2 = Object-id for Jake
 
 ## Warp to the AI Computer room when exiting the morgue's main room
