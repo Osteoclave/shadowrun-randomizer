@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-10-24"
+randomizerVersion = "2024-11-15"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -3207,7 +3207,7 @@ thisRegion.locations.extend([
     # In vanilla, this is "Vladimir"
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Keyword: Bremerton",
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Bremerton", 0x6B17A, [
             (Progress.ITEM___KEYWORD___BREMERTON, []),
@@ -3242,7 +3242,7 @@ thisRegion = Region(regionName)
 thisRegion.locations.extend([
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_ITEM,
+        category = Category.PHYSICAL_KEY_ITEM,
         description = "Bronze Key",
         vanilla = Entity(Category.KEY_ITEM, "Bronze Key", 0x6C921, [
             (Progress.ITEM___BRONZE_KEY, []),
@@ -3253,7 +3253,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.ARMOR,
+        category = Category.EARLY_ARMOR,
         description = "Mesh Jacket (free)",
         vanilla = Entity(Category.EARLY_ARMOR, "Mesh Jacket (free)", 0x6B88F, [
             (Progress.ARMOR___MESH_JACKET___FREE, []),
@@ -3779,7 +3779,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Keyword: Volcano",
         vanilla = Entity(Category.PHYSICAL_KEY_ITEM, "Keyword: Volcano", 0x6B8A4, [
             (Progress.ITEM___KEYWORD___VOLCANO, []),
@@ -3790,7 +3790,7 @@ thisRegion.locations.extend([
     ),
     Location(
         region = thisRegion,
-        category = Category.PHYSICAL_KEY_ITEM,
+        category = Category.PHYSICAL_ITEM,
         description = "Jester Spirit Insignia",
         vanilla = Entity(Category.KEY_ITEM, "Jester Spirit Insignia", 0x6BBC9, [
             (Progress.ITEM___JESTER_SPIRIT_INSIGNIA, []),

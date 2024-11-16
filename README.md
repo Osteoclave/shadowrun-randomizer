@@ -65,19 +65,20 @@ Randomizer for Shadowrun (SNES)
    * Rescue Professor Pushkin from Drake Volcano
    * Destroy the AI Computer in the Aneki Building
 * Items have been shuffled among their vanilla locations, plus the following:
-   * The end of the Tenth Street alley (where the "hmmm...." dog is in vanilla)
+   * The end of the Tenth Street alley (vanilla "hmmm...." dog location)
    * Next to Glutman's booth at The Cage (after you've asked Glutman's secretary about Glutman)
    * Dropped by the Octopus
    * Dropped by the Rat Shaman (2 items)
-   * The back of the left room at the Dark Blade mansion (where Vladimir is in vanilla)
+   * The back of the left room at the Dark Blade mansion (vanilla "Vladimir" location)
    * Dropped by the Vampire (2 items)
-   * Dropped by the Jester Spirit (2 items, up from 1 - the Jester Spirit Insignia - in vanilla)
+   * Dropped by the Jester Spirit (2 items, was 1 item (Jester Spirit Insignia) in vanilla)
 * The following locations are incentivized, and will provide key items:
    * Dropped by the Rust Stiletto gang leader
    * Dropped by the Octopus
    * Dropped by the Rat Shaman (both items)
+   * The back of the left room at the Dark Blade mansion (vanilla "Vladimir" location)
+   * The shelf in the right room at the Dark Blade mansion (vanilla "Bronze Key" location)
    * Dropped by the Vampire (both items)
-   * Dropped by the Jester Spirit (both items)
 * Five keywords are known by default at the beginning of the game:
    * HitMen
    * Firearms
