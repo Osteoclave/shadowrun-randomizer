@@ -1,6 +1,6 @@
 "use strict";
 
-self.importScripts("https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js");
+self.importScripts("https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js");
 
 async function loadPyodideAndFiles() {
   self.pyodide = await loadPyodide();
@@ -28,7 +28,8 @@ async function runRandomizer(event) {
   const randomizerArgs = event.data;
   const romBytes = randomizerArgs.get("romBytes");
   const seedString = randomizerArgs.get("seedString");
-  const itemDuplication = randomizerArgs.get("itemDuplication");
+  const allowItemDuplication = randomizerArgs.get("allowItemDuplication");
+  const highVisibilityItems = randomizerArgs.get("highVisibilityItems");
   const spoilerLog = randomizerArgs.get("spoilerLog");
 
   const romFileName = "shadowrun.sfc";
@@ -39,8 +40,11 @@ async function runRandomizer(event) {
     mockArgv.push("--seed");
     mockArgv.push(seedString);
   }
-  if (itemDuplication) {
+  if (allowItemDuplication) {
     mockArgv.push("--allow-item-duplication");
+  }
+  if (highVisibilityItems) {
+    mockArgv.push("--high-visibility-items");
   }
   if (spoilerLog) {
     mockArgv.push("--spoiler-log");

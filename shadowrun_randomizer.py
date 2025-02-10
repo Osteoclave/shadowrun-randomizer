@@ -20,7 +20,7 @@ from enum import Enum, Flag, auto
 # Update this with each new release.
 # Add a suffix (e.g. "/b", "/c") if there's more than one release in a day.
 # Title screen space is limited, so don't use more than 13 characters.
-randomizerVersion = "2024-11-15"
+randomizerVersion = "2025-02-10"
 
 # Process the command line arguments.
 parser = argparse.ArgumentParser(
@@ -55,6 +55,11 @@ parser.add_argument(
     action = "store_true",
     help = "allow item duplication and quantity underflow",
 )
+parser.add_argument(
+    "-V", "--high-visibility-items",
+    action = "store_true",
+    help = "use an easy-to-see sprite for every item",
+)
 # This option should be named "input-file". It isn't because of a bug with
 # dash-to-underscore replacement for positional arguments:
 # https://bugs.python.org/issue15125
@@ -81,6 +86,8 @@ randomizerFlags = ""
 
 if args.allow_item_duplication:
     randomizerFlags += "D"
+if args.high_visibility_items:
+    randomizerFlags += "V"
 
 
 
@@ -5879,8 +5886,8 @@ expandedOffset = scriptHelper(
         "56",       # 0024: End
     ],
 )
-# Bulletproof Vest: Use the Mesh Jacket's sprite data (0xE068 --> 0xE054)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xD0), 0xE054)
+# Bulletproof Vest: Give the sprite a mouseover area
+writeHelper(romBytes, 0x6606D, bytes.fromhex("FA 06 FA 06 03"))
 
 # Concealed Jacket
 expandedOffset = scriptHelper(
@@ -5914,8 +5921,8 @@ expandedOffset = scriptHelper(
         "56",       # 0024: End
     ],
 )
-# Concealed Jacket: Use the Mesh Jacket's sprite data (0xE07C --> 0xE054)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xD1), 0xE054)
+# Concealed Jacket: Give the sprite a mouseover area
+writeHelper(romBytes, 0x66081, bytes.fromhex("FA 06 FA 06 03"))
 
 # Partial Bodysuit
 expandedOffset = scriptHelper(
@@ -5949,8 +5956,8 @@ expandedOffset = scriptHelper(
         "56",       # 0024: End
     ],
 )
-# Partial Bodysuit: Use the Mesh Jacket's sprite data (0xE090 --> 0xE054)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xD2), 0xE054)
+# Partial Bodysuit: Give the sprite a mouseover area
+writeHelper(romBytes, 0x66095, bytes.fromhex("FA 06 FA 06 03"))
 
 # Full Bodysuit
 expandedOffset = scriptHelper(
@@ -5984,8 +5991,8 @@ expandedOffset = scriptHelper(
         "56",       # 0024: End
     ],
 )
-# Full Bodysuit: Use the Mesh Jacket's sprite data (0xE0A4 --> 0xE054)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xD3), 0xE054)
+# Full Bodysuit: Give the sprite a mouseover area
+writeHelper(romBytes, 0x660A9, bytes.fromhex("FA 06 FA 06 03"))
 
 # ------------------------------------------------------------------------
 # Common code for glass cases
@@ -6732,8 +6739,17 @@ writeHelper(romBytes, 0xEEBA4, bytes.fromhex(' '.join([
     "20",
 ])))
 
-# Change the "hmmm...." appearance so it uses the "Tickets" sprite
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x30), 0xA46A)
+# Replace the "hmmm...." sprite data with a copy of the vanilla
+# "Tickets" sprite data
+writeHelper(romBytes, 0x61DA8, bytes.fromhex(' '.join([
+    # Verb 0 pointer
+    "AA 9D",
+    # Verb 0 data
+    "00 01 02 FD 03 FB 05 05",
+    "08 00 00 00 00 00 00 00",
+    "A8 85",
+    # This leaves 0x61DBC to 0x61DF5 unused
+])))
 
 # Keyword-items are inanimate objects
 # Clear the "animate" flag for the "hmmm...." appearance
@@ -7922,8 +7938,22 @@ expandedOffset = scriptHelper(
         "56",       # 005B: End
     ],
 )
-# Use the Talisman Case's sprite data (0xC1F4 --> 0xCFEC)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x7F), 0xCFEC)
+# The "Magic Fetish" has a sprite data pointer, but it points at data
+# for an unrelated sprite - there's no actual "Magic Fetish" sprite
+# data in vanilla.
+# So, let's repoint that pointer to the unused-in-vanilla "Miserable
+# Man" sprite data, which we can then modify to our hearts content.
+struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x7F), 0x9D1A)
+# Replace the "Miserable Man" sprite data with a slightly modified
+# version of the vanilla "Talisman Case" sprite data
+writeHelper(romBytes, 0x61D1A, bytes.fromhex(' '.join([
+    # Verb 0 pointer
+    "1C 9D",
+    # Verb 0 data
+    "00 01 02 00 0A 00 06 04",
+    "08 00 00 00 00 00 00 00",
+    "83 B9",
+])))
 
 # Magic Fetish: Indian Shaman <-- Chrome Coyote
 # Reveal the new item shuffled to this location
@@ -8235,8 +8265,16 @@ expandedOffset = scriptHelper(
         "56",       # 0143: End
     ],
 )
-# Use the Talisman Case's sprite data (0xD016 --> 0xCFEC)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xA5), 0xCFEC)
+# Replace the "Potion Bottles" sprite data with a slightly modified
+# version of the vanilla "Talisman Case" sprite data
+writeHelper(romBytes, 0x65016, bytes.fromhex(' '.join([
+    # Verb 0 pointer
+    "18 D0",
+    # Verb 0 data
+    "00 01 02 00 0A 00 06 04",
+    "08 00 00 00 00 00 00 00",
+    "83 B9",
+])))
 
 # Potion Bottles: Talisman Case
 # Offer for sale the new item shuffled to this location
@@ -8362,8 +8400,16 @@ expandedOffset = scriptHelper(
         "56",       # 00B8: End
     ],
 )
-# Use the Talisman Case's sprite data (0xD02A --> 0xCFEC)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0xA6), 0xCFEC)
+# Replace the "Black Bottle" sprite data with a slightly modified
+# version of the vanilla "Talisman Case" sprite data
+writeHelper(romBytes, 0x6502A, bytes.fromhex(' '.join([
+    # Verb 0 pointer
+    "2C D0",
+    # Verb 0 data
+    "00 01 02 00 0A 00 06 04",
+    "08 00 00 00 00 00 00 00",
+    "83 B9",
+])))
 
 # Black Bottle: Talisman Case
 # Offer for sale the new item shuffled to this location
@@ -8504,8 +8550,16 @@ expandedOffset = scriptHelper(
         "56",       # 00D6: End
     ],
 )
-# Use the Talisman Case's sprite data (0xCB9A --> 0xCFEC)
-struct.pack_into("<H", romBytes, 0x66D8A + (2 * 0x9B), 0xCFEC)
+# Replace the "Stake" sprite data with a slightly modified
+# version of the vanilla "Talisman Case" sprite data
+writeHelper(romBytes, 0x64B9A, bytes.fromhex(' '.join([
+    # Verb 0 pointer
+    "9C CB",
+    # Verb 0 data
+    "00 01 02 00 0A 00 06 04",
+    "08 00 00 00 00 00 00 00",
+    "83 B9",
+])))
 
 # Stake: Talisman Case
 # Offer for sale the new item shuffled to this location
@@ -10492,6 +10546,16 @@ expandedOffset = scriptHelper(
 )
 
 # Jester Spirit Insignia
+# In vanilla, the Insignia item doesn't have its own verb. It ends up
+# using verb 1, which handles all of the "frowning mask" sprites used
+# after speaking the Jester Spirit's true name.
+# This works, but is inconvenient if we want to change the Insignia's
+# sprite. So let's make the Insignia use verb 3 (unused in vanilla),
+# then repoint verb 3 to verb 1 (to keep using the "frowning mask"
+# sprites by default).
+# To change the Insignia's sprite, repoint verb 3 again to something
+# else. This keeps verb 1 unchanged, so there should be no effect on
+# the Jester Spirit's post-naming defeat cutscene.
 expandedOffset = scriptHelper(
     scriptNumber = 0x1F6,
     argsLen      = 0x02, # Script 0x1F6 now takes 2 bytes (= 1 stack item) as arguments
@@ -10506,9 +10570,9 @@ expandedOffset = scriptHelper(
         "46 11 00", # 0005: If yes, jump to TOP_OF_LOOP
         "C2",       # 0008: Push unsigned byte from $13+00 <-- Spawn index
         "52 1D 01", # 0009: Execute behaviour script 0x11D = New item-drawing script
-        "00 05",    # 000C: Push unsigned byte 0x05
+        "00 03",    # 000C: Push unsigned byte 0x03
         "C2",       # 000E: Push unsigned byte from $13+00 <-- Spawn index
-        "58 6A",    # 000F: Set object's facing direction
+        "58 D0",    # 000F: Display sprite <-- Use verb 3 (unused in vanilla) for the Insignia item
         # TOP_OF_LOOP
         "C2",       # 0011: Push unsigned byte from $13+00 <-- Spawn index
         "58 C5",    # 0012: Check if object has an owner
@@ -10807,6 +10871,10 @@ expandedOffset = scriptHelper(
         "50",       # 01E4: Return
     ],
 )
+# Repoint verb 3 to verb 1
+struct.pack_into("<H", romBytes, 0x64074, 0xC09C)
+# Use verb 1's facing direction 05 sprite for direction 00
+romBytes[0x640A4] = 0x0A
 # Increase the Jester Spirit Insignia's sprite priority
 romBytes[0x6BBC9] |= 0x40
 
@@ -11610,6 +11678,89 @@ if not args.allow_item_duplication:
         "BE",       # 000E: Convert to boolean
         "BC",       # 000F: Pop
     ])))
+
+# ------------------------------------------------------------------------
+
+# High-visibility items
+if args.high_visibility_items:
+    # When creating the keyword-items, we replaced the "hmmm...."
+    # sprite data with a copy of the vanilla "Tickets" sprite data.
+    # This took up less space, and left 0x61DBC to 0x61DF5 unused.
+    # Let's use some of that space now to create sprite data for
+    # the highly-visible-item appearance.
+    writeHelper(romBytes, 0x61DBC, bytes.fromhex(' '.join([
+        # This is a free-floating verb
+        "04 82 44 FD 07 FD 03 04",
+        "08 08 08 08 08 08 08 08",
+        "91 CD A3 CD",
+    ])))
+
+    # Pointer to the highly-visible appearance we just created.
+    # During testing, I used 0xC09C (Jester Spirit, verb 1) here,
+    # which gave every item the Jester Spirit Insignia sprite.
+    HIGH_VISIBILITY_VERB = 0x9DBC
+
+    # Weapons
+    # All of the weapons have been modified to use the Beretta Pistol
+    # sprite data, so that's the only one we need to update.
+    struct.pack_into("<H", romBytes, 0x65052, HIGH_VISIBILITY_VERB) # Beretta Pistol
+
+    # Armor
+    struct.pack_into("<H", romBytes, 0x65434, HIGH_VISIBILITY_VERB) # Leather Jacket
+    struct.pack_into("<H", romBytes, 0x66054, HIGH_VISIBILITY_VERB) # Mesh Jacket
+    struct.pack_into("<H", romBytes, 0x66068, HIGH_VISIBILITY_VERB) # Bulletproof Vest
+    struct.pack_into("<H", romBytes, 0x6607C, HIGH_VISIBILITY_VERB) # Concealed Jacket
+    struct.pack_into("<H", romBytes, 0x66090, HIGH_VISIBILITY_VERB) # Partial Bodysuit
+    struct.pack_into("<H", romBytes, 0x660A4, HIGH_VISIBILITY_VERB) # Full Bodysuit
+
+    # Glass cases
+    struct.pack_into("<H", romBytes, 0x6503E, HIGH_VISIBILITY_VERB) # Gun Case
+    struct.pack_into("<H", romBytes, 0x64FEC, HIGH_VISIBILITY_VERB) # Talisman Case
+
+    # Items
+    struct.pack_into("<H", romBytes, 0x6502A, HIGH_VISIBILITY_VERB) # Black Bottle
+    struct.pack_into("<H", romBytes, 0x66AF6, HIGH_VISIBILITY_VERB) # Broken Bottle
+    struct.pack_into("<H", romBytes, 0x65EF2, HIGH_VISIBILITY_VERB) # Bronze Key
+    struct.pack_into("<H", romBytes, 0x6247E, HIGH_VISIBILITY_VERB) # Credstick
+    struct.pack_into("<H", romBytes, 0x66C22, HIGH_VISIBILITY_VERB) # Crowbar
+    struct.pack_into("<H", romBytes, 0x653A4, HIGH_VISIBILITY_VERB) # Cyberdeck
+    struct.pack_into("<H", romBytes, 0x66AE2, HIGH_VISIBILITY_VERB) # Detonator
+    struct.pack_into("<H", romBytes, 0x649BA, HIGH_VISIBILITY_VERB) # Dog Collar
+    struct.pack_into("<H", romBytes, 0x66BF8, HIGH_VISIBILITY_VERB) # Dog Tag
+    struct.pack_into("<H", romBytes, 0x64182, HIGH_VISIBILITY_VERB) # Door Key
+    struct.pack_into("<H", romBytes, 0x66ABA, HIGH_VISIBILITY_VERB) # Explosives
+    struct.pack_into("<H", romBytes, 0x66554, HIGH_VISIBILITY_VERB) # Ghoul Bone <-- Updates verb 8 instead of verb 0
+    struct.pack_into("<H", romBytes, 0x66ACE, HIGH_VISIBILITY_VERB) # Green Bottle
+    struct.pack_into("<H", romBytes, 0x6416E, HIGH_VISIBILITY_VERB) # Iced Tea
+    struct.pack_into("<H", romBytes, 0x65F06, HIGH_VISIBILITY_VERB) # Iron Key
+    struct.pack_into("<H", romBytes, 0x64074, HIGH_VISIBILITY_VERB) # Jester Spirit Insignia <-- Updates verb 3 instead of verb 0
+    struct.pack_into("<H", romBytes, 0x61DA8, HIGH_VISIBILITY_VERB) # Keyword-items <-- "hmmm...." in vanilla
+    # Leaves
+    # LoneStar Badge
+    struct.pack_into("<H", romBytes, 0x61D1A, HIGH_VISIBILITY_VERB) # Magic Fetish <-- "Miserable Man" in vanilla
+    # Matchbox
+    struct.pack_into("<H", romBytes, 0x624BA, HIGH_VISIBILITY_VERB) # Memo
+    struct.pack_into("<H", romBytes, 0x66BE4, HIGH_VISIBILITY_VERB) # Mermaid Scales
+    struct.pack_into("<H", romBytes, 0x64DC8, HIGH_VISIBILITY_VERB) # Nuyen-items
+    struct.pack_into("<H", romBytes, 0x65000, HIGH_VISIBILITY_VERB) # Paperweight
+    struct.pack_into("<H", romBytes, 0x6685A, HIGH_VISIBILITY_VERB) # Password
+    struct.pack_into("<H", romBytes, 0x65016, HIGH_VISIBILITY_VERB) # Potion Bottles
+    struct.pack_into("<H", romBytes, 0x669B2, HIGH_VISIBILITY_VERB) # Ripped Note
+    struct.pack_into("<H", romBytes, 0x66846, HIGH_VISIBILITY_VERB) # Safe Key
+    struct.pack_into("<H", romBytes, 0x62456, HIGH_VISIBILITY_VERB) # Scalpel
+    struct.pack_into("<H", romBytes, 0x66832, HIGH_VISIBILITY_VERB) # Serpent Scales
+    struct.pack_into("<H", romBytes, 0x642CC, HIGH_VISIBILITY_VERB) # Shades
+    struct.pack_into("<H", romBytes, 0x624A6, HIGH_VISIBILITY_VERB) # Slap Patch
+    struct.pack_into("<H", romBytes, 0x64B9A, HIGH_VISIBILITY_VERB) # Stake
+    # Strobe
+    struct.pack_into("<H", romBytes, 0x6246A, HIGH_VISIBILITY_VERB) # Tickets
+    # Time Bomb
+    struct.pack_into("<H", romBytes, 0x62492, HIGH_VISIBILITY_VERB) # Torn Paper
+
+    # Cyberware
+    struct.pack_into("<H", romBytes, 0x652BC, HIGH_VISIBILITY_VERB) # Dermal Plating
+    struct.pack_into("<H", romBytes, 0x652D0, HIGH_VISIBILITY_VERB) # Boosted Reflexes
+    struct.pack_into("<H", romBytes, 0x652E4, HIGH_VISIBILITY_VERB) # Skill Software
 
 # ------------------------------------------------------------------------
 

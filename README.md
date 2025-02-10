@@ -12,7 +12,7 @@ Randomizer for Shadowrun (SNES)
       * `py --version`
       * `python --version`
       * `python3 --version`
-   * If one of these returns a Python 3.x version string (e.g. `Python 3.12.6`), you should be good to go.
+   * If one of these returns a Python 3.x version string (e.g. `Python 3.13.1`), you should be good to go.
    * If not, [download and install Python](https://www.python.org/downloads/).
 1. Click the green "Code" button at the upper right of this repository page, then "Download ZIP".
 1. Extract the ZIP archive's contents to a convenient directory.
@@ -57,6 +57,7 @@ Randomizer for Shadowrun (SNES)
    * This can be useful with `-s` and `-l` to preview the outcome for a given seed.
    * In dry-run mode, the ROM file name is optional and can be omitted.
 * To re-enable the item duplication bug, use `-D`
+* To make items easier to see, use `-V`
 * To specify the generated ROM's file name, use `-o OUTPUT_FILE_NAME`
 
 ## Gameplay

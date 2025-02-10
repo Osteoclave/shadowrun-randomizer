@@ -205,7 +205,8 @@ function generate(event) {
   const randomizerArgs = new Map();
   randomizerArgs.set("romBytes", romBytes);
   randomizerArgs.set("seedString", seed);
-  randomizerArgs.set("itemDuplication", document.getElementById("itemDuplication").checked);
+  randomizerArgs.set("allowItemDuplication", document.getElementById("allowItemDuplication").checked);
+  randomizerArgs.set("highVisibilityItems", document.getElementById("highVisibilityItems").checked);
   randomizerArgs.set("spoilerLog", document.getElementById("spoilerLog").checked);
   worker.postMessage(randomizerArgs, [romBytes.buffer]);
 }
